@@ -1,0 +1,1 @@
+window.SITE={"company": "Stabil Umzug", "email": "[E-Mail-Adresse]", "whatsapp": "", "phone": "[Telefonnummer]", "phone_href": "", "street": "[Straße und Hausnummer]", "zip": "[PLZ]", "city": "Essen"};
