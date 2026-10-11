@@ -597,3 +597,51 @@ main h1, main h2, main h3, .kicker, .crumbs, .msg, .facts li, .pfacts dd, .pstep
 .look figcaption{padding:16px 0 0;color:var(--ink2);text-align:left}
 .look figcaption b{display:block;color:var(--ink);font-size:1.15rem;margin-bottom:4px}
 @media (max-width:760px){.looks{grid-template-columns:minmax(0,1fr)}}
+
+/* ---------- planner quick start in the hero ---------- */
+.hero .quick-plan{grid-column:1;margin:0 0 20px}
+.hero-art{grid-row:4/7}
+.quick-plan{background:#fff;color:var(--ink);border-top:6px solid var(--red);box-shadow:0 18px 40px -22px rgba(23,48,79,.45);padding:clamp(18px,2.4vw,26px);display:grid;gap:14px;max-width:560px}
+.qp-k{display:block;font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--red-text)}
+.qp-head h2{margin:4px 0 0;font-size:clamp(1.25rem,1.9vw,1.55rem);letter-spacing:-.02em;white-space:nowrap}
+.qp-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+.qp-field{display:grid;gap:4px;font-size:13px;font-weight:700;color:var(--ink2)}
+.qp-field .input{width:100%;min-width:0}
+.qp-hh{border:0;margin:0;padding:0;min-width:0}
+.qp-hh legend{font-size:13px;font-weight:700;color:var(--ink2);padding:0;margin-bottom:6px}
+.qp-hh > div{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.qp-chip{position:relative;cursor:pointer}
+.qp-chip input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
+.qp-chip span{display:block;text-align:center;padding:10px 4px;border:2px solid var(--line-soft);font-weight:700;font-size:14px;white-space:nowrap;transition:border-color .15s,background .15s}
+.qp-chip input:checked + span{border-color:var(--red);background:var(--tint);color:var(--tint-ink)}
+.qp-chip input:focus-visible + span{outline:2px solid var(--red);outline-offset:2px}
+.qp-go{width:100%;justify-content:space-between}
+.qp-note{margin:0;font-size:13px;color:var(--ink2);text-align:left}
+.hero .actions .button.primary{background:transparent;color:var(--ink);border-color:var(--ink)}
+.hero .actions .button.primary:hover{background:var(--tint)}
+@media (max-width:860px){.hero-art{grid-row:auto}}
+@media (max-width:420px){.qp-row{grid-template-columns:minmax(0,1fr)}.qp-chip span{font-size:13px}}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]) .quick-plan{background:var(--surface);color:var(--ink)}
+  :root:not([data-theme="light"]) .hero .actions .button.primary{color:var(--dark-ink);border-color:var(--dark-ink)}
+}
+.qp-field .input{font:inherit;font-size:16px;font-weight:500;color:var(--ink);background:var(--surface);border:1px solid var(--line);padding:11px 12px;min-height:48px;border-radius:0;caret-color:var(--red)}
+.qp-field .input:focus-visible{border-color:var(--red);outline:2px solid var(--red);outline-offset:0}
+.hero .quick-plan{margin:24px 0 0}
+.hero .quick-plan + .lead{margin-top:24px}
+.hero-art{grid-row:4/8}
+@media (max-width:860px){.hero-art{grid-row:auto}.hero .quick-plan{margin-top:18px}}
+@media (max-width:600px){
+  .hero .container{padding-top:22px}
+  .hero h1,.hero .tagline{font-size:1.6rem}
+  .quick-plan{gap:10px;padding:16px}
+  .qp-head h2{font-size:1.15rem}
+  .qp-chip span{padding:8px 2px}
+  .qp-note{display:none}
+}
+@media (max-width:600px){
+  .hero .container > .hero-copy > .kicker{display:none}
+  .hero h1,.hero .tagline{font-size:1.45rem}
+  .qp-k{display:none}
+  .hero .quick-plan{margin-top:14px}
+}
