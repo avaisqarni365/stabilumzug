@@ -132,6 +132,46 @@ if ($new -ne $text) {
   Write-Host 'The website already uses this URL.'
 }
 
+# --- 10. admin app (staff sign in with Google; runs as the signed-in user) -------------------
+Step 10 'Admin app'
+$Adm = Join-Path $PSScriptRoot 'admin-script'
+$AdmState = Join-Path $Adm '.deployment-id'
+Push-Location $Repo; try { python tools/build.py | Out-Null } finally { Pop-Location }   # copies Shared.js and Estimator.js
+Push-Location $Adm
+try {
+  @("/* Written by backend/deploy-backend.ps1 for this Google account. Not committed. */",
+    "var SHEET_ID = '$sheetId';",
+    "var SITE_URL = 'https://www.stabilumzug.de';",
+    "var PORTAL_URL = '';   // set when the customer area is live") -join "`n" | Set-Content Config.js -Encoding ASCII
+  @('**/**', '!Admin.js', '!Shared.js', '!Estimator.js', '!Config.js', '!Index.html', '!NoAccess.html', '!appsscript.json') -join "`n" | Set-Content .claspignore -Encoding ASCII
+  if (-not (Test-Path '.clasp.json')) {
+    Copy-Item appsscript.json appsscript.json.keep -Force
+    clasp create --type standalone --title 'Stabil Umzug - Admin' --rootDir .
+    Move-Item appsscript.json.keep appsscript.json -Force
+  }
+  clasp push --force
+  if (Test-Path $AdmState) {
+    $aid = (Get-Content $AdmState -Raw).Trim()
+    clasp deploy --deploymentId $aid --description ("Admin " + (Get-Date -Format 'yyyy-MM-dd HH:mm'))
+  } else {
+    $out = clasp deploy --description 'Admin' 2>&1 | Out-String
+    $m = [regex]::Match($out, 'AKfy[\w-]+')
+    if (-not $m.Success) { throw 'Could not read the admin deployment ID from clasp.' }
+    $aid = $m.Value
+    Set-Content $AdmState $aid -Encoding ASCII
+  }
+} finally { Pop-Location }
+$adminUrl = "https://script.google.com/macros/s/$aid/exec"
+$text = [IO.File]::ReadAllText($cfg)
+$new = [regex]::Replace($text, '"admin_url":\s*"[^"]*"', '"admin_url": "' + $adminUrl + '"')
+if ($new -ne $text) {
+  [IO.File]::WriteAllText($cfg, $new, (New-Object System.Text.UTF8Encoding $false))
+  Push-Location $Repo
+  try { python tools/build.py; git add -A tools/config.py admin en/admin; git commit -m "Link the admin app" | Out-Null; git push origin HEAD } finally { Pop-Location }
+}
+
 Write-Host ""
 Write-Host "Done. Sheet: $sheetUrl" -ForegroundColor Green
 Write-Host "      API:   $url" -ForegroundColor Green
+Write-Host "      Admin: $adminUrl  (also https://www.stabilumzug.de/admin/)" -ForegroundColor Green
+Write-Host "      Staff get access when you share the sheet with their Google account (Editor)." -ForegroundColor Green

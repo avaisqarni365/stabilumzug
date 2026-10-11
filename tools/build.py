@@ -15,6 +15,7 @@ BUILDERS = {
 for _k in lib.GUIDES:
     BUILDERS[_k] = guides.guide(_k)
 BUILDERS["quote"] = services.quote_page
+BUILDERS["admin"] = pages2.admin_login
 BUILDERS["prices"] = services.prices_page
 for _k in services.SERVICES:
     BUILDERS["svc_" + _k] = services.service_page(_k)
@@ -37,7 +38,11 @@ def build_master_data():
     write("assets/data/master.json", compact + "\n")
     with open(os.path.join(ROOT, "assets", "js", "estimator.js"), encoding="utf-8") as f:
         est = f.read()
-    write("backend/apps-script/Estimator.js", "/* Copied from assets/js/estimator.js by tools/build.py. Do not edit here. */\n" + est)
+    with open(os.path.join(ROOT, "backend", "shared", "Shared.js"), encoding="utf-8") as f:
+        shared = f.read()
+    for proj in ("apps-script", "admin-script"):   # the website API and the admin app share estimator and sheet logic
+        write("backend/%s/Estimator.js" % proj, "/* Copied from assets/js/estimator.js by tools/build.py. Do not edit here. */\n" + est)
+        write("backend/%s/Shared.js" % proj, "/* Copied from backend/shared/Shared.js by tools/build.py. Do not edit here. */\n" + shared)
 
 def main():
     urls = []
