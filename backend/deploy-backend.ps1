@@ -70,7 +70,7 @@ try {
   Write-Host "Sheet: $sheetUrl"
 
   # only the three script files go to Google
-  @('**/**', '!Code.js', '!Shared.js', '!Estimator.js', '!appsscript.json') -join "`n" | Set-Content .claspignore -Encoding ASCII
+  @('**/**', '!Code.js', '!Website.js', '!Shared.js', '!Estimator.js', '!appsscript.json') -join "`n" | Set-Content .claspignore -Encoding ASCII
 
   # --- 5. upload ----------------------------------------------------------------------------
   Step 5 'Uploading the script files'
@@ -143,7 +143,7 @@ try {
     "var SHEET_ID = '$sheetId';",
     "var SITE_URL = 'https://www.stabilumzug.de';",
     "var PORTAL_URL = 'https://www.stabilumzug.de/mein-umzug/';") -join "`n" | Set-Content Config.js -Encoding ASCII
-  @('**/**', '!Admin.js', '!Shared.js', '!Estimator.js', '!Config.js', '!Index.html', '!Belege.js', '!BelegeUi.html', '!NoAccess.html', '!appsscript.json') -join "`n" | Set-Content .claspignore -Encoding ASCII
+  @('**/**', '!Admin.js', '!Shared.js', '!Estimator.js', '!Config.js', '!Index.html', '!Belege.js', '!BelegeUi.html', '!Termine.js', '!TermineUi.html', '!NoAccess.html', '!appsscript.json') -join "`n" | Set-Content .claspignore -Encoding ASCII
   if (-not (Test-Path '.clasp.json')) {
     Copy-Item appsscript.json appsscript.json.keep -Force
     clasp create --type standalone --title 'Stabil Umzug - Admin' --rootDir .

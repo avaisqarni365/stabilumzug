@@ -56,7 +56,7 @@ const ctx = {
   },
   CacheService: {getScriptCache: () => ({get: k => cache[k] || null, put: (k, v) => { cache[k] = v; }, remove: k => { delete cache[k]; }})},
   PropertiesService: {getScriptProperties: () => ({getProperty: k => props[k] || null, setProperty: (k, v) => { props[k] = v; }})},
-  LockService: {getScriptLock: () => ({waitLock() {}, releaseLock() {}})},
+  LockService: {getScriptLock: () => ({waitLock() {}, tryLock() { return true; }, releaseLock() {}})},
   Utilities: {
     base64EncodeWebSafe: b => Buffer.from(b).toString('base64url'), computeDigest: (a, s) => [...require('crypto').createHash('md5').update(s).digest()],
     DigestAlgorithm: {MD5: 1}, getUuid: () => require('crypto').randomUUID(), formatDate: () => '2026.10.11-1200',

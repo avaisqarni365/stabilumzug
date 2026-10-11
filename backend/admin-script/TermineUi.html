@@ -1,0 +1,177 @@
+<style>
+/* ---------- appointments and traffic ---------- */
+.ap-day{font-size:16px;margin:22px 0 6px;display:flex;gap:10px;align-items:baseline}
+.ap-day small{color:var(--ink2);font-weight:500;font-size:13px}
+.ap{display:grid;grid-template-columns:70px minmax(0,1fr) auto;gap:4px 14px;align-items:start;padding:12px 0;border-bottom:1px solid var(--line)}
+.ap .tm{font-weight:700;font-size:18px;font-variant-numeric:tabular-nums}
+.ap .tm small{display:block;font-size:12px;color:var(--ink2);font-weight:500}
+.ap .who b{display:block}
+.ap .who small{display:block;color:var(--ink2);font-size:13px}
+.ap .acts{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.ap.Abgesagt{opacity:.55}
+.ast{display:inline-block;font-size:11.5px;font-weight:700;padding:3px 8px;border:1px solid var(--line);margin-right:6px}
+.ast.Gebucht{background:var(--fill);color:#fff;border-color:var(--fill)}
+.ast.Bestätigt{background:#1f6b3a;color:#fff;border-color:#1f6b3a}
+.ast.Verschoben{background:var(--tint);color:var(--tint-ink);border-color:var(--tint)}
+.hours{display:grid;grid-template-columns:110px 90px 90px;gap:6px 10px;align-items:center;max-width:340px}
+.hours .input{min-height:36px;padding:6px 8px}
+.chart{width:100%;height:220px;display:block}
+.chart .v{fill:var(--red)}
+.chart .e{fill:var(--ink)}
+.chart text{font-size:10px;fill:var(--ink2)}
+.legend{display:flex;gap:16px;font-size:13px;color:var(--ink2);margin:6px 0 0}
+.legend i{display:inline-block;width:10px;height:10px;margin-right:6px;vertical-align:-1px}
+.bars{list-style:none;margin:0;padding:0}
+.bars li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;padding:7px 0;border-bottom:1px solid var(--soft);font-size:14px}
+.bars li span{overflow-wrap:anywhere}
+.bars li i{grid-column:1/-1;height:4px;background:var(--red);display:block}
+.funnel{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));border-top:2px solid var(--ink)}
+.funnel div{padding:14px 12px 14px 0;border-bottom:1px solid var(--line)}
+.funnel div + div{padding-left:12px;border-left:1px solid var(--line)}
+.funnel b{display:block;font-size:28px;line-height:1;font-variant-numeric:tabular-nums}
+.funnel span{font-size:12.5px;color:var(--ink2)}
+.funnel em{display:block;font-style:normal;font-size:12px;color:var(--fill2);margin-top:4px}
+.cols3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px;margin-top:28px}
+@media (max-width:900px){.funnel{grid-template-columns:repeat(2,minmax(0,1fr))}.funnel div:nth-child(odd){padding-left:0;border-left:0}.cols3{grid-template-columns:minmax(0,1fr)}.ap{grid-template-columns:60px minmax(0,1fr)}.ap .acts{grid-column:1/-1;justify-content:flex-start}}
+</style>
+<script>
+(function () {
+  'use strict';
+  var U = window.SU, esc = U.esc, run = U.run, A = {data: null, show: 'next'};
+  var WD = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
+  function dLong(iso) { var d = new Date(iso + 'T12:00:00'); return WD[d.getDay()] + ', ' + iso.slice(8, 10) + '.' + iso.slice(5, 7) + '.'; }
+  function busy(b, p) { b.disabled = true; return p.then(function (x) { b.disabled = false; return x; }, function (e) { b.disabled = false; U.fail(e); throw e; }); }
+
+  function route(h) {
+    if (h === 'termine') { appts(); return true; }
+    if (h.indexOf('statistik') === 0) { traffic(Number(h.split('/')[1]) || 30); return true; }
+    return false;
+  }
+
+  /* ---------- appointments ---------- */
+  function appts() {
+    U.setNav('appts');
+    U.app.innerHTML = '<p class="loading">Termine werden geladen …</p>';
+    run('api_appts').then(function (r) { A.data = r; drawAppts(); }).catch(U.fail);
+  }
+  function drawAppts() {
+    var r = A.data, today = r.today;
+    var list = r.appts.filter(function (a) { return A.show === 'next' ? a.date >= today && a.status !== 'Abgesagt' : A.show === 'past' ? a.date < today : true; });
+    if (A.show === 'past') list.reverse();
+    var groups = {};
+    list.forEach(function (a) { (groups[a.date] = groups[a.date] || []).push(a); });
+    var upcoming = r.appts.filter(function (a) { return a.date >= today && a.status !== 'Abgesagt'; });
+    var newOnes = r.appts.filter(function (a) { return a.status === 'Gebucht' && a.date >= today; }).length;
+    var week = upcoming.filter(function (a) { return (new Date(a.date + 'T12:00:00') - new Date(today + 'T12:00:00')) < 7 * 864e5; }).length;
+    var site = (window.SITE_URL || '');
+    U.app.innerHTML = '<span class="kicker">Termine</span><div class="h"><h1>Termine von der Website</h1><a class="btn" target="_blank" rel="noopener" href="https://www.stabilumzug.de/termin/">Buchungsseite ansehen</a></div>' +
+      '<div class="grid4"><div class="kpi"><b>' + upcoming.length + '</b><span>kommende Termine</span></div><div class="kpi"><b>' + week + '</b><span>in den nächsten 7 Tagen</span></div>' +
+      '<div class="kpi"><b' + (newOnes ? ' style="color:var(--fill)"' : '') + '>' + newOnes + '</b><span>neu, noch nicht im Kalender</span></div><div class="kpi"><b>' + r.appts.length + '</b><span>insgesamt gebucht</span></div></div>' +
+      '<div class="filters" style="margin-top:20px">' + [['next', 'Kommende'], ['past', 'Vergangene'], ['all', 'Alle']].map(function (c) { return '<button class="chip" data-af="' + c[0] + '" aria-pressed="' + (A.show === c[0]) + '">' + c[1] + '</button>'; }).join('') + '</div>' +
+      (list.length ? Object.keys(groups).map(function (d) {
+        return '<h2 class="ap-day">' + esc(dLong(d)) + (d === today ? ' <small>heute</small>' : '') + '</h2><div style="border-top:2px solid var(--ink)">' + groups[d].map(apHtml).join('') + '</div>';
+      }).join('') : '<p class="empty">Keine Termine für diesen Filter.</p>') +
+      settingsHtml(r);
+    U.app.querySelectorAll('[data-af]').forEach(function (b) { b.addEventListener('click', function () { A.show = b.getAttribute('data-af'); drawAppts(); }); });
+    U.app.querySelectorAll('[data-cal]').forEach(function (b) { b.addEventListener('click', function () { busy(b, run('api_apptCalendar', b.getAttribute('data-cal'))).then(function () { U.toast('In Google Kalender eingetragen.'); appts(); }); }); });
+    U.app.querySelectorAll('[data-move]').forEach(function (b) { b.addEventListener('click', function () { moveBox(b.getAttribute('data-move')); }); });
+    U.app.querySelectorAll('[data-cancel]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var msg = prompt('Termin absagen? Der Kunde bekommt eine E-Mail.\n\nNachricht an den Kunden (optional):', '');
+        if (msg === null) return;
+        busy(b, run('api_apptUpdate', b.getAttribute('data-cancel'), {status: 'Abgesagt', note: msg, message: msg, notify: true})).then(function () { U.toast('Abgesagt, Kunde informiert.'); appts(); });
+      });
+    });
+    U.app.querySelectorAll('[data-done]').forEach(function (b) { b.addEventListener('click', function () { busy(b, run('api_apptUpdate', b.getAttribute('data-done'), {status: 'Erledigt'})).then(function () { appts(); }); }); });
+    bindSettings();
+  }
+  function apHtml(a) {
+    var T = A.data.types[a.type] || {de: a.type}, wa = a.phone ? 'https://wa.me/' + U.waNum(a.phone) : '';
+    var past = a.date < A.data.today, open = a.status !== 'Abgesagt' && a.status !== 'Erledigt';
+    return '<div class="ap ' + esc(a.status) + '"><div class="tm">' + esc(a.time) + '<small>' + a.min + ' min</small></div>' +
+      '<div class="who"><span class="ast ' + esc(a.status) + '">' + esc(a.status) + '</span><b>' + esc(T.de) + ' · ' + esc(a.name) + '</b>' +
+      '<small>' + esc(a.phone) + ' · ' + esc(a.email) + '</small>' + (a.type === 'visit' ? '<small>📍 ' + esc(a.address) + '</small>' : '') +
+      (a.to ? '<small>Umzug nach: ' + esc(a.to) + '</small>' : '') + (a.message ? '<small>„' + esc(a.message) + '“</small>' : '') +
+      '<small>' + esc(a.nr) + ' · Anfrage <a href="#/a/' + encodeURIComponent(a.lead) + '">' + esc(a.lead) + '</a> · Quelle: ' + esc(a.source) + (a.calendar ? ' · ✓ im Google Kalender' : '') + '</small>' + (a.note ? '<small>Notiz: ' + esc(a.note) + '</small>' : '') + '</div>' +
+      '<div class="acts">' + (open && !a.calendar ? '<button class="btn small primary" data-cal="' + esc(a.nr) + '">In Google Kalender</button>' : '') +
+      (a.phone ? '<a class="btn small" href="tel:' + esc(a.phone.replace(/\s/g, '')) + '">Anrufen</a><a class="btn small" target="_blank" rel="noopener" href="' + wa + '">WhatsApp</a>' : '') +
+      (open && !past ? '<button class="btn small" data-move="' + esc(a.nr) + '">Verschieben</button><button class="btn small" data-cancel="' + esc(a.nr) + '">Absagen</button>' : '') +
+      (open && past ? '<button class="btn small" data-done="' + esc(a.nr) + '">Erledigt</button>' : '') + '</div></div>';
+  }
+  function moveBox(nr) {
+    var a = A.data.appts.filter(function (x) { return x.nr === nr; })[0];
+    var m = document.createElement('div'); m.className = 'modal';
+    m.innerHTML = '<div class="box small" role="dialog" aria-modal="true"><div class="bar"><b>Termin ' + esc(nr) + ' verschieben</b><button class="btn small" data-x>Schließen</button></div>' +
+      '<div class="f2"><div class="field"><label>Neues Datum</label><input class="input" id="mv-d" type="date" value="' + esc(a.date) + '"></div><div class="field"><label>Neue Uhrzeit</label><input class="input" id="mv-t" type="time" step="1800" value="' + esc(a.time) + '"></div></div>' +
+      '<div class="field"><label>Nachricht an den Kunden (optional)</label><textarea class="input" id="mv-m" style="min-height:90px"></textarea></div>' +
+      '<label style="display:flex;gap:8px;align-items:center;margin:8px 0 14px"><input type="checkbox" id="mv-n" checked> Kunde per E-Mail informieren (mit neuer Kalenderdatei)</label>' +
+      '<div class="actions"><button class="btn primary" id="mv-s">Verschieben</button></div></div>';
+    document.body.appendChild(m);
+    m.addEventListener('click', function (e) { if (e.target === m || e.target.hasAttribute('data-x')) m.remove(); });
+    m.querySelector('#mv-s').addEventListener('click', function (e) {
+      busy(e.target, run('api_apptUpdate', nr, {status: 'Verschoben', date: m.querySelector('#mv-d').value, time: m.querySelector('#mv-t').value, message: m.querySelector('#mv-m').value, notify: m.querySelector('#mv-n').checked}))
+        .then(function () { m.remove(); U.toast('Termin verschoben.'); appts(); });
+    });
+  }
+  function settingsHtml(r) {
+    var rows = [1, 2, 3, 4, 5, 6, 0].map(function (d) {
+      var h = r.hours[d] || r.hours[String(d)];
+      return '<label for="h' + d + '">' + WD[d] + '</label><input class="input" id="h' + d + '" type="number" min="6" max="22" placeholder="zu" value="' + (h ? h[0] : '') + '" aria-label="' + WD[d] + ' von"><input class="input" id="h' + d + 'b" type="number" min="6" max="22" placeholder="zu" value="' + (h ? h[1] : '') + '" aria-label="' + WD[d] + ' bis">';
+    }).join('');
+    return '<section class="card" style="margin-top:36px"><h2>Buchbare Zeiten</h2><p class="muted" style="margin:0 0 10px">Von–bis in vollen Stunden. Leer lassen = an diesem Tag keine Termine. An Tagen mit gebuchtem Umzug werden keine Besichtigungen angeboten.</p>' +
+      '<div class="hours"><b class="muted">Tag</b><b class="muted">von</b><b class="muted">bis</b>' + rows + '</div>' +
+      '<div class="field" style="margin-top:14px;max-width:520px"><label for="blk">Gesperrte Tage (Urlaub, Feiertage) – JJJJ-MM-TT, durch Komma getrennt</label><input class="input" id="blk" value="' + esc(r.blocked) + '" placeholder="2026-12-24, 2026-12-31"></div>' +
+      '<div class="actions"><button class="btn primary" id="hs-save">Zeiten speichern</button></div></section>';
+  }
+  function bindSettings() {
+    var b = document.getElementById('hs-save'); if (!b) return;
+    b.addEventListener('click', function () {
+      var hours = {};
+      [0, 1, 2, 3, 4, 5, 6].forEach(function (d) { var a = document.getElementById('h' + d).value, z = document.getElementById('h' + d + 'b').value; if (a && z) hours[d] = [Number(a), Number(z)]; });
+      busy(b, run('api_apptSettings', {hours: hours, blocked: document.getElementById('blk').value})).then(function (r) { A.data = r; U.toast('Zeiten gespeichert – die Website zeigt sie in spätestens einer Minute.'); drawAppts(); });
+    });
+  }
+
+  /* ---------- traffic dashboard ---------- */
+  function traffic(days) {
+    U.setNav('stats');
+    U.app.innerHTML = '<p class="loading">Statistik wird geladen …</p>';
+    run('api_traffic', days).then(function (r) { drawTraffic(r); }).catch(U.fail);
+  }
+  function chart(days) {
+    var W = 900, H = 200, n = days.length, max = Math.max(1, Math.max.apply(null, days.map(function (d) { return d.views; }))), bw = W / n, out = '';
+    days.forEach(function (d, i) {
+      var vh = d.views / max * (H - 24), eh = d.entries / max * (H - 24), x = i * bw;
+      out += '<rect class="v" x="' + (x + bw * .12).toFixed(1) + '" y="' + (H - 18 - vh).toFixed(1) + '" width="' + (bw * .76).toFixed(1) + '" height="' + vh.toFixed(1) + '"><title>' + d.date + ': ' + d.views + ' Aufrufe, ' + d.entries + ' Besuche</title></rect>' +
+        '<rect class="e" x="' + (x + bw * .32).toFixed(1) + '" y="' + (H - 18 - eh).toFixed(1) + '" width="' + (bw * .36).toFixed(1) + '" height="' + eh.toFixed(1) + '"></rect>';
+      if (n <= 31 ? i % Math.ceil(n / 10) === 0 : i % Math.ceil(n / 12) === 0) out += '<text x="' + (x + bw / 2).toFixed(1) + '" y="' + (H - 4) + '" text-anchor="middle">' + d.date.slice(8, 10) + '.' + d.date.slice(5, 7) + '.</text>';
+    });
+    return '<svg class="chart" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" role="img" aria-label="Aufrufe und Besuche pro Tag">' + out + '</svg>';
+  }
+  function bars(list, total) {
+    if (!list.length) return '<p class="empty">Noch keine Daten.</p>';
+    var max = list[0][1] || 1;
+    return '<ul class="bars">' + list.map(function (x) { return '<li><span>' + esc(x[0]) + '</span><b>' + x[1] + (total ? ' <small class="muted">(' + Math.round(x[1] / total * 100) + ' %)</small>' : '') + '</b><i style="width:' + Math.max(2, x[1] / max * 100) + '%"></i></li>'; }).join('') + '</ul>';
+  }
+  function drawTraffic(r) {
+    var t = r.totals, f = r.funnel, today = r.days[r.days.length - 1] || {views: 0, entries: 0};
+    var pct = function (a, b) { if (!b) return '–'; var x = a / b * 100; return (x > 0 && x < 10 ? x.toFixed(1).replace('.', ',') : Math.round(x)) + ' %'; };
+    U.app.innerHTML = '<span class="kicker">Statistik</span><div class="h"><h1>Besucher der Website</h1><div class="filters" style="margin:0">' +
+      [7, 30, 90, 365].map(function (d) { return '<a class="chip" href="#/statistik/' + d + '" aria-pressed="' + (r.period === d) + '">' + (d === 365 ? '1 Jahr' : d + ' Tage') + '</a>'; }).join('') + '</div></div>' +
+      '<div class="grid4"><div class="kpi"><b>' + today.entries + '</b><span>Besuche heute</span></div><div class="kpi"><b>' + t.entries + '</b><span>Besuche (' + r.period + ' Tage)</span></div>' +
+      '<div class="kpi"><b>' + t.views + '</b><span>Seitenaufrufe</span></div><div class="kpi"><b>' + pct(f.requests + f.appts, t.entries) + '</b><span>Besuch → Anfrage oder Termin</span></div></div>' +
+      '<div class="card" style="margin-top:26px"><h2>Pro Tag</h2>' + chart(r.days) + '<div class="legend"><span><i style="background:var(--red)"></i>Seitenaufrufe</span><span><i style="background:var(--ink)"></i>Besuche</span></div></div>' +
+      '<h2 style="font-size:18px;margin:8px 0 10px">Vom Besuch zum Auftrag</h2><div class="funnel">' +
+      [[f.visits, 'Besuche'], [f.routes, 'Strecke berechnet', pct(f.routes, f.visits)], [f.planner, 'Planer geöffnet', pct(f.planner, f.visits)],
+        [f.requests, 'Anfragen', pct(f.requests, f.visits)], [f.appts, 'Termine gebucht', pct(f.appts, f.visits)], [f.booked, 'Aufträge', pct(f.booked, f.requests) + ' der Anfragen']]
+        .map(function (x) { return '<div><b>' + x[0] + '</b><span>' + x[1] + '</span>' + (x[2] ? '<em>' + x[2] + '</em>' : '') + '</div>'; }).join('') + '</div>' +
+      '<div class="cols3"><section class="block"><h2>Woher kommen die Besucher?</h2>' + bars(r.sources, t.entries) + '</section>' +
+      '<section class="block"><h2>Meistbesuchte Seiten</h2>' + bars(r.pages) + '</section>' +
+      '<section class="block"><h2>Geräte</h2>' + bars(r.devices, t.entries) + '<h2 style="margin-top:22px">Sprache</h2>' + bars(r.langs, t.entries) + '</section></div>' +
+      '<p class="muted" style="margin-top:26px;max-width:80ch">Gezählt ohne Cookies und ohne IP-Adresse: je Tag, Seite, Quelle, Gerät und Sprache nur eine Summe. Deshalb ist kein Cookie-Banner nötig. ' +
+      'Neue Aufrufe erscheinen mit bis zu 10 Minuten Verzögerung. Ihre eigenen Besuche zählen nicht, wenn Sie einmal <a target="_blank" rel="noopener" href="https://www.stabilumzug.de/?nohit=1">diesen Link</a> auf jedem Ihrer Geräte öffnen.</p>';
+  }
+
+  window.SUAppts = {route: route};
+})();
+</script>

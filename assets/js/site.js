@@ -95,3 +95,31 @@
     window.open('https://wa.me/' + SITE.whatsapp + '?text=' + encodeURIComponent(text()), '_blank', 'noopener');
   });
 })();
+
+/* Visitor count without cookies (admin → Statistik): page, source group, device and language – no IP address,
+   nothing stored on the device. Off for automated browsers and for the office (open the site once with ?nohit=1). */
+(function () {
+  var S = window.SITE || {}, api = S.api && S.api.charAt(0) !== '[' ? S.api : '';
+  if (!api || !navigator.sendBeacon || navigator.webdriver) return;
+  if (/^(localhost|127\.)/.test(location.hostname) && !/[?&]hittest=1/.test(location.search)) return;
+  try {
+    if (/[?&]nohit=1/.test(location.search)) localStorage.setItem('su-nohit', '1');
+    if (localStorage.getItem('su-nohit')) return;
+  } catch (e) {}
+  var ref = '', same = false;
+  try { var u = new URL(document.referrer); same = u.hostname === location.hostname; ref = u.hostname.replace(/^www\./, ''); } catch (e) {}
+  var q = new URLSearchParams(location.search), src;
+  if (q.get('utm_source')) src = 'Kampagne: ' + q.get('utm_source').slice(0, 30);
+  else if (q.get('gclid')) src = 'Google Ads';
+  else if (same) src = 'Intern';
+  else if (!ref) src = 'Direkt';
+  else if (/(^|\.)google\./.test(ref)) src = 'Google';
+  else if (/bing\.|duckduckgo|ecosia|yahoo|qwant|startpage/.test(ref)) src = 'Andere Suchmaschine';
+  else if (/whatsapp|wa\.me/.test(ref)) src = 'WhatsApp';
+  else if (/facebook|instagram|fb\.|t\.co$|twitter|x\.com|linkedin|tiktok|pinterest|youtube/.test(ref)) src = 'Social Media';
+  else src = ref.slice(0, 40);
+  var coarse = window.matchMedia && matchMedia('(pointer:coarse)').matches, w = Math.min(screen.width, screen.height);
+  var dev = coarse ? (w < 600 ? 'Handy' : 'Tablet') : 'Computer';
+  var body = JSON.stringify({action: 'hit', p: location.pathname, s: src, d: dev, l: document.documentElement.lang === 'en' ? 'en' : 'de', e: same ? 0 : 1});
+  try { navigator.sendBeacon(api, new Blob([body], {type: 'text/plain;charset=utf-8'})); } catch (e) {}
+})();

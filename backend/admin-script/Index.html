@@ -108,7 +108,9 @@ textarea.input{min-height:120px;resize:vertical;line-height:1.5}
     <a href="#/" data-nav="home">Übersicht</a>
     <a href="#/anfragen" data-nav="list">Anfragen</a>
     <a href="#/kalender" data-nav="cal">Kalender</a>
+    <a href="#/termine" data-nav="appts">Termine</a>
     <a href="#/belege" data-nav="docs">Belege</a>
+    <a href="#/statistik" data-nav="stats">Statistik</a>
   </nav>
   <div class="me"><span><?= email ?></span><a href="#" id="sheet-link" target="_blank" rel="noopener">Tabelle</a><a href="<?= siteUrl ?>" target="_blank" rel="noopener">Website</a><a href="https://accounts.google.com/Logout">Abmelden</a></div>
 </header>
@@ -145,6 +147,7 @@ textarea.input{min-height:120px;resize:vertical;line-height:1.5}
   function routeTo() {
     var h = location.hash.replace(/^#\/?/, '');
     if (window.SUDocs && window.SUDocs.route(h)) return;   // Angebote und Rechnungen (BelegeUi.html)
+    if (window.SUAppts && window.SUAppts.route(h)) return;   // Termine und Statistik (TermineUi.html)
     if (h.indexOf('a/') === 0) return detail(decodeURIComponent(h.slice(2)));
     if (h === 'anfragen') return list();
     if (h === 'kalender') return calendar();
@@ -366,5 +369,6 @@ textarea.input{min-height:120px;resize:vertical;line-height:1.5}
 })();
 </script>
 <?!= include_('BelegeUi') ?>
+<?!= include_('TermineUi') ?>
 </body>
 </html>
