@@ -9,6 +9,7 @@ function Sheet(name) {
   this.getName = () => name;
   this.appendRow = r => { this.data.push(r.slice()); };
   this.getLastRow = () => this.data.length;
+  this.getLastColumn = () => Math.max(0, ...this.data.map(r => r.length));
   this.getMaxRows = () => 1000;
   this.getRange = (r, c, nr, nc) => {
     if (typeof r === 'string') return new Range(this, 2, 3, 1, 1);
@@ -136,6 +137,21 @@ const js = Buffer.from(puts[2].body.content, 'base64').toString('utf8');
 const w = {}; vm.runInNewContext(js, {window: w});
 assert.strictEqual(w.FLOW_DATA.items.length, master.items.length);
 console.log('ok publish:', puts.map(p => p.url.split('/contents/')[1]).join(', '), '| version', pub.version);
+
+// 5b. short form
+assert.strictEqual(post({action: 'quick', consent: true, t: 500, form: {name: 'A', phone: '1'}}).error, 'too_fast');
+assert.strictEqual(post({action: 'quick', consent: true, t: 9000, form: {name: 'A'}}).error, 'contact');
+const q = post({action: 'quick', consent: true, t: 9000, lang: 'de', src: {ref: 'google.com'},
+  form: {service: 'clearance', name: 'Frau Test', phone: '0201 999', email: '', rooms: '3', from: 'Karlstraße 32, Essen', to: '', date: '2026-11-20', message: '=Keller und Dachboden'}});
+assert(q.ok && /^A-\d+$/.test(q.id), JSON.stringify(q));
+const L = sheets['Anfragen'].data, hdr = L[0], qr = L[L.length - 1];
+const col = n => qr[hdr.indexOf(n)];
+assert.strictEqual(hdr[hdr.length - 1], 'Leistung');
+assert.strictEqual(col('Leistung'), 'Entrümpelung (Kurzformular)');
+assert.strictEqual(col('Räume'), '3 Zimmer');
+assert.strictEqual(col('Nachricht'), "'=Keller und Dachboden");
+assert.strictEqual(sheets['Anfragen'].data[1][hdr.indexOf('Leistung')], 'Umzug (Planer)');
+console.log('ok quick form', q.id, '|', col('Leistung'), '|', col('Quelle'));
 
 // 6. rate limit
 for (let i = 0; i < 70; i++) post({action: 'route', from: 'Essen Hbf', to: 'Bochum Hbf'});

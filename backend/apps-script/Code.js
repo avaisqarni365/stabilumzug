@@ -24,7 +24,9 @@ var STATUS = ['Neu', 'In Arbeit', 'Angebot raus', 'Gebucht', 'Verloren'];
 var LEAD_COLS = ['ID', 'Eingang', 'Status', 'Zuständig', 'Angebot €', 'Name', 'Telefon', 'E-Mail', 'Kontaktweg', 'Von', 'Nach',
   'km (Familie)', 'km (Maps)', 'Fahrzeit min', 'Termin', 'Haushalt', 'Zugang Auszug', 'Zugang Einzug', 'Halteverbot', 'Räume',
   'Anzahl', 'Volumen min m³', 'Volumen max m³', 'Gewicht kg', 'Fahrzeug', 'Team', 'Stunden', 'Vertrauen', 'Stammdaten',
-  'Quelle', 'Sprache', 'Nachricht', 'Referenz', 'Einwilligung', 'Daten (JSON)'];
+  'Quelle', 'Sprache', 'Nachricht', 'Referenz', 'Einwilligung', 'Daten (JSON)', 'Leistung'];
+var JSON_COL = LEAD_COLS.indexOf('Daten (JSON)') + 1;   // 1-based
+var SERVICE_DE = {moves: 'Umzug', clearance: 'Entrümpelung', dissolution: 'Wohnungsauflösung', transport: 'Transport', other: 'Sonstiges'};
 var ITEM_COLS = ['Anfrage', 'item_id', 'Gegenstand', 'Größe', 'Anzahl', 'Herkunft', 'm³ je Stück', 'm³ gesamt'];
 var QUOTE_COLS = ['Anfrage', 'Version', 'Erstellt', 'Stammdaten', 'Position', 'Basis', 'Menge', 'Einheit', 'Satz €', 'Betrag €'];
 var CAT_COLS = ['item_id', 'Größe', 'Name DE', 'Name EN', 'Suchwörter', 'Raum', 'Volumen m³', 'kg min', 'kg max', 'Abbau min', 'Aufbau min', 'Träger', 'Zerbrechlich', 'Aktiv'];
@@ -71,6 +73,7 @@ function doPost(e) {
     var body = JSON.parse(e.postData.contents);
     switch (body.action) {
       case 'lead': return json(saveLead_(body));
+      case 'quick': return json(saveQuick_(body));
       case 'route': return json(route_(String(body.from || ''), String(body.to || '')));
       case 'saveDraft': return json(saveDraft_(body));
       default: return json({ok: false, error: 'unknown_action'});
@@ -118,6 +121,7 @@ function saveLead_(b) {
   var lock = LockService.getScriptLock();
   lock.waitLock(20000);
   try {
+    ensureLeadHeader_();
     var id = nextId_();
     var now = new Date();
     var acc = function (a) { return a ? FLOORS[a.floor] + ', ' + LIFTS[a.lift] + ', ' + PARKS[a.park] : ''; };
@@ -132,7 +136,7 @@ function saveLead_(b) {
       est.n, round_(est.volLow), round_(est.volHigh), Math.round(est.kgMin) + '–' + Math.round(est.kgMax),
       VEH_DE[est.vehicle] + (est.trips > 1 ? ' · ' + est.trips + ' Fahrten' : ''), est.crew, round_(est.hours),
       {high: 'Hoch', medium: 'Mittel', low: 'Niedrig'}[est.conf], master.version, cell_(srcTxt, 120), b.lang === 'en' ? 'EN' : 'DE',
-      cell_(c.note, 1000), clip_(s.ref, 20), now, JSON.stringify(s).slice(0, 45000)
+      cell_(c.note, 1000), clip_(s.ref, 20), now, JSON.stringify(s).slice(0, 45000), 'Umzug (Planer)'
     ]);
     var rows = [];
     Object.keys(s.inv).forEach(function (iid) {
@@ -158,6 +162,62 @@ function saveLead_(b) {
   }
   notifyOffice_(id, name, phone, email, s, est, route);
   return {ok: true, id: id, km: route.ok ? route.km : null};
+}
+
+/* Short form ("Jetzt kostenloses Angebot anfordern"): contact, service, rooms, from/to, date, message. */
+function saveQuick_(b) {
+  if (b.hp) return {ok: true, id: 'A-0000'};
+  if (!(Number(b.t) > 3000)) return {ok: false, error: 'too_fast'};
+  if (b.consent !== true) return {ok: false, error: 'consent'};
+  var f = b.form || {};
+  var name = clip_(f.name, 80), phone = clip_(f.phone, 40), email = clip_(f.email, 120);
+  if (!name || (!phone && !email)) return {ok: false, error: 'contact'};
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return {ok: false, error: 'email'};
+  var service = SERVICE_DE[f.service] || SERVICE_DE.other;
+  var from = clip_(f.from, 200), to = clip_(f.to, 200);
+  var route = (from && to) ? route_(from, to) : {ok: false};
+  var src = b.src || {};
+  var srcTxt = [src.utm_source, src.utm_medium, src.utm_campaign].filter(Boolean).join(' / ') || src.ref || 'direkt';
+  var lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  var id;
+  try {
+    ensureLeadHeader_();
+    id = nextId_();
+    var now = new Date(), row = [];
+    LEAD_COLS.forEach(function () { row.push(''); });
+    var set = function (col, v) { row[LEAD_COLS.indexOf(col)] = v; };
+    set('ID', id); set('Eingang', now); set('Status', STATUS[0]);
+    set('Name', cell_(name, 80)); set('Telefon', cell_(phone, 40)); set('E-Mail', cell_(email, 120)); set('Kontaktweg', clip_(f.channel, 20));
+    set('Von', cell_(from)); set('Nach', cell_(to));
+    if (route.ok) { set('km (Maps)', route.km); set('Fahrzeit min', route.min); }
+    set('Termin', clip_(f.date, 10) || 'flexibel');
+    set('Räume', f.rooms ? clip_(f.rooms, 6) + ' Zimmer' : '');
+    set('Quelle', cell_(srcTxt, 120)); set('Sprache', b.lang === 'en' ? 'EN' : 'DE');
+    set('Nachricht', cell_(f.message, 1000)); set('Einwilligung', now);
+    set('Daten (JSON)', JSON.stringify({form: f, src: src}).slice(0, 45000));
+    set('Leistung', service + ' (Kurzformular)');
+    sheet_(TAB.leads).appendRow(row);
+  } finally {
+    lock.releaseLock();
+  }
+  var to_ = config_('notify_email') || Session.getEffectiveUser().getEmail();
+  if (to_) {
+    try {
+      MailApp.sendEmail({to: to_, subject: 'Neue Anfrage ' + id + ' – ' + service + ' – ' + name, body: [
+        'Neue Anfrage ' + id + ' über das Kurzformular', '', 'Leistung: ' + service, 'Name: ' + name, 'Telefon: ' + (phone || '—'), 'E-Mail: ' + (email || '—'),
+        'Von: ' + (from || '—'), 'Nach: ' + (to || '—') + (route.ok ? ' (' + route.km + ' km)' : ''), 'Zimmer: ' + (f.rooms || '—'), 'Termin: ' + (f.date || 'flexibel'),
+        '', clip_(f.message, 1000), '', 'Tabelle: ' + SpreadsheetApp.getActive().getUrl()].join('\n')});
+    } catch (err) { console.error(err); }
+  }
+  return {ok: true, id: id};
+}
+
+/* Sheets created before a column was added get the new header cell. */
+function ensureLeadHeader_() {
+  var sh = sheet_(TAB.leads), have = sh.getRange(1, 1, 1, Math.max(1, sh.getLastColumn())).getValues()[0];
+  if (have.length >= LEAD_COLS.length && have[LEAD_COLS.length - 1] === LEAD_COLS[LEAD_COLS.length - 1]) return;
+  sh.getRange(1, 1, 1, LEAD_COLS.length).setValues([LEAD_COLS]).setFontWeight('bold').setBackground('#201e1d').setFontColor('#f3f2f2');
 }
 
 function nextId_() {
@@ -298,7 +358,8 @@ function quoteSelectedLead() {
   if (sh.getName() !== TAB.leads || sh.getActiveRange().getRow() < 2) { ui.alert('Bitte eine Zeile im Tab „' + TAB.leads + '“ markieren.'); return; }
   var row = sh.getActiveRange().getRow();
   var vals = sh.getRange(row, 1, 1, LEAD_COLS.length).getValues()[0];
-  var id = vals[0], s = JSON.parse(vals[LEAD_COLS.length - 1] || '{}');
+  var id = vals[0], s = JSON.parse(vals[JSON_COL - 1] || '{}');
+  if (!s.f1 || !s.inv) { ui.alert('Anfrage ' + id + ' kam über das Kurzformular: bitte Angebot manuell im Tab „' + TAB.quotes + '“ erstellen.'); return; }
   var kmMaps = Number(vals[12]);
   if (kmMaps > 0) s.f1.km = String(kmMaps);
   var master = loadMaster_(), est = Estimator.estimate(s, master), R = rates_();
@@ -409,7 +470,7 @@ function setup() {
   leads.setConditionalFormatRules(Object.keys(colors).map(function (k) {
     return SpreadsheetApp.newConditionalFormatRule().whenTextEqualTo(k).setBackground(colors[k]).setRanges([leads.getRange('C2:C')]).build();
   }));
-  leads.hideColumns(LEAD_COLS.length);   // raw JSON
+  leads.hideColumns(JSON_COL);   // raw JSON
 
   var rates = sheet_(TAB.rates);
   if (rates.getLastRow() < 2) {
