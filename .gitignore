@@ -1,0 +1,6 @@
+
+# Apps Script deployment (local, per account)
+backend/apps-script/.clasp.json
+backend/apps-script/.claspignore
+backend/apps-script/appsscript.json.keep
+tools/__pycache__/

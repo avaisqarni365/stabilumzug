@@ -19,6 +19,7 @@ var TAB = {
   leads: 'Anfragen', items: 'Gegenstände', quotes: 'Angebote', catalog: 'Katalog', settings: 'Regeln',
   rates: 'Preise', audit: 'Protokoll', drafts: 'Entwürfe', config: 'Konfiguration'
 };
+var DEFAULT_SITE = 'https://www.stabilumzug.de';   // first catalogue is read from here unless SITE_URL or GITHUB_REPO is set
 var STATUS = ['Neu', 'In Arbeit', 'Angebot raus', 'Gebucht', 'Verloren'];
 var LEAD_COLS = ['ID', 'Eingang', 'Status', 'Zuständig', 'Angebot €', 'Name', 'Telefon', 'E-Mail', 'Kontaktweg', 'Von', 'Nach',
   'km (Familie)', 'km (Maps)', 'Fahrzeit min', 'Termin', 'Haushalt', 'Zugang Auszug', 'Zugang Einzug', 'Halteverbot', 'Räume',
@@ -242,6 +243,7 @@ function loadDraft_(ref, token) {
 function loadMaster_() {
   var cache = CacheService.getScriptCache(), hit = cache.get('master');
   if (hit) return JSON.parse(hit);
+  if (sheet_(TAB.catalog).getLastRow() < 2) seedFromWebsite_();   // setup was interrupted: load the catalogue now
   var m = masterFromSheet_();
   try { cache.put('master', JSON.stringify(m), 3600); } catch (err) {}
   return m;
@@ -439,7 +441,8 @@ function seedFromWebsite_() {
   var props = PropertiesService.getScriptProperties();
   var repo = props.getProperty('GITHUB_REPO'), branch = props.getProperty('GITHUB_BRANCH') || 'main';
   var url = props.getProperty('SITE_URL') ? props.getProperty('SITE_URL').replace(/\/$/, '') + '/assets/data/master.json'
-    : 'https://raw.githubusercontent.com/' + repo + '/' + branch + '/data/master.json';
+    : repo ? 'https://raw.githubusercontent.com/' + repo + '/' + branch + '/data/master.json'
+    : DEFAULT_SITE + '/assets/data/master.json';
   var m = JSON.parse(UrlFetchApp.fetch(url).getContentText());
   var rows = [];
   m.items.forEach(function (it) {
