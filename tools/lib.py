@@ -76,10 +76,20 @@ def is_ph(v):
 def ph(v):
     return '<span class="ph">%s</span>' % esc(v) if is_ph(v) else esc(v)
 
+def logo_mark(uid):
+    """The truck from the logo, inline so the cab can follow the text colour (navy on light, light on dark)."""
+    return ('<svg class="mark" viewBox="0 0 560 232" aria-hidden="true" focusable="false"><defs><mask id="m%s"><rect width="560" height="232" fill="#fff"/>'
+            '<circle cx="190" cy="196" r="40"/><circle cx="485" cy="196" r="40"/></mask></defs>'
+            '<g fill="var(--logo-orange)"><rect x="52" y="52" width="82" height="20" rx="10"/><rect x="8" y="96" width="118" height="20" rx="10"/><rect x="78" y="140" width="46" height="20" rx="10"/></g>'
+            '<g mask="url(#m%s)"><path fill="var(--logo-orange)" stroke="var(--logo-orange)" stroke-width="16" stroke-linejoin="round" d="M146 14H432L424 160H130Z"/>'
+            '<path fill="currentColor" fill-rule="evenodd" d="M446 46H500Q512 46 518 56L548 112Q554 122 554 134V184H446ZM466 66V114H526L502 70Q500 66 494 66Z"/>'
+            '<rect x="112" y="172" width="442" height="22" rx="11" fill="currentColor"/></g>'
+            '<g fill="none" stroke="currentColor" stroke-width="18"><circle cx="190" cy="196" r="22"/><circle cx="485" cy="196" r="22"/></g></svg>') % (uid, uid)
+
 def brand(key, lang):
-    pre = prefix_for(key, lang)
-    return ('<a class="brand" href="%s" aria-label="%s"><img src="%sassets/img/favicon.svg" alt="" width="32" height="32">'
-            '<span>Stabil <b>Umzug</b></span></a>') % (link(key, "home", lang), esc(SITE["company"] + " – " + t("Startseite", "Home", lang)), pre)
+    return ('<a class="brand" href="%s" aria-label="%s">%s'
+            '<span class="bw"><span>Stabil</span><b>Umzug</b></span></a>') % (
+        link(key, "home", lang), esc(SITE["company"] + " – " + t("Startseite", "Home", lang)), logo_mark("h"))
 
 def header(key, lang):
     items = []
@@ -117,7 +127,7 @@ def footer(key, lang):
     return places.area_band(key, lang) + (
         '<footer class="site-footer"><div class="container">'
         '<div class="footer-top">'
-        '<div><div class="wordmark">Stabil<span>Umzug.</span></div><p>%s</p></div>'
+        '<div><div class="logo-lockup" role="img" aria-label="Stabil Umzug Essen">' + logo_mark("f") + '<span class="s">Stabil</span><span class="u">Umzug</span><span class="e">Essen</span></div><p>%s</p></div>'
         '<div><h3>%s</h3><ul><li>%s</li><li>%s</li>%s<li>%s</li><li>%s %s</li></ul></div>'
         '<div><h3>%s</h3><ul>%s<li><a href="%s">%s</a></li></ul></div>'
         '<div><h3>%s</h3><ul><li><a href="%s">%s</a></li><li><a href="%s">%s</a></li><li><a href="%s">%s</a></li><li><a href="%s">%s</a></li><li><a href="%s">%s</a></li></ul></div>'

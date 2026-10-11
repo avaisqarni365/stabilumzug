@@ -138,8 +138,8 @@ LINK_RE = __import__("re").compile(r"\[\[([a-z]+)\|([^\]]+)\]\]")
 def inline(text, key, lang):
     return LINK_RE.sub(lambda m: '<a href="%s">%s</a>' % (link(key, SVC.get(m.group(1), m.group(1)), lang), m.group(2)), esc(text))
 
-PHOTO = {"moves": "couple-carry.jpg", "clearance": "empty-room.jpg", "dissolution": "boxes-window.jpg",
-         "transport": "truck-furniture.jpg", "extras": "men-box-street.jpg"}
+PHOTO = {"moves": "loading-boxes.jpg", "clearance": "empty-room.jpg", "dissolution": "boxes-window.jpg",
+         "transport": "sofa-transport.jpg", "extras": "kitchen-assembly.jpg"}
 
 def service_page(skey):
     def build(lang):

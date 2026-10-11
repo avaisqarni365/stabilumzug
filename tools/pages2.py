@@ -1,6 +1,6 @@
 """Page bodies part 2: Essen, about, legal pages, 404. Guides live in guides.py."""
 from config import SITE
-from lib import esc, t, link, crumbs, ph, is_ph, url_of
+from lib import esc, t, link, crumbs, ph, is_ph, url_of, prefix_for
 from pages import page_head, cta
 
 def sec(inner, cls=""):
@@ -72,8 +72,8 @@ def about(lang):
     title = t("Über uns", "About us", lang)
     body = page_head(key, lang, title, t("Ein Umzugsunternehmen aus Essen, das Planung einfach und Preise nachvollziehbar machen will.",
                                          "A moving company from Essen that wants to make planning simple and prices traceable.", lang), title,
-                     kicker=t("Stabil Umzug · Essen", "Stabil Umzug · Essen", lang), photo="couple-boxes.jpg",
-                     alt=t("Paar zwischen Umzugskartons in der neuen Wohnung", "Couple among moving boxes in their new home", lang))
+                     kicker=t("Stabil Umzug · Essen", "Stabil Umzug · Essen", lang), photo="sofa-assembly.jpg",
+                     alt=t("Team von Stabil Umzug baut ein Sofa im Wohnzimmer auf", "Stabil Umzug crew assembling a sofa in the living room", lang))
     intro = t("Ein Umzug ist eine Kette von Schritten: neue Wohnung ausmessen, Hausrat erfassen, Zugang klären, Halteverbot, Kartons, Aufbau, Anmeldung. "
               "Das meiste Geld und der meiste Stress gehen verloren, wenn Angaben von einem Schritt nicht beim nächsten ankommen. Deshalb haben wir diesen Ablauf in einen einfachen Planer übersetzt.",
               "A move is a chain of steps: measure the new home, list your belongings, clarify access, parking permit, boxes, assembly, registration. "
@@ -81,6 +81,14 @@ def about(lang):
     cells = "".join('<div><h3>%s</h3><p>%s</p></div>' % (esc(t(*a, lang)), esc(t(*b, lang))) for a, b in PRINCIPLES)
     body += ('<section class="section"><div class="container"><div class="head"><div><span class="kicker red">%s</span><h2>%s</h2></div><p>%s</p></div>'
              '<div class="costs two">%s</div></div></section>' % (t("Wie wir arbeiten", "How we work", lang), t("Sechs Versprechen.", "Six promises.", lang), esc(intro), cells))
+    look = [("uniform.jpg", ("Arbeitskleidung in Orange und Navy", "Workwear in orange and navy"),
+             ("Polo, Softshelljacke und Arbeitshose mit Logo – Sie erkennen unser Team sofort an der Tür.", "Polo shirt, softshell jacket and work trousers with our logo – you recognise our crew at the door.")),
+            ("caps.jpg", ("Ein Logo, zwei Farben", "One logo, two colours"),
+             ("Vom Karton bis zur Kappe: Alles, was zu Ihnen kommt, trägt dasselbe Zeichen.", "From the box to the cap: everything that comes to you carries the same mark."))]
+    figs = "".join('<figure class="look"><img src="%sassets/img/photos/%s" alt="%s" loading="lazy" width="1536" height="1024"><figcaption><b>%s</b>%s</figcaption></figure>' % (
+        prefix_for(key, lang), f, esc(t(*h, lang)), esc(t(*h, lang)), esc(t(*d, lang))) for f, h, d in look)
+    body += ('<section class="section alt"><div class="container"><div class="head"><div><span class="kicker red">%s</span><h2>%s</h2></div></div>'
+             '<div class="looks">%s</div></div></section>') % (t("Unser Auftritt", "How we look", lang), t("Erkennbar in Orange und Navy.", "Recognisable in orange and navy.", lang), figs)
     body += sec('<p class="ph">%s</p>' % t("[Hier kurze Vorstellung des Unternehmens, des Teams um Ibrahim Abdelaal und der Erfahrung eintragen]",
                                             "[Add a short introduction of the company, the team around Ibrahim Abdelaal and its experience here]", lang))
     body += cta(key, lang)

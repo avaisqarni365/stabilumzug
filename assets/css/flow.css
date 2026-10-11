@@ -1,30 +1,30 @@
 /* Umzugsplaner (family flow) – Modernist design system from the design handoff, scoped to .uf.
-   Tokens: ground #f3f2f2, surface #eae9e9, text #201e1d, accent #ec3013, radius 0, 2px rules, Archivo.
-   Accessibility: #ec3013 with light text is 3.8:1, so fills that carry small text use --uf-fill (#c8250c, 5.0:1);
+   Tokens: ground #f3f2f2, surface #eae9e9, text #17304f, accent #f0650f, radius 0, 2px rules, Archivo.
+   Accessibility: #f0650f with light text is 3.8:1, so fills that carry small text use --uf-fill (#c2410c, 5.0:1);
    the design red stays for large marks (progress, numbers, poster). Small red text uses accent-700. */
 .uf, .uf-wrap{
-  --c-bg:#f3f2f2; --c-surface:#eae9e9; --c-text:#201e1d; --c-accent:#ec3013; --c-fill:#c8250c; --c-fill-hover:#ae1800;
-  --c-on-fill:#f3f2f2; --c-acc-text:#ae1800; --c-acc-tint:#fff2ef; --c-acc-tint-ink:#7c1405;
-  --c-n100:#f8f4f4; --c-n200:#eae7e7; --c-n300:#d7d3d3; --c-n700:#605d5d; --c-n800:#444141;
-  --c-div:color-mix(in srgb,#201e1d 40%,transparent); --c-hover:color-mix(in srgb,#201e1d 7%,transparent);
-  --shadow-md:0 3px 10px color-mix(in srgb,#2d2b2b 16%,transparent);
+  --c-bg:#f3f2f2; --c-surface:#eae9e9; --c-text:#17304f; --c-accent:#f0650f; --c-fill:#c2410c; --c-fill-hover:#b4420e;
+  --c-on-fill:#f3f2f2; --c-acc-text:#b4420e; --c-acc-tint:#fff1e8; --c-acc-tint-ink:#7a2a06;
+  --c-n100:#f8f4f4; --c-n200:#eae7e7; --c-n300:#d0d6de; --c-n700:#55606f; --c-n800:#34496a;
+  --c-div:color-mix(in srgb,#17304f 40%,transparent); --c-hover:color-mix(in srgb,#17304f 7%,transparent);
+  --shadow-md:0 3px 10px color-mix(in srgb,#1f3654 16%,transparent);
   --f:'Archivo',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]) .uf, :root:not([data-theme="light"]) .uf-wrap{
-    --c-bg:#1a1817; --c-surface:#242120; --c-text:#f1efee; --c-accent:#ff563c; --c-fill:#ff563c; --c-fill-hover:#ff7a63;
-    --c-on-fill:#1a1817; --c-acc-text:#ff9783; --c-acc-tint:#4d170e; --c-acc-tint-ink:#ffc4b8;
-    --c-n100:#2d2b2b; --c-n200:#2d2b2b; --c-n300:#444141; --c-n700:#bab6b6; --c-n800:#d7d3d3;
-    --c-div:color-mix(in srgb,#f1efee 40%,transparent); --c-hover:color-mix(in srgb,#f1efee 9%,transparent);
-    --shadow-md:0 0 0 1px color-mix(in srgb,#f1efee 18%,transparent);
+    --c-bg:#0e1a2b; --c-surface:#16253a; --c-text:#eef1f5; --c-accent:#ff7a2e; --c-fill:#ff7a2e; --c-fill-hover:#ff9a5c;
+    --c-on-fill:#0e1a2b; --c-acc-text:#ffa877; --c-acc-tint:#4a1f08; --c-acc-tint-ink:#ffd2b5;
+    --c-n100:#1f3654; --c-n200:#1f3654; --c-n300:#34496a; --c-n700:#b8c1ce; --c-n800:#d0d6de;
+    --c-div:color-mix(in srgb,#eef1f5 40%,transparent); --c-hover:color-mix(in srgb,#eef1f5 9%,transparent);
+    --shadow-md:0 0 0 1px color-mix(in srgb,#eef1f5 18%,transparent);
   }
 }
 :root[data-theme="dark"] .uf, :root[data-theme="dark"] .uf-wrap{
-  --c-bg:#1a1817; --c-surface:#242120; --c-text:#f1efee; --c-accent:#ff563c; --c-fill:#ff563c; --c-fill-hover:#ff7a63;
-  --c-on-fill:#1a1817; --c-acc-text:#ff9783; --c-acc-tint:#4d170e; --c-acc-tint-ink:#ffc4b8;
-  --c-n100:#2d2b2b; --c-n200:#2d2b2b; --c-n300:#444141; --c-n700:#bab6b6; --c-n800:#d7d3d3;
-  --c-div:color-mix(in srgb,#f1efee 40%,transparent); --c-hover:color-mix(in srgb,#f1efee 9%,transparent);
-  --shadow-md:0 0 0 1px color-mix(in srgb,#f1efee 18%,transparent);
+  --c-bg:#0e1a2b; --c-surface:#16253a; --c-text:#eef1f5; --c-accent:#ff7a2e; --c-fill:#ff7a2e; --c-fill-hover:#ff9a5c;
+  --c-on-fill:#0e1a2b; --c-acc-text:#ffa877; --c-acc-tint:#4a1f08; --c-acc-tint-ink:#ffd2b5;
+  --c-n100:#1f3654; --c-n200:#1f3654; --c-n300:#34496a; --c-n700:#b8c1ce; --c-n800:#d0d6de;
+  --c-div:color-mix(in srgb,#eef1f5 40%,transparent); --c-hover:color-mix(in srgb,#eef1f5 9%,transparent);
+  --shadow-md:0 0 0 1px color-mix(in srgb,#eef1f5 18%,transparent);
 }
 
 .uf-wrap{background:var(--c-bg);padding:24px 0 48px}
@@ -127,13 +127,13 @@ p.uf-small,.uf-how .uf-small,.uf-card .uf-small{text-align:justify}
 
 /* welcome */
 .uf-body0{padding-top:0}
-.uf-hero{margin:0 -16px;background:#201e1d;color:#f3f2f2;padding:22px 16px 20px;display:flex;flex-direction:column;gap:14px}
+.uf-hero{margin:0 -16px;background:#17304f;color:#f3f2f2;padding:22px 16px 20px;display:flex;flex-direction:column;gap:14px}
 .uf-hero h1{font-size:34px;line-height:1;letter-spacing:-.03em;text-wrap:balance}
-.uf-hero h1 span{color:#ff563c}
-.uf-hero p{font-size:14px;color:#d7d3d3}
+.uf-hero h1 span{color:#ff7a2e}
+.uf-hero p{font-size:14px;color:#d0d6de}
 .uf-scene{margin:0 -16px;background:#f3f2f2;padding:14px 10px 6px}
 .uf-scene img{width:100%;height:auto;display:block}
-.uf-caption{display:flex;justify-content:space-between;gap:8px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#bab6b6}
+.uf-caption{display:flex;justify-content:space-between;gap:8px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#b8c1ce}
 .uf-how{list-style:none;margin:0;padding:0;border-top:2px solid var(--c-div)}
 .uf-how li{display:grid;grid-template-columns:40px 1fr;gap:10px;padding:10px 0;border-bottom:1px solid var(--c-div)}
 .uf-n{font-weight:700;font-size:24px;line-height:1;color:var(--c-accent)}

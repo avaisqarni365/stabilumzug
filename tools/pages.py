@@ -165,9 +165,9 @@ def home(lang):
                            "Each step needs information from the one before. The first two – measuring the new home and listing your belongings – decide almost everything that follows.", lang))
                 + guides.journey_html(key, lang) + '<p style="margin:28px 0 0"><a class="link-arrow" href="%s">%s</a></p>' % (L("guides"), t("Alle Schritte und Themen", "All steps and topics", lang)))
 
-    body += ('<section class="photo-band"><img src="%sassets/img/photos/couple-carry.jpg" alt="%s" loading="lazy" width="1600" height="1067">'
+    body += ('<section class="photo-band"><img src="%sassets/img/photos/bed-assembly.jpg" alt="%s" loading="lazy" width="1600" height="1067">'
              '<div class="container"><span class="kicker">%s</span><h2>%s</h2><p>%s</p><div class="actions"><a class="button primary" href="%s">%s</a><a class="button arrow" href="%s">%s</a></div></div></section>') % (
-        pre, esc(t("Paar trägt Umzugskartons in die neue Wohnung", "Couple carrying moving boxes into their new home", lang)),
+        pre, esc(t("Zwei Monteure von Stabil Umzug bauen ein Bett in der neuen Wohnung auf", "Two Stabil Umzug fitters assembling a bed in the new home", lang)),
         t("Ankommen statt schleppen", "Arrive instead of carry", lang),
         t("Sie ziehen ein. Wir tragen.", "You move in. We carry.", lang),
         esc(t("Vom ersten Karton bis zum aufgebauten Bett: Unser Team übernimmt das Schwere, damit Sie sich auf Ihr neues Zuhause freuen können.",
@@ -219,6 +219,19 @@ def home(lang):
     body += sec("", head(t("Leistungen", "Services", lang), t("Alles aus einer Hand.", "Everything from one team.", lang),
                          t("Sie wählen, was wir übernehmen. Der Rest bleibt bei Ihnen – und günstiger.", "You choose what we handle. The rest stays with you – and costs less.", lang))
                 + services_mod.service_tiles(key, lang) + '<p style="margin:28px 0 0"><a class="link-arrow" href="%s">%s</a></p>' % (L("services"), t("Alle Leistungen", "All services", lang)))
+
+    gear = [("Sackkarren und Möbelroller für schwere Stücke", "Hand trucks and furniture dollies for heavy pieces"),
+            ("Treppensteiger für Waschmaschine, Schrank und Klavier", "Stair climber for washing machine, wardrobe and piano"),
+            ("Möbeldecken, die jedes Stück einzeln schützen", "Moving blankets that protect every piece"),
+            ("Spanngurte, damit im Transporter nichts verrutscht", "Ratchet straps so nothing shifts in the van"),
+            ("Arbeitshandschuhe mit Griff – sicher für Team und Möbel", "Grip gloves – safe for crew and furniture")]
+    body += sec(" alt", '<div class="split gear"><figure class="gear-img"><img src="%sassets/img/photos/equipment.webp" alt="%s" loading="lazy" width="1536" height="1024"></figure>'
+                '<div><span class="kicker red">%s</span><h2>%s</h2><p class="lead" style="margin:14px 0 18px">%s</p><ul class="checks" style="margin-top:0">%s</ul></div></div>' % (
+        pre, esc(t("Ausrüstung von Stabil Umzug: Sackkarre, Treppensteiger, Möbelroller, Möbeldecken, Spanngurte und Handschuhe",
+                   "Stabil Umzug equipment: hand truck, stair climber, dolly, moving blankets, straps and gloves", lang)),
+        t("Ausrüstung", "Equipment", lang), t("Das richtige Werkzeug dabei.", "The right tools on board.", lang),
+        esc(t("Damit Möbel heil ankommen und Treppenhäuser ohne Kratzer bleiben.", "So furniture arrives intact and stairwells stay free of scratches.", lang)),
+        "".join("<li>%s</li>" % esc(t(*x, lang)) for x in gear)))
 
     cover = [(("Gesetzliche Haftung", "Statutory carrier liability"), ("Inklusive. Deckt Verlust und Schäden während des Umzugs, begrenzt je Kubikmeter. Nicht gedeckt: selbst gepackte Kartons, Wertsachen, Bargeld.", "Included. Covers loss and damage during the move, limited per cubic metre. Not covered: self-packed boxes, valuables, cash.")),
              (("Transportversicherung", "Goods-in-transit cover"), ("Auf Anfrage. Deckt bis zu Ihrem angegebenen Wert, auch Kratzer und Glasbruch.", "On request. Covers up to your declared value, including scratches and glass breakage.")),
