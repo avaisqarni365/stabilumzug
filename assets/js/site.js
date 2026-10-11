@@ -10,6 +10,23 @@
     });
   }
 
+  /* Lead source: carry campaign parameters (or the external referrer) along internal links so the planner
+     can name the source in the request. Nothing is stored; the values only live in the link. */
+  (function () {
+    var p = new URLSearchParams(location.search), keep = new URLSearchParams();
+    ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'gclid', 'ref'].forEach(function (k) { if (p.get(k)) keep.set(k, p.get(k).slice(0, 80)); });
+    if (!keep.toString() && document.referrer) {
+      try { var h = new URL(document.referrer).hostname; if (h && h !== location.hostname) keep.set('ref', h); } catch (e) {}
+    }
+    if (!keep.toString()) return;
+    Array.prototype.forEach.call(document.querySelectorAll('a[href]'), function (a) {
+      if (a.origin !== location.origin || a.hash && a.pathname === location.pathname) return;
+      var u = new URL(a.href);
+      keep.forEach(function (v, k) { if (!u.searchParams.has(k)) u.searchParams.set(k, v); });
+      a.href = u.toString();
+    });
+  })();
+
   /* Contact page: builds an email or WhatsApp message from the form. Nothing is sent to a server. */
   var form = document.getElementById('contact-form');
   if (!form) return;

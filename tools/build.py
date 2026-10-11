@@ -3,22 +3,37 @@
 import os, json, sys
 sys.path.insert(0, os.path.dirname(__file__))
 from config import SITE
-import lib, pages, pages2
+import lib, pages, pages2, guides
 from lib import PAGES, url_of, render, is_ph
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
 BUILDERS = {
     "home": pages.home, "services": pages.services, "planner": pages.planner, "contact": pages.contact,
-    "guides": pages2.guides, "checklist": pages2.checklist, "parking": pages2.parking, "register": pages2.register,
-    "essen": pages2.essen, "about": pages2.about, "imprint": pages2.imprint, "privacy": pages2.privacy,
+    "guides": guides.hub, "essen": pages2.essen, "about": pages2.about, "imprint": pages2.imprint, "privacy": pages2.privacy,
 }
+for _k in lib.GUIDES:
+    BUILDERS[_k] = guides.guide(_k)
 
 def write(rel, text):
     p = os.path.join(ROOT, rel)
     os.makedirs(os.path.dirname(p), exist_ok=True)
     with open(p, "w", encoding="utf-8") as f:
         f.write(text)
+
+def build_master_data():
+    """data/master.json is the single source of the item catalogue and estimator rules (no prices).
+    Phase 1: the company sheet publishes this file; the build turns it into the browser file and a public JSON copy,
+    and copies the shared estimator into the Apps Script project so office and family use the same rules."""
+    with open(os.path.join(ROOT, "data", "master.json"), encoding="utf-8") as f:
+        master = json.load(f)
+    compact = json.dumps(master, ensure_ascii=False, separators=(",", ":"))
+    write("assets/js/flow-data.js", "/* Generated from data/master.json by tools/build.py (or published from the company sheet). Do not edit. */\n"
+          "window.FLOW_DATA=%s;\n" % compact)
+    write("assets/data/master.json", compact + "\n")
+    with open(os.path.join(ROOT, "assets", "js", "estimator.js"), encoding="utf-8") as f:
+        est = f.read()
+    write("backend/apps-script/Estimator.js", "/* Copied from assets/js/estimator.js by tools/build.py. Do not edit here. */\n" + est)
 
 def main():
     urls = []
@@ -35,8 +50,9 @@ def main():
             '<link rel="stylesheet" href="/assets/css/site.css"></head><body><main id="main">%s</main></body></html>' % body)
     write("404.html", html)
 
-    cfg = {k: SITE[k] for k in ("company", "email", "whatsapp", "phone", "phone_href", "street", "zip", "city")}
+    cfg = {k: SITE[k] for k in ("company", "email", "whatsapp", "phone", "phone_href", "hours", "street", "zip", "city", "api")}
     write("assets/js/site-config.js", "window.SITE=%s;\n" % json.dumps(cfg, ensure_ascii=False))
+    build_master_data()
 
     sm = ['<?xml version="1.0" encoding="UTF-8"?>',
           '<urlset xmlns="http://www.w3.org/1999/xhtml" xmlns:xhtml="http://www.w3.org/1999/xhtml">']

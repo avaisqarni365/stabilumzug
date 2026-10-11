@@ -1,4 +1,4 @@
-"""Page bodies part 2: guides, Essen, about, legal pages, 404."""
+"""Page bodies part 2: Essen, about, legal pages, 404. Guides live in guides.py."""
 from config import SITE
 from lib import esc, t, link, crumbs, ph, is_ph, url_of
 from pages import page_head, cta
@@ -11,122 +11,6 @@ def lis(items):
 
 NOTE_DE = '<p class="note">Allgemeine Orientierung, keine Rechts- oder Behördenauskunft. Fristen und Regeln können sich ändern; prüfen Sie sie bei der zuständigen Stelle.</p>'
 NOTE_EN = '<p class="note">General guidance, not legal or official advice. Rules and deadlines can change; check with the responsible authority.</p>'
-
-def guides(lang):
-    key = "guides"
-    body = page_head(key, lang, t("Ratgeber", "Guides", lang), t("Kurz und praktisch: was vor, während und nach dem Umzug zu tun ist.", "Short and practical: what to do before, during and after your move.", lang))
-    items = [("checklist", "Umzugscheckliste", "Moving checklist", "Die wichtigsten Aufgaben, nach Zeitpunkt geordnet.", "The key tasks, ordered by timing."),
-             ("parking", "Halteverbotszone beantragen", "Applying for a parking permit zone", "Damit der Umzugswagen nah an der Haustür halten kann.", "So the moving van can stop close to the door."),
-             ("register", "Ummeldung nach dem Umzug", "Registering after a move", "Frist, Unterlagen und was Sie nicht vergessen sollten.", "Deadline, documents and what not to forget.")]
-    tiles = "".join('<article class="tile"><h3>%s</h3><p>%s</p><a class="more" href="%s">%s</a></article>' % (esc(t(a, b, lang)), esc(t(c, d, lang)), link(key, k, lang), t("Lesen", "Read", lang)) for k, a, b, c, d in items)
-    body += '<section class="section"><div class="container"><div class="tiles">%s</div></div></section>' % tiles
-    body += cta(key, lang)
-    return dict(key=key, lang=lang, title=t("Ratgeber rund um den Umzug | Stabil Umzug", "Moving guides | Stabil Umzug", lang),
-                desc=t("Checkliste, Halteverbotszone und Ummeldung: kurze Ratgeber für Ihren Umzug in Deutschland.", "Checklist, parking permit and registration: short guides for moving in Germany.", lang), body=body)
-
-def checklist(lang):
-    key = "checklist"
-    title = t("Umzugscheckliste", "Moving checklist", lang)
-    body = page_head(key, lang, title, t("Was Sie wann erledigen sollten, damit am Umzugstag nichts fehlt.", "What to do and when, so nothing is missing on moving day.", lang), title)
-    if lang == "de":
-        inner = (NOTE_DE + "<h2>Etwa 8 bis 12 Wochen vorher</h2>" + lis([
-            "Mietvertrag prüfen: Die Kündigungsfrist beträgt bei Mietern meist drei Monate. Entscheidend ist Ihr Vertrag.",
-            "Bestandsaufnahme: Welche Möbel ziehen mit, was wird verkauft oder entsorgt? Der <a href='%s'>Umzugsplaner</a> hilft dabei." % link(key, "planner", lang),
-            "Angebote einholen und einen Termin reservieren."]) +
-            "<h2>Etwa 4 Wochen vorher</h2>" + lis([
-            "Halteverbotszone beantragen, <a href='%s'>mehr dazu</a>." % link(key, "parking", lang),
-            "Urlaubstag und Hilfe von Freunden klären.",
-            "Verträge ummelden oder kündigen: Strom, Gas, Internet, Versicherungen.",
-            "Nachsendeauftrag einrichten."]) +
-            "<h2>Letzte Woche</h2>" + lis([
-            "Kartons packen und beschriften, Zimmer für Zimmer.",
-            "Kühlschrank abtauen, Waschmaschine abklemmen.",
-            "Wertsachen und wichtige Unterlagen selbst mitnehmen.",
-            "Zählerstände fotografieren."]) +
-            "<h2>Umzugstag und danach</h2>" + lis([
-            "Übergabeprotokoll mit dem Vermieter.",
-            "Schlüssel zählen und übergeben.",
-            "Anmeldung beim Einwohnermeldeamt, <a href='%s'>Details</a>." % link(key, "register", lang),
-            "Adresse bei Bank, Arbeitgeber und Versicherungen aktualisieren."]))
-    else:
-        inner = (NOTE_EN + "<h2>About 8 to 12 weeks before</h2>" + lis([
-            "Check your lease: the notice period for tenants is usually three months. Your contract decides.",
-            "Take stock: what moves, what is sold or thrown away? The <a href='%s'>moving planner</a> helps." % link(key, "planner", lang),
-            "Get quotes and reserve a date."]) +
-            "<h2>About 4 weeks before</h2>" + lis([
-            "Apply for a parking permit zone, <a href='%s'>more here</a>." % link(key, "parking", lang),
-            "Sort out time off and help from friends.",
-            "Transfer or cancel contracts: electricity, gas, internet, insurance.",
-            "Set up mail forwarding."]) +
-            "<h2>Last week</h2>" + lis([
-            "Pack and label boxes room by room.",
-            "Defrost the fridge, disconnect the washing machine.",
-            "Carry valuables and key documents yourself.",
-            "Photograph the meter readings."]) +
-            "<h2>Moving day and after</h2>" + lis([
-            "Handover record with the landlord.",
-            "Count and hand over keys.",
-            "Register at the residents' registration office, <a href='%s'>details</a>." % link(key, "register", lang),
-            "Update your address with bank, employer and insurers."]))
-    body += sec(inner) + cta(key, lang)
-    return dict(key=key, lang=lang, title=t("Umzugscheckliste: Was wann zu tun ist | Stabil Umzug", "Moving checklist: what to do and when | Stabil Umzug", lang),
-                desc=t("Umzugscheckliste für Deutschland, geordnet nach Zeitpunkt: Kündigung, Halteverbot, Packen, Übergabe, Anmeldung.", "Moving checklist for Germany ordered by timing: notice, parking permit, packing, handover, registration.", lang), body=body)
-
-def parking(lang):
-    key = "parking"
-    title = t("Halteverbotszone beantragen", "Applying for a parking permit zone", lang)
-    body = page_head(key, lang, title, t("So kann der Umzugswagen am Umzugstag nah an der Tür stehen.", "How to have the moving van close to the door on moving day.", lang), title)
-    if lang == "de":
-        inner = (NOTE_DE + "<h2>Wozu eine Halteverbotszone?</h2><p>Der Umzugswagen ist lang und schwer. Steht er weit vom Eingang entfernt, verlängert das den Tag. Mit einer ausgeschilderten Zone ist der Platz freigehalten.</p>"
-            "<h2>Wie läuft es ab?</h2>" + lis([
-            "Den Antrag stellen Sie bei der zuständigen Straßenverkehrsbehörde Ihrer Stadt, oft online oder schriftlich.",
-            "Geben Sie Adresse, Datum, Länge der Zone und Zeitraum an.",
-            "Die Bearbeitungszeit und die Gebühr unterscheiden sich je nach Stadt. Fragen Sie früh nach.",
-            "Die Schilder werden meist einige Tage vor dem Termin aufgestellt, oft mindestens 72 Stunden vorher. Prüfen Sie die Vorgabe Ihrer Stadt.",
-            "Die Zone muss für Dritte erkennbar sein. Parkt trotzdem jemand dort, hilft die Behörde oder der Abschleppdienst."]) +
-            "<p>Wir unterstützen Sie gern bei Antrag und Aufstellung. Sagen Sie uns im Planer, dass Sie die Halteverbotszone wünschen.</p>")
-    else:
-        inner = (NOTE_EN + "<h2>Why a parking permit zone?</h2><p>A moving van is long and heavy. Far from the entrance, it lengthens the day. A signed zone keeps the space free.</p>"
-            "<h2>How does it work?</h2>" + lis([
-            "You apply to the traffic authority of your city, often online or in writing.",
-            "Give the address, date, length of the zone and time period.",
-            "Processing time and fee differ by city. Ask early.",
-            "Signs usually go up several days before, often at least 72 hours. Check your city's rule.",
-            "The zone must be visible to others. If someone parks there anyway, the authority or a towing service can help."]) +
-            "<p>We are happy to help with the application and the signs. Tell us in the planner that you want the zone.</p>")
-    body += sec(inner) + cta(key, lang)
-    return dict(key=key, lang=lang, title=t("Halteverbotszone beantragen | Stabil Umzug", "Parking permit zone for moving day | Stabil Umzug", lang),
-                desc=t("Halteverbotszone für den Umzug: wo beantragen, was angeben, wie früh. Allgemeine Orientierung für Essen und Deutschland.", "Parking permit zone for moving day: where to apply, what to state, how early. General guidance for Essen and Germany.", lang), body=body)
-
-def register(lang):
-    key = "register"
-    title = t("Ummeldung nach dem Umzug", "Registering after a move", lang)
-    body = page_head(key, lang, title, t("Frist, Unterlagen und typische Fehler.", "Deadline, documents and common mistakes.", lang), title)
-    if lang == "de":
-        inner = (NOTE_DE + "<h2>Frist</h2><p>Nach dem Einzug melden Sie sich beim Einwohnermeldeamt an, in der Regel innerhalb von zwei Wochen. Bei Verspätung kann ein Bußgeld drohen, das bis zu 1.000 Euro betragen kann.</p>"
-            "<h2>Was Sie brauchen</h2>" + lis([
-            "Personalausweis oder Reisepass.",
-            "Die Wohnungsgeberbestätigung Ihres Vermieters.",
-            "Anmeldeformular, oft online verfügbar.",
-            "Bei Familien: Heirats- oder Geburtsurkunden, wenn die Behörde sie verlangt."]) +
-            "<h2>Gut zu wissen</h2>" + lis([
-            "Bei einem Umzug innerhalb Deutschlands ist eine Abmeldung am alten Ort in der Regel nicht nötig.",
-            "Termine sind oft knapp. Buchen Sie früh.",
-            "Danach: Adresse bei Bank, Arbeitgeber, Versicherungen, Rundfunkbeitrag und Kfz-Zulassung aktualisieren."]))
-    else:
-        inner = (NOTE_EN + "<h2>Deadline</h2><p>After moving in, you register at the residents' registration office, normally within two weeks. A late registration can lead to a fine of up to 1,000 euros.</p>"
-            "<h2>What you need</h2>" + lis([
-            "Identity card or passport.",
-            "The landlord's confirmation of residence (Wohnungsgeberbestätigung).",
-            "Registration form, often available online.",
-            "For families: marriage or birth certificates if the office asks for them."]) +
-            "<h2>Good to know</h2>" + lis([
-            "For a move within Germany you usually do not need to deregister at the old place.",
-            "Appointments can be scarce. Book early.",
-            "Afterwards: update your address with bank, employer, insurers, broadcasting fee and vehicle registration."]))
-    body += sec(inner) + cta(key, lang)
-    return dict(key=key, lang=lang, title=t("Ummeldung nach dem Umzug: Frist und Unterlagen | Stabil Umzug", "Registering after a move: deadline and documents | Stabil Umzug", lang),
-                desc=t("Anmeldung nach dem Umzug in Deutschland: Zwei-Wochen-Frist, Wohnungsgeberbestätigung, Unterlagen.", "Registering after a move in Germany: two-week deadline, landlord confirmation, documents.", lang), body=body)
 
 def essen(lang):
     key = "essen"
@@ -150,20 +34,46 @@ def essen(lang):
     return dict(key=key, lang=lang, title=t("Umzug in Essen | Stabil Umzug", "Moving in Essen | Stabil Umzug", lang),
                 desc=t("Umzugsunternehmen in Essen: Planung, Halteverbotszone, Montage und Transport im Ruhrgebiet und deutschlandweit.", "Moving company in Essen: planning, parking permit, assembly and transport across the Ruhr area and Germany.", lang), body=body)
 
+PRINCIPLES = [
+    (("Eine Schätzung ist eine gültige Antwort.", "A guess is a valid answer."),
+     ("Sie kennen nicht jedes Maß? Kein Problem. „Weiß ich nicht“ ist überall erlaubt – wir setzen einen Planungswert ein und markieren ihn als geschätzt.",
+      "You do not know every measurement? No problem. “I don't know” is allowed everywhere – we use a planning value and mark it as a guess.")),
+    (("Spannen statt falscher Genauigkeit.", "Ranges, not false precision."),
+     ("Volumen und Aufwand zeigen wir als Spanne. Je mehr Sie bestätigen, desto enger wird sie – und desto eher ist ein Festpreis möglich.",
+      "We show volume and effort as a range. The more you confirm, the narrower it gets – and the sooner a fixed price is possible.")),
+    (("Einmal erfassen, überall nutzen.", "Enter once, reuse everywhere."),
+     ("Ihre Angaben fließen in Angebot, Teamplanung, Halteverbotszone und Checkliste. Niemand fragt Sie zweimal.",
+      "Your details flow into the quote, crew planning, no-parking zone and checklist. Nobody asks you twice.")),
+    (("Transparenter Preis.", "Transparent price."),
+     ("Ihr Angebot nennt Arbeit, Fahrzeug, Strecke, Montage, Verpackung, Zugang, Extras und Versicherung als eigene Positionen.",
+      "Your quote lists labour, vehicle, distance, assembly, packing, access, extras and insurance as separate lines.")),
+    (("Einfache Sprache, kein Druck.", "Plain language, no pressure."),
+     ("Kurze Texte auf Deutsch und Englisch. Begriffe wie Halteverbotszone erklären wir dort, wo sie vorkommen. Versicherung und Storno finden Sie vor der Buchung.",
+      "Short texts in German and English. Terms like Halteverbotszone are explained where they appear. Insurance and cancellation are clear before you book.")),
+    (("Erst messen, dann versprechen.", "Measure first, then promise."),
+     ("Nach jedem Umzug vergleichen wir Angebot und tatsächlichen Aufwand – und korrigieren unsere Planungswerte, wo sie danebenlagen.",
+      "After every move we compare the quote with the actual effort – and correct our planning values where they were off.")),
+]
+
 def about(lang):
     key = "about"
     title = t("Über uns", "About us", lang)
-    body = page_head(key, lang, title, t("Ein Umzugsunternehmen aus Essen, das Planung einfach machen will.", "A moving company from Essen that wants to make planning simple.", lang), title)
-    if lang == "de":
-        inner = ("<p>Ein Umzug ist viele Schritte: Wohnung messen, Möbel erfassen, Zugang klären, Termin, Halteverbot, Kartons, Aufbau, Anmeldung. Wir haben diesen Ablauf in einen einfachen Planer übersetzt, damit Sie weniger vergessen und wir besser kalkulieren können.</p>"
-                 "<p>[Hier kurze Vorstellung des Unternehmens, des Teams und der Erfahrung eintragen]</p>")
-    else:
-        inner = ("<p>A move is many steps: measure the flat, list furniture, clarify access, date, parking permit, boxes, assembly, registration. We turned this flow into a simple planner so you forget less and we can quote better.</p>"
-                 "<p>[Add a short introduction of the company, team and experience here]</p>")
-    inner = inner.replace("<p>[", '<p class="ph">[')
-    body += sec(inner) + cta(key, lang)
+    body = page_head(key, lang, title, t("Ein Umzugsunternehmen aus Essen, das Planung einfach und Preise nachvollziehbar machen will.",
+                                         "A moving company from Essen that wants to make planning simple and prices traceable.", lang), title,
+                     kicker=t("Stabil Umzug · Essen", "Stabil Umzug · Essen", lang))
+    intro = t("Ein Umzug ist eine Kette von Schritten: neue Wohnung ausmessen, Hausrat erfassen, Zugang klären, Halteverbot, Kartons, Aufbau, Anmeldung. "
+              "Das meiste Geld und der meiste Stress gehen verloren, wenn Angaben von einem Schritt nicht beim nächsten ankommen. Deshalb haben wir diesen Ablauf in einen einfachen Planer übersetzt.",
+              "A move is a chain of steps: measure the new home, list your belongings, clarify access, parking permit, boxes, assembly, registration. "
+              "Most money and stress are lost when information from one step does not reach the next. So we turned this flow into a simple planner.", lang)
+    cells = "".join('<div><h3>%s</h3><p>%s</p></div>' % (esc(t(*a, lang)), esc(t(*b, lang))) for a, b in PRINCIPLES)
+    body += ('<section class="section"><div class="container"><div class="head"><div><span class="kicker red">%s</span><h2>%s</h2></div><p>%s</p></div>'
+             '<div class="costs">%s</div></div></section>' % (t("Wie wir arbeiten", "How we work", lang), t("Sechs Versprechen.", "Six promises.", lang), esc(intro), cells))
+    body += sec('<p class="ph">%s</p>' % t("[Hier kurze Vorstellung des Unternehmens, des Teams um Ibrahim Abdelaal und der Erfahrung eintragen]",
+                                            "[Add a short introduction of the company, the team around Ibrahim Abdelaal and its experience here]", lang))
+    body += cta(key, lang)
     return dict(key=key, lang=lang, title=t("Über uns | Stabil Umzug Essen", "About us | Stabil Umzug Essen", lang),
-                desc=t("Stabil Umzug aus Essen: Umzug einfach planen.", "Stabil Umzug from Essen: simple moving planning.", lang), body=body)
+                desc=t("Stabil Umzug aus Essen: Umzüge einfach planen, Preise nachvollziehbar machen, in einfacher Sprache.",
+                       "Stabil Umzug from Essen: simple move planning, traceable prices, plain language.", lang), body=body)
 
 def imprint(lang):
     key = "imprint"
@@ -186,17 +96,35 @@ def privacy(lang):
         inner = ("<h2>Verantwortlicher</h2><p>%s, %s, %s %s. E-Mail: %s</p>"
                  "<h2>Hosting</h2><p>Diese Website wird bei %s gehostet. Beim Aufruf verarbeitet der Hosting-Anbieter technisch notwendige Daten, etwa die IP-Adresse, in Server-Logfiles.</p>"
                  "<h2>Cookies und Tracking</h2><p>Wir setzen keine Cookies und keine Analyse- oder Werbedienste ein. Schriften und Skripte laden wir von unserer eigenen Domain.</p>"
-                 "<h2>Umzugsplaner</h2><p>Ihre Eingaben im Planer werden nur in Ihrem Browser verarbeitet. Sie werden nicht gespeichert und nicht an uns übertragen. Erst wenn Sie das PDF selbst per E-Mail oder WhatsApp senden, erhalten wir die darin enthaltenen Angaben. Dabei gelten die Datenschutzbestimmungen Ihres E-Mail- oder Messenger-Anbieters.</p>"
+                 "<h2>Umzugsplaner</h2><p>Ihre Eingaben im Planer werden nur in Ihrem Browser verarbeitet und nicht an uns übertragen. Damit Sie später weitermachen können, speichert der Planer Ihren Entwurf im lokalen Speicher Ihres Browsers auf diesem Gerät (keine Cookies). Sie können ihn jederzeit im Planer mit „Entwurf löschen und neu beginnen“ oder über die Browsereinstellungen löschen. Erst wenn Sie die Zusammenfassung selbst per WhatsApp oder E-Mail senden, erhalten wir die darin enthaltenen Angaben, einschließlich der Angabe, über welche Seite oder Kampagne Sie zu uns gekommen sind. Dabei gelten die Datenschutzbestimmungen Ihres E-Mail- oder Messenger-Anbieters.</p>"
                  "<h2>Kontakt</h2><p>Wenn Sie uns schreiben, verarbeiten wir Ihre Angaben zur Bearbeitung der Anfrage (Art. 6 Abs. 1 lit. b DSGVO).</p>"
                  "<h2>Ihre Rechte</h2><p>Sie haben Rechte auf Auskunft, Berichtigung, Löschung, Einschränkung, Datenübertragbarkeit und Widerspruch sowie das Recht auf Beschwerde bei einer Aufsichtsbehörde.</p>")
     else:
         inner = ("<h2>Controller</h2><p>%s, %s, %s %s. Email: %s</p>"
                  "<h2>Hosting</h2><p>This website is hosted by %s. When you visit, the host processes technically necessary data, such as the IP address, in server logs.</p>"
                  "<h2>Cookies and tracking</h2><p>We use no cookies and no analytics or advertising services. Fonts and scripts load from our own domain.</p>"
-                 "<h2>Moving planner</h2><p>Your entries in the planner are processed only in your browser. They are not stored and not transferred to us. Only when you send the PDF yourself by email or WhatsApp do we receive the details in it. The privacy terms of your email or messenger provider apply.</p>"
+                 "<h2>Moving planner</h2><p>Your entries in the planner are processed only in your browser and are not transferred to us. So you can continue later, the planner keeps your draft in your browser's local storage on this device (no cookies). You can delete it at any time with “Delete draft and start over” in the planner or in your browser settings. Only when you send the summary yourself via WhatsApp or email do we receive the details in it, including which page or campaign brought you to us. The privacy terms of your email or messenger provider apply.</p>"
                  "<h2>Contact</h2><p>If you write to us we process your details to handle the request (Art. 6(1)(b) GDPR).</p>"
                  "<h2>Your rights</h2><p>You have rights of access, rectification, erasure, restriction, portability and objection, and the right to complain to a supervisory authority.</p>")
     inner = inner % (ph(SITE["company"]), ph(SITE["street"]), ph(SITE["zip"]), esc(SITE["city"]), ph(SITE["email"]), ph(SITE["hosting"]))
+    if SITE.get("api"):   # Phase 1: planner connected to the company's Google sheet
+        inner += t(
+            "<h2>Anfrage über den Umzugsplaner</h2><p>Wenn Sie im Planer auf „Anfrage senden“ klicken, übermitteln wir Ihre Angaben "
+            "(Kontaktdaten, Adressen, Zugang, Gegenstände und die Angabe, über welche Seite oder Kampagne Sie gekommen sind) an unser Google-Konto "
+            "und speichern sie in einer Google-Tabelle, um Ihnen ein Angebot zu erstellen (Art. 6 Abs. 1 lit. b DSGVO, Ihre Einwilligung nach Art. 6 Abs. 1 lit. a DSGVO). "
+            "Anbieter ist Google Ireland Limited, Gordon House, Barrow Street, Dublin 4, Irland; eine Übermittlung in die USA ist nicht auszuschließen. "
+            "Wir löschen Anfragen, aus denen kein Auftrag wird, nach <span class=\"ph\">[Speicherdauer festlegen, z. B. 6 Monaten]</span>.</p>"
+            "<p>Mit „Entfernung berechnen“ werden die beiden Adressen an Google Maps übermittelt, um die Fahrstrecke zu berechnen. "
+            "Mit „Auf einem anderen Gerät weitermachen“ speichern wir Ihren Entwurf nach Ihrer Einwilligung 30 Tage und löschen ihn danach automatisch. "
+            "Sie können Ihre Einwilligung jederzeit per E-Mail an uns widerrufen.</p>",
+            "<h2>Requests sent through the moving planner</h2><p>When you click “Send request” in the planner, we transfer your details "
+            "(contact details, addresses, access, items and which page or campaign brought you to us) to our Google account and store them in a Google spreadsheet "
+            "to prepare a quote for you (Art. 6(1)(b) GDPR, your consent under Art. 6(1)(a) GDPR). "
+            "The provider is Google Ireland Limited, Gordon House, Barrow Street, Dublin 4, Ireland; a transfer to the USA cannot be ruled out. "
+            "We delete requests that do not lead to an order after <span class=\"ph\">[set retention period, e.g. 6 months]</span>.</p>"
+            "<p>“Calculate distance” sends both addresses to Google Maps to calculate the driving distance. "
+            "“Continue on another device” stores your draft for 30 days with your consent and deletes it automatically afterwards. "
+            "You can withdraw your consent at any time by emailing us.</p>", lang)
     body += sec(flag + inner)
     return dict(key=key, lang=lang, title=t("Datenschutz | Stabil Umzug", "Privacy | Stabil Umzug", lang), desc=t("Datenschutzerklärung von Stabil Umzug.", "Privacy policy of Stabil Umzug.", lang), body=body, noindex=True)
 
