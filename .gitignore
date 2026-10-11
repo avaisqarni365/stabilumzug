@@ -8,3 +8,6 @@ backend/admin-script/.clasp.json
 backend/admin-script/.claspignore
 backend/admin-script/Config.js
 backend/admin-script/appsscript.json.keep
+
+# full-size brand photo originals (compressed copies live in assets/img/photos)
+assets/img/src/brand/
