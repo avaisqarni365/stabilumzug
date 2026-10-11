@@ -152,7 +152,7 @@ textarea.input{min-height:120px;resize:vertical;line-height:1.5}
   }
   window.addEventListener('hashchange', routeTo);
 
-  function reload() { return run('api_bootstrap').then(function (d) { S.leads = d.leads; S.statuses = d.statuses; S.me = d.me; S.portal = d.portal; document.getElementById('sheet-link').href = d.sheetUrl; }); }
+  function reload() { return run('api_bootstrap').then(function (d) { S.leads = d.leads; S.statuses = d.statuses; S.me = d.me; S.portal = d.portal; S.routes = d.routes; document.getElementById('sheet-link').href = d.sheetUrl; }); }
 
   /* ---------- overview ---------- */
   function home() {
@@ -166,8 +166,20 @@ textarea.input{min-height:120px;resize:vertical;line-height:1.5}
       '<div class="grid4">' + ['Neu', 'In Arbeit', 'Angebot raus', 'Gebucht'].map(function (s) { return '<a class="kpi" style="text-decoration:none" href="#/anfragen" data-st="' + esc(s) + '"><b>' + c(s) + '</b><span>' + esc(s) + '</span></a>'; }).join('') + '</div>' +
       '<div class="cols"><section class="block"><h2>Neue Anfragen</h2><div class="list">' + (fresh.length ? fresh.map(function (l) { return rowHtml(l); }).join('') : '<p class="empty">Keine neuen Anfragen.</p>') + '</div></section>' +
       '<section class="block"><h2>Nächste Termine</h2><div class="list">' + (upcoming.length ? upcoming.map(function (l) { return rowHtml(l, true); }).join('') : '<p class="empty">Keine festen Termine.</p>') + '</div>' +
-      (stale.length ? '<h2 style="margin-top:24px">Angebot ohne Antwort (> 3 Tage)</h2><div class="list">' + stale.map(function (l) { return rowHtml(l); }).join('') + '</div>' : '') + '</section></div>';
+      (stale.length ? '<h2 style="margin-top:24px">Angebot ohne Antwort (> 3 Tage)</h2><div class="list">' + stale.map(function (l) { return rowHtml(l); }).join('') + '</div>' : '') + '</section></div>' +
+      routesHtml();
     app.querySelectorAll('[data-st]').forEach(function (a) { a.addEventListener('click', function () { S.filter.status = a.getAttribute('data-st'); }); });
+  }
+  /* Route checks on the website: interest before anyone sends a request. */
+  function routesHtml() {
+    var r = S.routes; if (!r) return '';
+    var leads30 = S.leads.filter(function (l) { return (Date.now() - new Date(l.received)) <= 30 * 864e5; }).length;
+    return '<section class="block" style="margin-top:32px"><h2>Besucher, die ihre Strecke berechnet haben</h2>' +
+      '<div class="grid4"><div class="kpi"><b>' + r.today + '</b><span>heute</span></div><div class="kpi"><b>' + r.week + '</b><span>letzte 7 Tage</span></div>' +
+      '<div class="kpi"><b>' + r.month + '</b><span>letzte 30 Tage</span></div><div class="kpi"><b>' + (r.month ? Math.round(leads30 / r.month * 100) + ' %' : '–') + '</b><span>daraus Anfragen (30 Tage)</span></div></div>' +
+      '<div class="cols" style="margin-top:16px"><div><h2>Häufigste Orte (30 Tage)</h2><div class="list">' + (r.towns.length ? r.towns.map(function (t) { return '<div class="row" style="grid-template-columns:minmax(0,1fr) auto"><span>' + esc(t[0]) + '</span><b>' + t[1] + '</b></div>'; }).join('') : '<p class="empty">Noch keine Berechnungen.</p>') + '</div></div>' +
+      '<div><h2>Zuletzt berechnet</h2><div class="list">' + (r.last.length ? r.last.map(function (x) { return '<div class="row" style="grid-template-columns:96px minmax(0,1fr) auto"><span class="muted">' + dt(x.at) + '</span><span>' + esc(x.from) + ' → ' + esc(x.to) + '<small>' + esc(x.page) + '</small></span><b>' + x.km + ' km</b></div>'; }).join('') : '<p class="empty">Noch keine Berechnungen.</p>') + '</div></div></div>' +
+      '<p class="muted">Gespeichert werden nur PLZ und Ort, keine Straße und keine Kontaktdaten. Einträge werden nach 6 Monaten gelöscht.</p></section>';
   }
   function rowHtml(l, withDate) {
     return '<a class="row" href="#/a/' + encodeURIComponent(l.id) + '"><span class="id">' + esc(l.id) + '</span><span>' + esc(l.name || '–') +

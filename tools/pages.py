@@ -127,20 +127,26 @@ def faq_html(lang, key):
         items.append('<details><summary>%s</summary><div class="a"><p>%s%s</p></div></details>' % (esc(t(*q, lang)), esc(t(*a, lang)), more))
     return '<div class="faq">%s</div>' % "".join(items)
 
-def quick_plan(key, lang):
-    """Planner quick start in the first screen: from, to, household; opens the planner at step 1 (F1) with these filled in."""
+def quick_plan(key, lang, title=None, kicker=None):
+    """Planner quick start: from, to, household; opens the planner at step 1 (F1) with these filled in.
+    With the website API connected it also shows the route (distance, drive time, map) – see assets/js/route.js."""
     hh = [t("1 Person", "1 person", lang), t("2 Personen", "2 people", lang), "3–4", "5+"]
     chips = "".join('<label class="qp-chip"><input type="radio" name="hh" value="%d"%s><span>%s</span></label>' % (i, " checked" if i == 1 else "", esc(x)) for i, x in enumerate(hh))
-    return ('<form class="quick-plan" action="%s" method="get" aria-labelledby="qp-h"><input type="hidden" name="start" value="1">'
+    route = bool(SITE.get("api"))
+    return ('<form class="quick-plan" action="%s" method="get" aria-labelledby="qp-h"%s><input type="hidden" name="start" value="1"><input type="hidden" name="km" value="">'
             '<div class="qp-head"><span class="qp-k">%s</span><h2 id="qp-h">%s</h2></div>'
             '<div class="qp-row"><label class="qp-field"><span>%s</span><input class="input" name="from" autocomplete="address-level2" placeholder="%s"></label>'
             '<label class="qp-field"><span>%s</span><input class="input" name="to" autocomplete="off" placeholder="%s"></label></div>'
+            '%s'
             '<fieldset class="qp-hh"><legend>%s</legend><div>%s</div></fieldset>'
             '<button class="button primary qp-go" type="submit">%s</button>'
             '<p class="qp-note">%s</p></form>') % (
-        link(key, "planner", lang), t("Umzugsplaner · kostenlos", "Moving planner · free", lang), t("Ihren Umzug jetzt planen", "Plan your move now", lang),
+        link(key, "planner", lang), ' data-route' if route else '',
+        kicker or t("Umzugsplaner · kostenlos", "Moving planner · free", lang), title or t("Ihren Umzug jetzt planen", "Plan your move now", lang),
         t("Von", "From", lang), t("z. B. 45130 Essen", "e.g. 45130 Essen", lang),
         t("Nach", "To", lang), t("z. B. 44793 Bochum", "e.g. 44793 Bochum", lang),
+        ('<button type="button" class="button qp-calc"><span class="pin" aria-hidden="true"></span>%s</button><div class="route-out" hidden aria-live="polite"></div>'
+         % t("Strecke und Karte anzeigen", "Show route and map", lang)) if route else "",
         t("Haushalt", "Household", lang), chips,
         t("Umzug planen", "Plan my move", lang),
         t("Ohne Konto · ca. 10 Minuten · Volumen, Fahrzeug und Team sofort sehen", "No account · about 10 minutes · see volume, vehicle and crew right away", lang))
@@ -283,7 +289,7 @@ def home(lang):
                {"@type": "Offer", "itemOffered": {"@type": "Service", "name": n}} for n in ("Umzug", "Entrümpelung", "Wohnungsauflösung", "Transport")]}}
     if not is_ph(SITE["phone"]): biz["telephone"] = SITE["phone"]
     if not is_ph(SITE["email"]): biz["email"] = SITE["email"]
-    return dict(key=key, lang=lang, schema=[biz, faq_ld],
+    return dict(key=key, lang=lang, route=True, schema=[biz, faq_ld],
         title=t("Stabil Umzug Essen: Umzug planen und Angebot in 24 Std.", "Stabil Umzug Essen: plan your move, quote within 24 h", lang),
         desc=t("Umzugsunternehmen in Essen: Umzug online planen, Volumen, Fahrzeug und Team sofort sehen, persönliches Angebot innerhalb von 24 Stunden per WhatsApp oder E-Mail.",
                "Moving company in Essen: plan your move online, see volume, vehicle and crew right away, personal quote within 24 hours via WhatsApp or email.", lang),

@@ -199,6 +199,8 @@ def render(page):
             scripts.append('<script src="%sassets/js/%s.js" defer></script>' % (pre, f))
     if page.get("quote"):
         scripts.append('<script src="%sassets/js/quote.js" defer></script>' % pre)
+    if page.get("route"):
+        scripts.append('<script src="%sassets/js/route.js" defer></script>' % pre)
     if page.get("portal"):
         scripts.append('<script src="%sassets/js/portal.js" defer></script>' % pre)
     scripts.append('<script src="%sassets/js/site.js" defer></script>' % pre)

@@ -141,6 +141,28 @@ def inline(text, key, lang):
 PHOTO = {"moves": "loading-boxes.jpg", "clearance": "empty-room.jpg", "dissolution": "boxes-window.jpg",
          "transport": "sofa-transport.jpg", "extras": "kitchen-assembly.jpg"}
 
+ROUTE_SERVICES = ("moves", "transport")
+
+def route_section(key, skey, lang):
+    """Right under the page head of Umzüge and Transport: enter two places, see distance, drive time and the map."""
+    if not SITE.get("api"):
+        return ""
+    from pages import quick_plan
+    moves = skey == "moves"
+    points = [t("Entfernung und Fahrzeit sofort – Ort oder PLZ reicht", "Distance and drive time right away – a town or postcode is enough", lang),
+              t("Karte Ihrer Strecke, ohne Anmeldung und kostenlos", "Map of your route, free and without signing up", lang),
+              t("Mit einem Klick weiter in den Umzugsplaner – die Strecke ist schon eingetragen", "One click on to the moving planner – the route is already filled in", lang)]
+    return ('<section class="section route-sec"><div class="container"><div class="split"><div>'
+            '<span class="kicker red">%s</span><h2>%s</h2><p class="lead" style="margin:14px 0 18px">%s</p><ul class="checks" style="margin-top:0">%s</ul>'
+            '<p class="small">%s</p></div><div>%s</div></div></div></section>') % (
+        t("Strecke berechnen", "Calculate your route", lang),
+        esc(t("Wie weit ist Ihr Umzug?", "How far is your move?", lang) if moves else t("Wie weit geht Ihr Transport?", "How far is your transport?", lang)),
+        esc(t("Geben Sie Start und Ziel ein – wir zeigen Ihnen sofort Strecke, Fahrzeit und Karte.", "Enter start and destination – we show you distance, drive time and map at once.", lang)),
+        "".join("<li>%s</li>" % esc(x) for x in points),
+        esc(t("Für die Berechnung übermitteln wir die Orte über unseren Server an Google Maps. Wir speichern nur PLZ und Ort, anonym, für 6 Monate.",
+              "To calculate, we send the places to Google Maps via our server. We store postcode and town only, anonymously, for 6 months.", lang)),
+        quick_plan(key, lang, title=t("Strecke und Umzug planen", "Route and move planner", lang) if moves else t("Strecke und Transport planen", "Route and transport planner", lang)))
+
 def service_page(skey):
     def build(lang):
         from pages import cta
@@ -154,7 +176,7 @@ def service_page(skey):
             quote_href, t("Jetzt kostenloses Angebot anfordern", "Request your free quote now", lang),
             ('<a class="button arrow" href="tel:%s">%s %s</a>' % (esc(SITE["phone_href"]), t("Anrufen", "Call", lang), esc(SITE["phone"]))) if SITE.get("phone_href") else "")
         items = "".join('<div><h3>%s</h3><p>%s</p></div>' % (esc(a), inline(b, key, lang)) for a, b in c["items"])
-        body = head + '<section class="section"><div class="container"><div class="head"><div><span class="kicker red">%s</span><h2>%s</h2></div><p>%s</p></div><div class="costs svc">%s</div></div></section>' % (
+        body = head + (route_section(key, skey, lang) if skey in ROUTE_SERVICES else "") + '<section class="section"><div class="container"><div class="head"><div><span class="kicker red">%s</span><h2>%s</h2></div><p>%s</p></div><div class="costs svc">%s</div></div></section>' % (
             t("Leistungen", "Services", lang), esc(t("Was wir für Sie übernehmen.", "What we take care of.", lang)), esc(c["teaser"]), items)
         steps = "".join('<li><span class="n">%02d</span><h3>%s</h3><p>%s</p></li>' % (i + 1, esc(a), inline(b, key, lang)) for i, (a, b) in enumerate(c["process"]))
         incl = "".join("<li>%s</li>" % inline(x, key, lang) for x in c["included"])
@@ -177,7 +199,7 @@ def service_page(skey):
                                "address": {"@type": "PostalAddress", "streetAddress": SITE["street"], "postalCode": SITE["zip"], "addressLocality": SITE["city"], "addressCountry": "DE"}}}
         faq_ld = {"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [
             {"@type": "Question", "name": q, "acceptedAnswer": {"@type": "Answer", "text": LINK_RE.sub(lambda m: m.group(2), a)}} for q, a in c["faq"]]}
-        return dict(key=key, lang=lang, title=c["seo"], desc=c["desc"], body=body, schema=[svc_ld, faq_ld])
+        return dict(key=key, lang=lang, route=skey in ROUTE_SERVICES and bool(SITE.get("api")), title=c["seo"], desc=c["desc"], body=body, schema=[svc_ld, faq_ld])
     return build
 
 def price_hint(skey, key, lang):

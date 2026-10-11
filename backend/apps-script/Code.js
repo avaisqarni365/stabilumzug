@@ -43,6 +43,7 @@ function doPost(e) {
       case 'lead': return json(saveLead_(body));
       case 'quick': return json(saveQuick_(body));
       case 'route': return json(route_(String(body.from || ''), String(body.to || '')));
+      case 'routeMap': return json(routeMap_(body));
       case 'saveDraft': return json(saveDraft_(body));
       case 'accept': return json(accept_(String(body.id || ''), String(body.k || ''), body.confirm === true));
       case 'resend': return json(resend_(String(body.email || ''), String(body.lang || 'de')));
@@ -305,6 +306,57 @@ function route_(from, to) {
   return res;
 }
 
+/* Route check on the website (home page and service pages): distance, drive time and a map of the route.
+   The map is a Google static map made here on the server – the visitor's browser never contacts Google, so no
+   cookie banner is needed. Each check is logged in the Strecken tab with postcode and town only (no street). */
+function routeMap_(b) {
+  var from = clip_(b.from, 200), to = clip_(b.to, 200);
+  if (from.length < 3 || to.length < 3) return {ok: false, error: 'address'};
+  var cache = CacheService.getScriptCache(), now = new Date();
+  // protect the daily Maps quota: at most 30 new checks a minute and 800 a day
+  var mk = 'rm_m_' + Math.floor(now.getTime() / 60000), dk = 'rm_d_' + Utilities.formatDate(now, 'Europe/Berlin', 'yyyyMMdd');
+  var key = 'rm_' + Utilities.base64EncodeWebSafe(Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, from.toLowerCase() + '|' + to.toLowerCase()));
+  var res = null, hit = cache.get(key);
+  if (hit) res = JSON.parse(hit);
+  else {
+    var perMin = Number(cache.get(mk)) || 0, perDay = Number(cache.get(dk)) || 0;
+    if (perMin >= 30 || perDay >= 800) return {ok: false, error: 'busy'};
+    cache.put(mk, String(perMin + 1), 120); cache.put(dk, String(perDay + 1), 90000);
+    try {
+      var d = Maps.newDirectionFinder().setOrigin(from).setDestination(to).setMode(Maps.DirectionFinder.Mode.DRIVING)
+        .setRegion('de').setLanguage('de').getDirections();
+      if (!d || !d.routes || !d.routes.length) return {ok: false, error: 'not_found'};
+      var r = d.routes[0], leg = r.legs[0];
+      res = {ok: true, km: Math.round(leg.distance.value / 1000), min: Math.round(leg.duration.value / 60),
+        fromLabel: place_(leg.start_address || from), toLabel: place_(leg.end_address || to)};
+      try {
+        var map = Maps.newStaticMap().setSize(640, 360).setLanguage('de').setFormat(Maps.StaticMap.Format.PNG)
+          .setPathStyle(6, '0xE85A0AFF', null).addPath(r.overview_polyline.points)
+          .setMarkerStyle(Maps.StaticMap.MarkerSize.MID, '0x17304F', 'A').addMarker(leg.start_location.lat, leg.start_location.lng)
+          .setMarkerStyle(Maps.StaticMap.MarkerSize.MID, '0xE85A0A', 'B').addMarker(leg.end_location.lat, leg.end_location.lng);
+        res.map = 'data:image/png;base64,' + Utilities.base64Encode(map.getBlob().getBytes());
+      } catch (err) { console.error(err); }
+      try { cache.put(key, JSON.stringify(res), 21600); } catch (err) { var lite = JSON.parse(JSON.stringify(res)); delete lite.map; cache.put(key, JSON.stringify(lite), 21600); }
+    } catch (err) {
+      console.error(err);
+      return {ok: false, error: 'maps'};
+    }
+  }
+  try {
+    var sh = ss_().getSheetByName(TAB.routes) || ensureTab_(TAB.routes, ROUTE_COLS, [130, 160, 160, 60, 90, 160, 70, 140]);
+    sh.appendRow([now, cell_(res.fromLabel, 80), cell_(res.toLabel, 80), res.km, res.min, cell_(b.page, 80), b.lang === 'en' ? 'EN' : 'DE', cell_(b.src, 80)]);
+  } catch (err) { console.error(err); }
+  return res;
+}
+
+/* "Rüttenscheider Str. 12, 45130 Essen, Deutschland" -> "45130 Essen". Never returns the street. */
+function place_(addr) {
+  var a = String(addr || ''), m = a.match(/\b(\d{5})\s+([^,\d]+)/);
+  if (m) return m[1] + ' ' + m[2].trim();
+  var parts = a.split(',').map(function (x) { return x.trim(); }).filter(function (x) { return x && !/\d/.test(x) && !/^(deutschland|germany)$/i.test(x); });
+  return parts.length ? parts[parts.length - 1].slice(0, 60) : '–';
+}
+
 /* ------------------------------------------------------------------ drafts (continue on another device) */
 
 function saveDraft_(b) {
@@ -424,6 +476,7 @@ function setup() {
   ensureTab_(TAB.audit, AUDIT_COLS);
   ensureTab_(TAB.drafts, DRAFT_COLS);
   ensureTab_(TAB.config, ['Schlüssel', 'Wert']);
+  ensureTab_(TAB.routes, ROUTE_COLS, [130, 160, 160, 60, 90, 160, 70, 140]);
 
   var leads = sheet_(TAB.leads);
   var statusRule = SpreadsheetApp.newDataValidation().requireValueInList(STATUS, true).build();
@@ -504,6 +557,11 @@ function onEditAudit(e) {
 function daily() {
   var drafts = sheet_(TAB.drafts), data = drafts.getDataRange().getValues(), now = new Date();
   for (var i = data.length - 1; i >= 1; i--) { if (data[i][3] && new Date(data[i][3]) < now) drafts.deleteRow(i + 1); }
+  var routes = ss_().getSheetByName(TAB.routes);   // route checks are kept 6 months, like requests
+  if (routes) {
+    var rv = routes.getDataRange().getValues(), cut = new Date(now.getTime() - 183 * 864e5);
+    for (var j = rv.length - 1; j >= 1; j--) { if (rv[j][0] && new Date(rv[j][0]) < cut) routes.deleteRow(j + 1); }
+  }
   var leads = sheet_(TAB.leads).getDataRange().getValues().slice(1), open = [];
   leads.forEach(function (r) {
     var age = (now - new Date(r[1])) / 864e5;
