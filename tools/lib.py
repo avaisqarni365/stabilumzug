@@ -70,7 +70,7 @@ NAV_LABEL = {
     "costs": ("Kosten", "Costs"),
     "about": ("Über uns", "About us"),
     "contact": ("Kontakt", "Contact"),
-    "booking": ("Termin buchen", "Book a visit"),
+    "booking": ("Termin", "Booking"),
 }
 
 def is_ph(v):

@@ -57,10 +57,10 @@
       return '<label class="bk-type"><input type="radio" name="bk-type" value="' + k + '"' + (S.type === k ? ' checked' : '') + '><span><span class="bk-ico bk-' + k + '" aria-hidden="true"></span><b>' + esc(T.types[k][0]) + '</b><small>' + mins + ' ' + T.min + ' · ' + esc(T.types[k][1]) + '</small></span></label>';
     }).join('');
     root.innerHTML = '<div class="bk"><div class="bk-main">' +
-      '<section class="bk-step"><h2><span class="no">1</span>' + esc(T.s1) + '</h2><div class="bk-types" role="radiogroup">' + types + '</div></section>' +
-      '<section class="bk-step"><h2><span class="no">2</span>' + esc(T.s2) + '</h2><div class="bk-days" id="bk-days" role="radiogroup"><p class="bk-msg">' + esc(T.loading) + '</p></div></section>' +
-      '<section class="bk-step"><h2><span class="no">3</span>' + esc(T.s3) + '</h2><div class="bk-times" id="bk-times" role="radiogroup"><p class="bk-muted">' + esc(T.pick) + '</p></div></section>' +
-      '<section class="bk-step"><h2><span class="no">4</span>' + esc(T.s4) + '</h2><form id="bk-form" class="bk-form" novalidate>' +
+      '<section class="bk-step"><h2 data-no="1">' + esc(T.s1) + '</h2><div class="bk-types" role="radiogroup">' + types + '</div></section>' +
+      '<section class="bk-step"><h2 data-no="2">' + esc(T.s2) + '</h2><div class="bk-days" id="bk-days" role="radiogroup"><p class="bk-msg">' + esc(T.loading) + '</p></div></section>' +
+      '<section class="bk-step"><h2 data-no="3">' + esc(T.s3) + '</h2><div class="bk-times" id="bk-times" role="radiogroup"><p class="bk-muted">' + esc(T.pick) + '</p></div></section>' +
+      '<section class="bk-step"><h2 data-no="4">' + esc(T.s4) + '</h2><form id="bk-form" class="bk-form" novalidate>' +
         '<label class="field"><span>' + esc(T.name) + ' *</span><input class="input" name="name" required autocomplete="name"></label>' +
         '<label class="field"><span>' + esc(T.phone) + ' *</span><input class="input" name="phone" type="tel" required autocomplete="tel"></label>' +
         '<label class="field bk-wide"><span>' + esc(T.email) + ' *</span><input class="input" name="email" type="email" required autocomplete="email"></label>' +
