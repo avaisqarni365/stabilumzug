@@ -15,6 +15,8 @@ SITE = {
     "phone_href": "+491639688190",           # digits with country code for the call link, e.g. +4920112345678
     "email": "info.stabilumzug@gmail.com",
     "whatsapp": "491639688190",             # digits only with country code, e.g. 491701234567 (leave empty to hide)
+    # Phase 1: URL of the Google Apps Script web app (ends in /exec). Empty = the planner works without the sheet (WhatsApp/e-mail only).
+    "api": "",
     "street": "[Straße und Hausnummer]",
     "zip": "[PLZ]",
     "hours": "Mo–Fr 9–19 Uhr · Sa/So 9–17 Uhr",

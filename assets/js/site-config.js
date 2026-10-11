@@ -1,1 +1,1 @@
-window.SITE={"company": "Stabil Umzug", "email": "info.stabilumzug@gmail.com", "whatsapp": "491639688190", "phone": "0163 9688190", "phone_href": "+491639688190", "hours": "Mo–Fr 9–19 Uhr · Sa/So 9–17 Uhr", "street": "[Straße und Hausnummer]", "zip": "[PLZ]", "city": "Essen"};
+window.SITE={"company": "Stabil Umzug", "email": "info.stabilumzug@gmail.com", "whatsapp": "491639688190", "phone": "0163 9688190", "phone_href": "+491639688190", "hours": "Mo–Fr 9–19 Uhr · Sa/So 9–17 Uhr", "street": "[Straße und Hausnummer]", "zip": "[PLZ]", "city": "Essen", "api": ""};

@@ -197,6 +197,24 @@ def privacy(lang):
                  "<h2>Contact</h2><p>If you write to us we process your details to handle the request (Art. 6(1)(b) GDPR).</p>"
                  "<h2>Your rights</h2><p>You have rights of access, rectification, erasure, restriction, portability and objection, and the right to complain to a supervisory authority.</p>")
     inner = inner % (ph(SITE["company"]), ph(SITE["street"]), ph(SITE["zip"]), esc(SITE["city"]), ph(SITE["email"]), ph(SITE["hosting"]))
+    if SITE.get("api"):   # Phase 1: planner connected to the company's Google sheet
+        inner += t(
+            "<h2>Anfrage über den Umzugsplaner</h2><p>Wenn Sie im Planer auf „Anfrage senden“ klicken, übermitteln wir Ihre Angaben "
+            "(Kontaktdaten, Adressen, Zugang, Gegenstände und die Angabe, über welche Seite oder Kampagne Sie gekommen sind) an unser Google-Konto "
+            "und speichern sie in einer Google-Tabelle, um Ihnen ein Angebot zu erstellen (Art. 6 Abs. 1 lit. b DSGVO, Ihre Einwilligung nach Art. 6 Abs. 1 lit. a DSGVO). "
+            "Anbieter ist Google Ireland Limited, Gordon House, Barrow Street, Dublin 4, Irland; eine Übermittlung in die USA ist nicht auszuschließen. "
+            "Wir löschen Anfragen, aus denen kein Auftrag wird, nach <span class=\"ph\">[Speicherdauer festlegen, z. B. 6 Monaten]</span>.</p>"
+            "<p>Mit „Entfernung berechnen“ werden die beiden Adressen an Google Maps übermittelt, um die Fahrstrecke zu berechnen. "
+            "Mit „Auf einem anderen Gerät weitermachen“ speichern wir Ihren Entwurf nach Ihrer Einwilligung 30 Tage und löschen ihn danach automatisch. "
+            "Sie können Ihre Einwilligung jederzeit per E-Mail an uns widerrufen.</p>",
+            "<h2>Requests sent through the moving planner</h2><p>When you click “Send request” in the planner, we transfer your details "
+            "(contact details, addresses, access, items and which page or campaign brought you to us) to our Google account and store them in a Google spreadsheet "
+            "to prepare a quote for you (Art. 6(1)(b) GDPR, your consent under Art. 6(1)(a) GDPR). "
+            "The provider is Google Ireland Limited, Gordon House, Barrow Street, Dublin 4, Ireland; a transfer to the USA cannot be ruled out. "
+            "We delete requests that do not lead to an order after <span class=\"ph\">[set retention period, e.g. 6 months]</span>.</p>"
+            "<p>“Calculate distance” sends both addresses to Google Maps to calculate the driving distance. "
+            "“Continue on another device” stores your draft for 30 days with your consent and deletes it automatically afterwards. "
+            "You can withdraw your consent at any time by emailing us.</p>", lang)
     body += sec(flag + inner)
     return dict(key=key, lang=lang, title=t("Datenschutz | Stabil Umzug", "Privacy | Stabil Umzug", lang), desc=t("Datenschutzerklärung von Stabil Umzug.", "Privacy policy of Stabil Umzug.", lang), body=body, noindex=True)
 

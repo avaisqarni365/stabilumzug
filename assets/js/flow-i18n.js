@@ -83,6 +83,27 @@ window.FLOW_T = {
    accOld: 'Zugang Auszug', accNew: 'Zugang Einzug', floor: 'Etage', lift: 'Aufzug', park: 'Parken',
    rooms: 'Räume', est: 'Schätzung', items: 'Gegenstände', open: 'Nicht erkannt', source: 'Quelle', hvzYes: 'Halteverbotszone gewünscht'
   },
+  api: {
+   route: 'Entfernung berechnen', routeBusy: 'Wird berechnet …', routeOk: 'Google Maps: {km} km, ca. {min} Min. Fahrt',
+   routeNote: 'Berechnet die Fahrstrecke über Google Maps. Dafür werden beide Adressen an unser Google-Konto gesendet.',
+   routeFail: 'Strecke nicht gefunden – bitte Adressen prüfen oder km selbst eintragen.',
+   title: 'Ihre Kontaktdaten', lead: 'Damit wir Ihnen das Angebot schicken können. Name und Telefon oder E-Mail genügen.',
+   name: 'Name', phone: 'Telefon / WhatsApp', email: 'E-Mail', channel: 'Antwort am liebsten per', channels: ['WhatsApp', 'Anruf', 'E-Mail'],
+   note: 'Nachricht (optional)',
+   consent: 'Ich bin einverstanden, dass Stabil Umzug meine Angaben speichert, um mir ein Angebot zu erstellen.',
+   privacy: 'Datenschutz', privacyHref: '../datenschutz/',
+   send: 'Anfrage senden', sending: 'Wird gesendet …', or: 'Oder direkt per', mailShort: 'E-Mail',
+   errContact: 'Bitte Name und Telefon oder E-Mail angeben.', errConsent: 'Bitte bestätigen Sie die Einwilligung.',
+   errSend: 'Senden hat nicht geklappt. Bitte später erneut versuchen oder per WhatsApp senden.',
+   errFast: 'Bitte prüfen Sie Ihre Angaben noch einmal und senden Sie dann erneut.',
+   waAlso: 'Zusätzlich per WhatsApp schreiben', sentK: 'Anfrage gesendet', sentText: 'Danke! Ihre Anfrage ist bei uns. Wir melden uns innerhalb von 24 Stunden mit Ihrem persönlichen Angebot.',
+   remote: 'Auf einem anderen Gerät weitermachen',
+   remoteText: 'Wir speichern Ihren Entwurf 30 Tage und erstellen einen privaten Link, mit dem Sie z. B. am Laptop weitermachen.',
+   remoteConsent: 'Einverstanden: Entwurf für 30 Tage bei Stabil Umzug speichern.',
+   remoteSave: 'Link erstellen', remoteUpdate: 'Entwurf aktualisieren', remoteLink: 'Ihr privater Link', copy: 'Kopieren', copied: 'Link kopiert.',
+   remoteSaved: 'Gespeichert bis {d}. Öffnen Sie den Link auf dem anderen Gerät.',
+   resumeFail: 'Der Link ist abgelaufen oder ungültig.', resumeAsk: 'Auf diesem Gerät gibt es schon einen Entwurf. Durch den Entwurf aus dem Link ersetzen?'
+  },
   csv: ['Gegenstand', 'Größe', 'Anzahl', 'Herkunft', 'm³ je Stück', 'm³ gesamt', 'kg min', 'kg max']
  },
  en: {
@@ -166,6 +187,27 @@ window.FLOW_T = {
    title: 'Stabil Umzug – moving request', route: 'Route', km: 'Distance', date: 'Date', hh: 'Household',
    accOld: 'Access move-out', accNew: 'Access move-in', floor: 'floor', lift: 'lift', park: 'parking',
    rooms: 'Rooms', est: 'Estimate', items: 'Items', open: 'Not recognised', source: 'Source', hvzYes: 'No-parking zone requested'
+  },
+  api: {
+   route: 'Calculate distance', routeBusy: 'Calculating …', routeOk: 'Google Maps: {km} km, approx. {min} min drive',
+   routeNote: 'Calculates the driving distance with Google Maps. Both addresses are sent to our Google account for this.',
+   routeFail: 'Route not found – please check the addresses or enter the km yourself.',
+   title: 'Your contact details', lead: 'So we can send you the quote. Name and phone or email are enough.',
+   name: 'Name', phone: 'Phone / WhatsApp', email: 'Email', channel: 'Preferred reply via', channels: ['WhatsApp', 'Call', 'Email'],
+   note: 'Message (optional)',
+   consent: 'I agree that Stabil Umzug stores my details to prepare a quote for me.',
+   privacy: 'Privacy', privacyHref: '../privacy/',
+   send: 'Send request', sending: 'Sending …', or: 'Or directly via', mailShort: 'email',
+   errContact: 'Please enter your name and a phone number or email.', errConsent: 'Please confirm your consent.',
+   errSend: 'Sending did not work. Please try again later or send via WhatsApp.',
+   errFast: 'Please check your details once more, then send again.',
+   waAlso: 'Also write on WhatsApp', sentK: 'Request sent', sentText: 'Thank you! We have your request and will reply within 24 hours with your personal quote.',
+   remote: 'Continue on another device',
+   remoteText: 'We keep your draft for 30 days and create a private link so you can continue, e.g. on a laptop.',
+   remoteConsent: 'I agree: store the draft with Stabil Umzug for 30 days.',
+   remoteSave: 'Create link', remoteUpdate: 'Update draft', remoteLink: 'Your private link', copy: 'Copy', copied: 'Link copied.',
+   remoteSaved: 'Saved until {d}. Open the link on the other device.',
+   resumeFail: 'The link has expired or is invalid.', resumeAsk: 'There is already a draft on this device. Replace it with the draft from the link?'
   },
   csv: ['Item', 'Size', 'Count', 'Source', 'm³ each', 'm³ total', 'kg min', 'kg max']
  }

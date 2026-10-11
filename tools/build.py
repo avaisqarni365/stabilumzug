@@ -20,6 +20,20 @@ def write(rel, text):
     with open(p, "w", encoding="utf-8") as f:
         f.write(text)
 
+def build_master_data():
+    """data/master.json is the single source of the item catalogue and estimator rules (no prices).
+    Phase 1: the company sheet publishes this file; the build turns it into the browser file and a public JSON copy,
+    and copies the shared estimator into the Apps Script project so office and family use the same rules."""
+    with open(os.path.join(ROOT, "data", "master.json"), encoding="utf-8") as f:
+        master = json.load(f)
+    compact = json.dumps(master, ensure_ascii=False, separators=(",", ":"))
+    write("assets/js/flow-data.js", "/* Generated from data/master.json by tools/build.py (or published from the company sheet). Do not edit. */\n"
+          "window.FLOW_DATA=%s;\n" % compact)
+    write("assets/data/master.json", compact + "\n")
+    with open(os.path.join(ROOT, "assets", "js", "estimator.js"), encoding="utf-8") as f:
+        est = f.read()
+    write("backend/apps-script/Estimator.js", "/* Copied from assets/js/estimator.js by tools/build.py. Do not edit here. */\n" + est)
+
 def main():
     urls = []
     for key, fn in BUILDERS.items():
@@ -35,8 +49,9 @@ def main():
             '<link rel="stylesheet" href="/assets/css/site.css"></head><body><main id="main">%s</main></body></html>' % body)
     write("404.html", html)
 
-    cfg = {k: SITE[k] for k in ("company", "email", "whatsapp", "phone", "phone_href", "hours", "street", "zip", "city")}
+    cfg = {k: SITE[k] for k in ("company", "email", "whatsapp", "phone", "phone_href", "hours", "street", "zip", "city", "api")}
     write("assets/js/site-config.js", "window.SITE=%s;\n" % json.dumps(cfg, ensure_ascii=False))
+    build_master_data()
 
     sm = ['<?xml version="1.0" encoding="UTF-8"?>',
           '<urlset xmlns="http://www.w3.org/1999/xhtml" xmlns:xhtml="http://www.w3.org/1999/xhtml">']

@@ -216,6 +216,21 @@
 .uf-c-low{color:var(--c-acc-text);text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px}
 .uf-note2{font-size:11.5px;color:var(--c-n700)}
 
+
+/* Phase 1: route, contact form, online draft */
+.uf-route{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;margin-top:-6px}
+.uf-route .uf-small{flex:1 1 200px}
+.uf-remote{border-top:2px solid var(--c-div);padding-top:10px}
+.uf-remote summary{cursor:pointer;font-weight:700;min-height:32px}
+.uf-remote .uf-col{margin-top:8px}
+.uf-linkrow{display:flex;gap:8px}
+.uf .uf-linkrow .input{font-size:13px}
+.uf-hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+.uf-error{color:var(--c-acc-text);font-weight:700;font-size:14px}
+.uf-done{background:var(--c-text);color:var(--c-bg);padding:16px;display:flex;flex-direction:column;gap:6px}
+.uf-done .uf-k{color:inherit;opacity:.8}
+.uf-note2 a{font-weight:700}
+
 @media (max-width:380px){
   .uf-head h2{font-size:26px}
   .uf-hero h1{font-size:30px}

@@ -45,7 +45,9 @@
       rooms: ['living', 'bedroom', 'kitchen', 'bath'].map(function (r) { return {r: r, sqm: ''}; }),
       inv: {}, vsel: {}, customs: [],
       mode: 0, q: '', room: 'all', presetSel: null, preset: null, guess: {},
-      paste: '', parsed: null, cd: null, src: null
+      paste: '', parsed: null, cd: null, src: null,
+      contact: {name: '', phone: '', email: '', channel: 0, note: ''}, consent: false, sent: null,
+      route: null, remote: null, remoteOk: false, started: 0
     };
   }
   function load() {
@@ -194,7 +196,7 @@
     return head(t.f1.title, t.f1.lead) +
       field(t.f1.from, '<input class="input" id="uf-from" data-bind="f1.from" value="' + esc(f.from) + '" placeholder="' + esc(t.f1.fromPh) + '" autocomplete="off">', 'uf-from') +
       field(t.f1.to, '<input class="input" id="uf-to" data-bind="f1.to" value="' + esc(f.to) + '" placeholder="' + esc(t.f1.toPh) + '" autocomplete="off">', 'uf-to') +
-      '<div class="field"><label for="uf-km">' + esc(t.f1.km) + '</label><input class="input uf-short" id="uf-km" data-bind="f1.km" value="' + esc(f.km) + '" inputmode="decimal" placeholder="20" aria-describedby="uf-km-h"><div class="uf-hint" id="uf-km-h">' + esc(t.f1.kmHint) + '</div></div>' +
+      '<div class="field"><label for="uf-km">' + esc(t.f1.km) + '</label><input class="input uf-short" id="uf-km" data-bind="f1.km" value="' + esc(f.km) + '" inputmode="decimal" placeholder="20" aria-describedby="uf-km-h"><div class="uf-hint" id="uf-km-h">' + esc(t.f1.kmHint) + '</div></div>' + routeBox() +
       groupField(t.f1.date, seg('dm', [t.f1.fixed, t.f1.flex], f.dateMode === 'fixed' ? 0 : 1, 'f1.dateMode', t.f1.date)) +
       (f.dateMode === 'fixed' ? field(t.f1.dateLabel, '<input class="input uf-short" type="date" id="uf-date" data-bind="f1.date" value="' + esc(f.date) + '">', 'uf-date') : '') +
       groupField(t.f1.hh, seg('hh', t.f1.hhOpts, f.hh, 'f1.hh', t.f1.hh));
@@ -376,6 +378,7 @@
       }).join('') + '<p class="uf-small uf-mt">' + esc(t.f8.more) + '</p></section>' +
       '<details class="uf-why"><summary>' + esc(t.f8.why) + '</summary><p>' + esc(fmt(t.f8.whyText, {v: num(e.vol), c: e.crew, h: num(e.hours), k: t.conf[e.conf], md: e.mdVersion})) + '</p></details>' +
       (e.conf === 'low' ? '<div class="uf-alert uf-col"><div class="uf-strong">' + esc(t.f8.video) + '</div><p class="uf-small">' + esc(t.f8.videoHint) + '</p></div>' : '') +
+      contactSection() +
       '<p class="uf-small">' + esc(t.f8.ref) + ': <b>' + esc(S.ref) + '</b> · <button type="button" class="btn btn-ghost uf-mini" data-act="restart" data-k="restart">' + esc(t.f8.restart) + '</button></p>';
   }
 
@@ -385,7 +388,7 @@
   function summaryText(max) {
     var e = est(), m = t.msg, L = [];
     L.push(m.title);
-    L.push(t.f8.ref + ': ' + S.ref);
+    L.push(t.f8.ref + ': ' + S.ref + (S.sent ? ' · ' + t.api.sentK + ' ' + S.sent.id : ''));
     L.push('');
     L.push(m.route + ': ' + (S.f1.from || '—') + ' → ' + (S.f1.to || '—'));
     L.push(m.km + ': ' + num(e.km, 0) + ' km' + (e.kmGuess ? ' (' + t.guessTag + ')' : ''));
@@ -416,6 +419,108 @@
     return head + body + '\n' + tailTxt;
   }
   function contactOk(v) { return v && String(v).charAt(0) !== '['; }
+
+  /* ---------- Phase 1: Google Sheet back end (SITE.api = Apps Script web app URL) ---------- */
+  var API = contactOk(SITE.api) ? SITE.api : '';
+  var busy = false, flash = {};
+  function api(payload) {
+    /* text/plain avoids a CORS preflight, which Apps Script cannot answer */
+    return fetch(API, {method: 'POST', headers: {'Content-Type': 'text/plain;charset=utf-8'}, body: JSON.stringify(payload)})
+      .then(function (r) { return r.json(); });
+  }
+  function resumeUrl() { return location.origin + location.pathname + '?resume=' + encodeURIComponent(S.ref + '.' + S.remote.token); }
+  var CHANNELS = ['whatsapp', 'phone', 'email'];
+  function routeBox() {
+    if (!API) return '';
+    var r = S.route, ok = S.f1.from.trim().length > 3 && S.f1.to.trim().length > 3;
+    return '<div class="uf-route"><button type="button" class="btn btn-secondary" data-act="route" data-k="route"' + (ok && !busy ? '' : ' disabled') + '>' + esc(busy === 'route' ? t.api.routeBusy : t.api.route) + '</button>' +
+      '<span class="uf-small" role="status">' + (r && r.km != null ? esc(fmt(t.api.routeOk, {km: r.km, min: r.min})) : flash.route ? esc(flash.route) : esc(t.api.routeNote)) + '</span></div>';
+  }
+  function remoteBox() {
+    if (!API || S.step < 1 || S.sent) return '';
+    var link = S.remote && S.remote.token ? resumeUrl() : '';
+    return '<details class="uf-remote"' + (flash.remote || link ? ' open' : '') + '><summary>' + esc(t.api.remote) + '</summary><div class="uf-col">' +
+      '<p class="uf-small">' + esc(t.api.remoteText) + '</p>' +
+      (link ? '<div class="uf-linkrow"><input class="input" readonly value="' + esc(link) + '" aria-label="' + esc(t.api.remoteLink) + '" id="uf-rlink"><button type="button" class="btn btn-secondary" data-act="copyLink" data-k="copyLink">' + esc(t.api.copy) + '</button></div>' : '') +
+      '<label class="uf-check"><input type="checkbox" data-toggle="remoteOk" data-k="remoteOk"' + (S.remoteOk ? ' checked' : '') + '><span class="uf-box" aria-hidden="true"></span><span class="uf-small">' + esc(t.api.remoteConsent) + '</span></label>' +
+      '<div><button type="button" class="btn btn-secondary" data-act="saveRemote" data-k="saveRemote"' + (S.remoteOk && !busy ? '' : ' disabled') + '>' + esc(link ? t.api.remoteUpdate : t.api.remoteSave) + '</button></div>' +
+      (flash.remote ? '<p class="uf-small" role="status">' + esc(flash.remote) + '</p>' : '') + '</div></details>';
+  }
+  function contactSection() {
+    if (!API) return '';
+    if (S.sent) {
+      return '<div class="uf-done" tabindex="-1" id="uf-done"><div class="uf-k">' + esc(t.api.sentK) + '</div><div class="uf-big-v">' + esc(S.sent.id) + '</div>' +
+        '<p>' + esc(t.api.sentText) + '</p></div>';
+    }
+    var c = S.contact;
+    return '<section class="uf-block" id="uf-contact"><h3 class="uf-h4">' + esc(t.api.title) + '</h3><p class="uf-small">' + esc(t.api.lead) + '</p>' +
+      field(t.api.name, '<input class="input" id="uf-cn" data-bind="contact.name" value="' + esc(c.name) + '" autocomplete="name" required>', 'uf-cn') +
+      field(t.api.phone, '<input class="input" id="uf-cp" type="tel" data-bind="contact.phone" value="' + esc(c.phone) + '" autocomplete="tel">', 'uf-cp') +
+      field(t.api.email, '<input class="input" id="uf-ce" type="email" data-bind="contact.email" value="' + esc(c.email) + '" autocomplete="email">', 'uf-ce') +
+      groupField(t.api.channel, seg('ch', t.api.channels, c.channel, 'contact.channel', t.api.channel)) +
+      field(t.api.note, '<textarea class="input" id="uf-cno" data-bind="contact.note" rows="3">' + esc(c.note) + '</textarea>', 'uf-cno') +
+      '<div class="uf-hp" aria-hidden="true"><label>Website <input type="text" id="uf-hp" tabindex="-1" autocomplete="off"></label></div>' +
+      '<label class="uf-check"><input type="checkbox" data-toggle="consent" data-k="consent"' + (S.consent ? ' checked' : '') + '><span class="uf-box" aria-hidden="true"></span>' +
+      '<span class="uf-small">' + esc(t.api.consent) + ' <a href="' + esc(t.api.privacyHref) + '">' + esc(t.api.privacy) + '</a></span></label>' +
+      (flash.send ? '<p class="uf-error" role="alert">' + esc(flash.send) + '</p>' : '') + '</section>';
+  }
+  function sendLead() {
+    var c = S.contact;
+    flash.send = '';
+    if (!c.name.trim() || (!c.phone.trim() && !c.email.trim())) flash.send = t.api.errContact;
+    else if (!S.consent) flash.send = t.api.errConsent;
+    if (flash.send) {
+      render();
+      var el = document.getElementById(!c.name.trim() ? 'uf-cn' : (!c.phone.trim() && !c.email.trim()) ? 'uf-cp' : 'uf-contact');
+      if (el) { el.scrollIntoView({block: 'center'}); if (el.focus) el.focus({preventScroll: true}); }
+      return;
+    }
+    busy = 'send'; render();
+    var hp = document.getElementById('uf-hp');
+    api({action: 'lead', lang: lang, consent: true, hp: hp ? hp.value : '', t: Date.now() - (S.started || Date.now()),
+      contact: {name: c.name, phone: c.phone, email: c.email, channel: CHANNELS[c.channel], note: c.note}, state: S})
+      .then(function (r) {
+        busy = false;
+        if (r && r.ok) { S.sent = {id: r.id, at: Date.now()}; save(); render(); var d = document.getElementById('uf-done'); if (d) d.focus(); }
+        else { flash.send = r && r.error === 'too_fast' ? t.api.errFast : t.api.errSend; render(); }
+      })
+      .catch(function () { busy = false; flash.send = t.api.errSend; render(); });
+  }
+  function getRoute() {
+    busy = 'route'; flash.route = ''; render();
+    api({action: 'route', from: S.f1.from, to: S.f1.to}).then(function (r) {
+      busy = false;
+      if (r && r.ok) { S.route = {km: r.km, min: r.min, key: S.f1.from + '|' + S.f1.to}; S.f1.km = String(r.km); save(); }
+      else flash.route = t.api.routeFail;
+      render();
+    }).catch(function () { busy = false; flash.route = t.api.routeFail; render(); });
+  }
+  function saveRemote() {
+    busy = 'remote'; flash.remote = ''; render();
+    api({action: 'saveDraft', consent: true, token: S.remote && S.remote.token, state: S}).then(function (r) {
+      busy = false;
+      if (r && r.ok) { S.remote = {token: r.token, until: r.until}; save(); flash.remote = fmt(t.api.remoteSaved, {d: new Date(r.until).toLocaleDateString(loc)}); }
+      else flash.remote = t.api.errSend;
+      render();
+    }).catch(function () { busy = false; flash.remote = t.api.errSend; render(); });
+  }
+  function tryResume() {
+    var p = new URLSearchParams(location.search).get('resume');
+    if (!API || !p || p.indexOf('.') < 0) return;
+    var ref = p.split('.')[0], token = p.split('.').slice(1).join('.');
+    fetch(API + '?action=draft&ref=' + encodeURIComponent(ref) + '&token=' + encodeURIComponent(token))
+      .then(function (r) { return r.json(); })
+      .then(function (r) {
+        if (!r || !r.ok || !r.state) { alert(t.api.resumeFail); return; }
+        if (S.ref !== ref && Object.keys(S.inv).length && !window.confirm(t.api.resumeAsk)) return;
+        var f = fresh(), st = r.state;
+        for (var k in f) if (st[k] === undefined) st[k] = f[k];
+        st.remote = {token: token}; st.sent = null;
+        S = st; save(); render(true);
+        history.replaceState(null, '', location.pathname);
+      })
+      .catch(function () { alert(t.api.resumeFail); });
+  }
   function waHref() { return 'https://wa.me/' + SITE.whatsapp + '?text=' + encodeURIComponent(summaryText(1500)); }
   function mailHref() { return 'mailto:' + SITE.email + '?subject=' + encodeURIComponent(t.msg.title + ' ' + S.ref) + '&body=' + encodeURIComponent(summaryText(1800)); }
 
@@ -451,12 +556,17 @@
       h += '<div class="uf-btnrow"><button type="button" class="btn btn-primary btn-block uf-big uf-cta" data-act="go" data-i="1" data-k="start"><span>' + esc(t.f0.cta) + '</span><span aria-hidden="true">→</span></button></div>';
     } else if (S.step < LAST) {
       h += '<div class="uf-btnrow">' + back + '<button type="button" class="btn btn-primary btn-block uf-big" data-act="next" data-k="next"><span>' + esc(t.next) + '</span><span aria-hidden="true">→</span></button></div>';
+    } else if (API && !S.sent) {
+      h += '<div class="uf-btnrow">' + back + '<div class="uf-col uf-grow">' +
+        '<button type="button" class="btn btn-primary btn-block uf-big" data-act="send" data-k="send"' + (busy ? ' disabled' : '') + '><span>' + esc(busy === 'send' ? t.api.sending : t.api.send) + '</span><span aria-hidden="true">→</span></button>' +
+        '<p class="uf-note2">' + esc(t.api.or) + ' ' + (contactOk(SITE.whatsapp) ? '<a href="' + esc(waHref()) + '" target="_blank" rel="noopener">WhatsApp</a>' : '') +
+        (contactOk(SITE.email) ? ' · <a href="' + esc(mailHref()) + '">' + esc(t.api.mailShort) + '</a>' : '') + '</p></div></div>';
     } else {
       var wa = contactOk(SITE.whatsapp), mail = contactOk(SITE.email);
       h += '<div class="uf-btnrow">' + back + '<div class="uf-col uf-grow">' +
-        (wa ? '<a class="btn btn-primary btn-block uf-big" href="' + esc(waHref()) + '" target="_blank" rel="noopener"><span>' + esc(t.f8.wa) + '</span><span aria-hidden="true">→</span></a>' : '') +
+        (wa ? '<a class="btn ' + (S.sent ? 'btn-secondary' : 'btn-primary') + ' btn-block uf-big" href="' + esc(waHref()) + '" target="_blank" rel="noopener"><span>' + esc(S.sent ? t.api.waAlso : t.f8.wa) + '</span><span aria-hidden="true">→</span></a>' : '') +
         (mail ? '<a class="btn btn-secondary btn-block uf-mid" href="' + esc(mailHref()) + '">' + esc(t.f8.mail) + '</a>' : '') +
-        (!wa && !mail ? '<p class="uf-small">' + esc(t.f8.noContact) + '</p>' : '<p class="uf-note2">' + esc(t.f8.waNote) + '</p>') +
+        (!wa && !mail ? '<p class="uf-small">' + esc(t.f8.noContact) + '</p>' : S.sent ? '' : '<p class="uf-note2">' + esc(t.f8.waNote) + '</p>') +
         '</div></div>';
     }
     return h;
@@ -473,7 +583,7 @@
     root.innerHTML =
       '<div class="uf-top"><div class="uf-prog" aria-hidden="true">' + cells + '</div>' +
       '<div class="uf-metarow"><span class="uf-kicker">' + esc(kicker) + '</span><span class="uf-saved" id="uf-saved" aria-live="polite">' + (S.step ? savedHtml() : '') + '</span></div></div>' +
-      '<div class="uf-body' + (S.step === 0 ? ' uf-body0' : '') + (focusHead ? ' uf-enter' : '') + '">' + SCREENS[S.step]() + '</div>' +
+      '<div class="uf-body' + (S.step === 0 ? ' uf-body0' : '') + (focusHead ? ' uf-enter' : '') + '">' + SCREENS[S.step]() + remoteBox() + '</div>' +
       '<div class="uf-foot">' + footer() + '</div>' +
       '<div class="uf-sr" aria-live="polite" id="uf-live"></div>';
     if (focusHead) {
@@ -500,7 +610,7 @@
     if (!b || !root.contains(b)) return;
     var a = b.getAttribute('data-act'), id = b.getAttribute('data-id'), i = +b.getAttribute('data-i'), r = b.getAttribute('data-r');
     switch (a) {
-      case 'go': return go(i);
+      case 'go': if (!S.started) S.started = Date.now(); return go(i);
       case 'next': return go(S.step + 1);
       case 'back': return go(S.step - 1);
       case 'inc': add(id, 1, S.inv[id] ? null : (S.vsel[id] || 0), 'pick'); announce(nm(CAT[id]) + ': ' + total(S.inv[id])); break;
@@ -537,10 +647,17 @@
       case 'fix': S.step = 4; S.mode = 0; S.room = 'all'; S.q = nm(CAT[id]); save(); return render(true);
       case 'toList': S.step = 4; S.mode = 3; save(); return render(true);
       case 'csv': return downloadCsv();
+      case 'send': return sendLead();
+      case 'route': return getRoute();
+      case 'saveRemote': return saveRemote();
+      case 'copyLink':
+        var li = document.getElementById('uf-rlink');
+        if (li) { li.select(); try { navigator.clipboard.writeText(li.value); } catch (err) { document.execCommand('copy'); } }
+        flash.remote = t.api.copied; render(); return;
       case 'restart':
         if (!window.confirm(t.f8.restartAsk)) return;
         try { localStorage.removeItem(KEY); } catch (err) {}
-        S = fresh(); return render(true);
+        S = fresh(); flash = {}; return render(true);
       default: return;
     }
     save(); render();
@@ -570,7 +687,13 @@
     var el = ev.target, p = el.getAttribute('data-bind');
     if (p) {
       if (getPath(S, p) === undefined && p.indexOf('cd.') !== 0) return;
-      setPath(S, p, el.value.slice(0, p === 'paste' ? 4000 : 160));
+      setPath(S, p, el.value.slice(0, p === 'paste' ? 4000 : p === 'contact.note' ? 1000 : 160));
+      if (p === 'f1.km' && S.route) S.route = null;
+      if ((p === 'f1.from' || p === 'f1.to') && API) {
+        if (S.route && S.route.key !== S.f1.from + '|' + S.f1.to) S.route = null;
+        var rb = root.querySelector('[data-act="route"]');
+        if (rb) rb.disabled = !(S.f1.from.trim().length > 3 && S.f1.to.trim().length > 3) || !!busy;
+      }
       save();
       if (p.indexOf('cd.') === 0) { var cv = document.getElementById('uf-cvol'); if (cv) cv.textContent = num(cdVol(S.cd), 2) + ' m³'; }
       refreshEst();
@@ -587,5 +710,7 @@
   var TEAM_SVG = '<svg viewBox="0 0 150 110" role="img" aria-hidden="true" focusable="false"><g><circle cx="30" cy="22" r="12" fill="#201e1d"/><rect x="14" y="38" width="32" height="44" fill="#ec3013"/><rect x="18" y="46" width="8" height="8" fill="#f3f2f2"/><rect x="14" y="82" width="13" height="26" fill="#201e1d"/><rect x="33" y="82" width="13" height="26" fill="#201e1d"/></g><g><circle cx="75" cy="18" r="12" fill="#201e1d"/><rect x="59" y="34" width="32" height="48" fill="#ec3013"/><rect x="63" y="42" width="8" height="8" fill="#f3f2f2"/><rect x="59" y="82" width="13" height="26" fill="#201e1d"/><rect x="78" y="82" width="13" height="26" fill="#201e1d"/><rect x="92" y="30" width="40" height="30" fill="#f3f2f2" stroke="#201e1d" stroke-width="2"/><rect x="92" y="42" width="40" height="4" fill="#ec3013"/><rect x="98" y="48" width="6" height="6" fill="#ec3013"/></g><g><circle cx="128" cy="26" r="11" fill="#201e1d"/><rect x="113" y="62" width="30" height="20" fill="#ec3013"/><rect x="117" y="67" width="7" height="7" fill="#f3f2f2"/><rect x="113" y="82" width="12" height="26" fill="#201e1d"/><rect x="131" y="82" width="12" height="26" fill="#201e1d"/></g></svg>';
   var BOX_SVG = '<svg viewBox="0 0 150 110" role="img" aria-hidden="true" focusable="false"><rect x="12" y="52" width="62" height="50" fill="#f3f2f2" stroke="#201e1d" stroke-width="2"/><rect x="12" y="52" width="62" height="6" fill="#ec3013"/><rect x="20" y="70" width="10" height="10" fill="#ec3013"/><rect x="34" y="72" width="30" height="3" fill="#201e1d"/><rect x="34" y="78" width="20" height="2" fill="#201e1d"/><rect x="80" y="40" width="58" height="62" fill="#f3f2f2" stroke="#201e1d" stroke-width="2"/><rect x="80" y="40" width="58" height="6" fill="#ec3013"/><rect x="88" y="62" width="10" height="10" fill="#ec3013"/><rect x="102" y="64" width="28" height="3" fill="#201e1d"/><rect x="102" y="70" width="18" height="2" fill="#201e1d"/><rect x="34" y="6" width="54" height="44" fill="#f3f2f2" stroke="#201e1d" stroke-width="2"/><rect x="34" y="6" width="54" height="6" fill="#ec3013"/><rect x="42" y="24" width="10" height="10" fill="#ec3013"/><rect x="56" y="26" width="26" height="3" fill="#201e1d"/><rect x="56" y="32" width="16" height="2" fill="#201e1d"/></svg>';
 
+  if (S.step > 0 && !S.started) S.started = Date.now() - 60000;
   render(false);
+  tryResume();
 })();
