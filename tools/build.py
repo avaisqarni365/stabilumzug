@@ -35,7 +35,7 @@ def main():
             '<link rel="stylesheet" href="/assets/css/site.css"></head><body><main id="main">%s</main></body></html>' % body)
     write("404.html", html)
 
-    cfg = {k: SITE[k] for k in ("company", "email", "whatsapp", "phone", "phone_href", "street", "zip", "city")}
+    cfg = {k: SITE[k] for k in ("company", "email", "whatsapp", "phone", "phone_href", "hours", "street", "zip", "city")}
     write("assets/js/site-config.js", "window.SITE=%s;\n" % json.dumps(cfg, ensure_ascii=False))
 
     sm = ['<?xml version="1.0" encoding="UTF-8"?>',

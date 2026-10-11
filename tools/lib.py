@@ -146,7 +146,7 @@ def head(page):
         '<link rel="stylesheet" href="%sassets/css/site.css">' % pre,
     ]
     if page.get("planner"):
-        parts.append('<link rel="stylesheet" href="%sassets/css/planner.css">' % pre)
+        parts.append('<link rel="stylesheet" href="%sassets/css/flow.css">' % pre)
     if page.get("noindex"):
         parts.append('<meta name="robots" content="noindex">')
     for s in page.get("schema", []):
@@ -158,7 +158,8 @@ def render(page):
     pre = prefix_for(key, lang)
     scripts = ['<script src="%sassets/js/site-config.js"></script>' % pre]
     if page.get("planner"):
-        scripts.append('<script src="%sassets/js/planner.js" defer></script>' % pre)
+        for f in ("flow-i18n", "flow-data", "estimator", "flow"):
+            scripts.append('<script src="%sassets/js/%s.js" defer></script>' % (pre, f))
     scripts.append('<script src="%sassets/js/site.js" defer></script>' % pre)
     return (
         '<!doctype html>\n<html lang="%s">\n<head>\n%s\n</head>\n<body>\n'

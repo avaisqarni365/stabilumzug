@@ -11,13 +11,13 @@ SITE = {
     "city": "Essen",
     "region": "Nordrhein-Westfalen",
     # Contact details shown in the footer, on the contact page and used by the planner.
-    "phone": "[Telefonnummer]",
-    "phone_href": "",            # digits with country code for the call link, e.g. +4920112345678
-    "email": "[E-Mail-Adresse]",
-    "whatsapp": "",              # digits only with country code, e.g. 491701234567 (leave empty to hide)
+    "phone": "0163 9688190",
+    "phone_href": "+491639688190",           # digits with country code for the call link, e.g. +4920112345678
+    "email": "info.stabilumzug@gmail.com",
+    "whatsapp": "491639688190",             # digits only with country code, e.g. 491701234567 (leave empty to hide)
     "street": "[Straße und Hausnummer]",
     "zip": "[PLZ]",
-    "hours": "[Öffnungszeiten]",
+    "hours": "Mo–Fr 9–19 Uhr · Sa/So 9–17 Uhr",
     # Legal details for the imprint (Impressum). Have them checked by a lawyer.
     "owner": "[Inhaber oder Geschäftsführer]",
     "legal_form": "[Rechtsform]",

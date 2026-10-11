@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 380" role="img" aria-label="Stabil Umzug Transporter mit Team" font-family="Archivo, Arial, Helvetica, sans-serif">
+  <defs>
+  </defs>
+  <rect x="0" y="344" width="980" height="3" fill="#201e1d" opacity=".35"></rect>
+  <rect x="250" y="338" width="700" height="8" fill="#201e1d" opacity=".12"></rect>
+  <path d="M256 300 L256 180 Q256 160 275 158 L345 150 L415 75 Q422 68 435 68 L905 68 Q932 68 932 95 L932 300 Z" fill="#f3f2f2" stroke="#201e1d" stroke-width="3" stroke-linejoin="round"></path>
+  <path d="M435 71 L905 71 Q929 71 929 95 L929 80 L435 80 Z" fill="#ec3013"></path>
+  <rect x="438" y="71" width="488" height="9" fill="#ec3013"></rect>
+  <path d="M352 152 L418 82 L462 82 L462 152 Z" fill="#201e1d"></path>
+  <path d="M360 150 L420 88 L436 88 L436 150 Z" fill="#f3f2f2" opacity=".18"></path>
+  <rect x="474" y="82" width="104" height="70" fill="#201e1d"></rect>
+  <rect x="482" y="90" width="26" height="54" fill="#f3f2f2" opacity=".18"></rect>
+  <rect x="340" y="120" width="14" height="26" fill="#201e1d"></rect>
+  <line x1="588" y1="82" x2="588" y2="296" stroke="#201e1d" stroke-width="2" opacity=".55"></line>
+  <line x1="760" y1="82" x2="760" y2="296" stroke="#201e1d" stroke-width="2" opacity=".35"></line>
+  <rect x="596" y="176" width="26" height="6" fill="#201e1d"></rect>
+  <rect x="546" y="176" width="26" height="6" fill="#201e1d"></rect>
+  <rect x="262" y="176" width="22" height="30" fill="#201e1d"></rect>
+  <rect x="262" y="212" width="80" height="4" fill="#201e1d"></rect>
+  <rect x="262" y="222" width="80" height="4" fill="#201e1d"></rect>
+  <rect x="252" y="286" width="684" height="16" fill="#2d2b2b"></rect>
+  <rect x="258" y="248" width="672" height="34" fill="#ec3013"></rect>
+  <text x="600" y="272" text-anchor="middle" font-size="17" font-weight="800" fill="#f3f2f2" letter-spacing="2">WWW.STABILUMZUG.DE · TEL / WHATSAPP 0163 9688190</text>
+  <text x="600" y="146" font-size="50" font-weight="800" fill="#201e1d" letter-spacing="-1.5" textLength="318" lengthAdjust="spacingAndGlyphs">STABIL</text>
+  <text x="600" y="206" font-size="50" font-weight="800" fill="#ec3013" letter-spacing="-1.5" textLength="318" lengthAdjust="spacingAndGlyphs">UMZUG</text>
+  <text x="600" y="234" font-size="12.5" font-weight="600" fill="#201e1d" letter-spacing="2.4">UMZÜGE · KLAVIERTRANSPORTE · ENTRÜMPELUNG · ESSEN</text>
+  <g>
+    <circle cx="360" cy="300" r="46" fill="#201e1d"></circle><circle cx="360" cy="300" r="26" fill="#9b9797"></circle><circle cx="360" cy="300" r="9" fill="#201e1d"></circle>
+    <circle cx="820" cy="300" r="46" fill="#201e1d"></circle><circle cx="820" cy="300" r="26" fill="#9b9797"></circle><circle cx="820" cy="300" r="9" fill="#201e1d"></circle>
+  </g>
+  <path d="M308 300 A52 52 0 0 1 412 300" fill="none" stroke="#201e1d" stroke-width="3"></path>
+  <path d="M768 300 A52 52 0 0 1 872 300" fill="none" stroke="#201e1d" stroke-width="3"></path>
+  <g>
+    <circle cx="60" cy="202" r="17" fill="#201e1d"></circle>
+    <rect x="40" y="224" width="40" height="62" fill="#ec3013"></rect>
+    <rect x="48" y="236" width="11" height="11" fill="#f3f2f2"></rect>
+    <rect x="78" y="236" width="42" height="11" fill="#201e1d"></rect>
+    <rect x="42" y="286" width="16" height="58" fill="#201e1d"></rect>
+    <rect x="62" y="286" width="16" height="58" fill="#201e1d"></rect>
+  </g>
+  <g>
+    <rect x="118" y="214" width="60" height="50" fill="#f3f2f2" stroke="#201e1d" stroke-width="2.5"></rect>
+    <rect x="118" y="214" width="60" height="7" fill="#ec3013"></rect>
+    <rect x="126" y="232" width="10" height="10" fill="#ec3013"></rect>
+    <rect x="140" y="234" width="30" height="3" fill="#201e1d"></rect>
+    <rect x="140" y="240" width="20" height="2" fill="#201e1d"></rect>
+    <text x="124" y="258" font-size="7" font-weight="800" fill="#201e1d" letter-spacing="1">STABIL UMZUG</text>
+  </g>
+  <g>
+    <circle cx="214" cy="198" r="17" fill="#201e1d"></circle>
+    <rect x="194" y="220" width="40" height="66" fill="#ec3013"></rect>
+    <rect x="202" y="232" width="11" height="11" fill="#f3f2f2"></rect>
+    <rect x="176" y="236" width="20" height="11" fill="#201e1d"></rect>
+    <rect x="196" y="286" width="16" height="58" fill="#201e1d"></rect>
+    <rect x="216" y="286" width="16" height="58" fill="#201e1d"></rect>
+  </g>
+</svg>

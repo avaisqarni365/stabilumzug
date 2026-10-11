@@ -73,28 +73,19 @@ def services(lang):
 def planner(lang):
     key = "planner"
     pre = prefix_for(key, lang)
-    body = page_head(key, lang, t("Umzugsplaner", "Moving planner", lang),
-        t("Zimmer und Gegenstände auswählen, Zugang und Strecke angeben. Sie erhalten eine Schätzung für Volumen, Fahrzeug und Team als PDF.",
-          "Pick rooms and items, add access and distance. You get an estimate of volume, vehicle and crew as a PDF.", lang))
-    body += (
-        '<section class="planner-wrap"><div class="container">'
-        '<noscript><p class="legal-flag">%s</p></noscript>'
-        '<div class="planner" data-base="%s">'
-        '<ol class="steps" id="steps"></ol>'
-        '<div class="grid"><div id="step" aria-live="polite"></div>'
-        '<aside class="card est" id="est" aria-label="%s"></aside></div>'
-        '<div class="bar" id="bar"></div>'
-        '</div>'
-        '<p class="msg">%s</p>'
+    phone = SITE["phone"] if not is_ph(SITE["phone"]) else ""
+    fallback = t("Der Umzugsplaner braucht JavaScript. Rufen Sie uns an oder nutzen Sie das Kontaktformular.",
+                 "The moving planner needs JavaScript. Call us or use the contact form.", lang)
+    body = (
+        '<section class="uf-wrap"><div class="uf" id="uf" data-base="%s">'
+        '<noscript><div class="uf-body"><h1>%s</h1><p>%s</p><p>%s <a href="%s">%s</a></p></div></noscript>'
         '</div></section>'
-    ) % (t("Der Planer braucht JavaScript. Alternativ nutzen Sie unser Kontaktformular.", "The planner needs JavaScript. You can use our contact form instead.", lang),
-         pre, t("Schätzung", "Estimate", lang),
-         t("Ihre Eingaben bleiben auf Ihrem Gerät. Es wird nichts gespeichert und nichts an einen Server gesendet, bis Sie das PDF selbst per E-Mail oder WhatsApp teilen. Die Zahlen sind eine Schätzung, kein verbindliches Angebot.",
-           "Your entries stay on your device. Nothing is stored or sent to a server until you share the PDF by email or WhatsApp yourself. The figures are an estimate, not a binding quote.", lang))
+    ) % (pre, esc(t("Umzugsplaner", "Moving planner", lang)), esc(fallback),
+         esc(phone), link(key, "contact", lang), t("Zum Kontaktformular", "Go to the contact form", lang))
     return dict(key=key, lang=lang, planner=True,
-        title=t("Umzugsplaner: Volumen und Fahrzeug schätzen | Stabil Umzug", "Moving planner: estimate volume and vehicle | Stabil Umzug", lang),
-        desc=t("Kostenloser Umzugsplaner: Inventar auswählen, Volumen, Fahrzeug und Team schätzen und als PDF an Stabil Umzug senden.",
-               "Free moving planner: choose your inventory, estimate volume, vehicle and crew, and send the PDF to Stabil Umzug.", lang),
+        title=t("Umzugsplaner: Volumen, Fahrzeug und Team schätzen | Stabil Umzug", "Moving planner: estimate volume, vehicle and crew | Stabil Umzug", lang),
+        desc=t("Kostenloser Umzugsplaner: Räume, Möbel und Zugang erfassen, Volumen, Fahrzeug und Team sofort sehen und die Zusammenfassung per WhatsApp oder E-Mail an Stabil Umzug senden.",
+               "Free moving planner: record rooms, furniture and access, see volume, vehicle and crew right away, and send the summary to Stabil Umzug via WhatsApp or email.", lang),
         body=body)
 
 # ---------------------------------------------------------------- contact
@@ -191,8 +182,8 @@ def home(lang):
         '<figcaption>%s</figcaption></figure></div></section>'
     ) % (
         t("Umzug in Essen und ganz Deutschland. <em>Stabil</em> geplant.", "Moving in Essen and all over Germany. Planned <em>stable</em>.", lang),
-        esc(t("Erfassen Sie Ihre Räume und Möbel online. Sie sehen, welches Fahrzeug und wie viele Helfer sinnvoll sind, und senden uns die Zusammenfassung als PDF.",
-              "Record your rooms and furniture online. See which vehicle and how many helpers make sense, and send us the summary as a PDF.", lang)),
+        esc(t("Erfassen Sie Ihre Räume und Möbel online. Sie sehen, welches Fahrzeug und wie viele Helfer sinnvoll sind, und senden uns die Zusammenfassung per WhatsApp oder E-Mail.",
+              "Record your rooms and furniture online. See which vehicle and how many helpers make sense, and send us the summary via WhatsApp or email.", lang)),
         L("planner"), t("Umzug planen", "Plan your move", lang), L("contact"), t("Anfrage senden", "Send a request", lang),
         t("Ohne Konto, ohne Cookies", "No account, no cookies", lang), t("Deutsch und Englisch", "German and English", lang), t("Aus Essen", "Based in Essen", lang),
         crate_svg(lang), t("Beispiel", "Example", lang),
@@ -218,7 +209,7 @@ def home(lang):
         head(t("Der Umzugsplaner", "The moving planner", lang)),
         esc(t("Zimmer und Gegenstände aus einer Liste wählen", "Pick rooms and items from a list", lang)),
         esc(t("Volumen, Fahrzeug und Team als Schätzung", "Volume, vehicle and crew as an estimate", lang)),
-        esc(t("PDF per E-Mail oder WhatsApp senden", "Send the PDF by email or WhatsApp", lang)),
+        esc(t("Zusammenfassung per WhatsApp oder E-Mail senden", "Send the summary via WhatsApp or email", lang)),
         L("planner"), t("Planer öffnen", "Open the planner", lang), '<div class="panel-dark">%s</div>' % crate_svg(lang)))
     if TESTIMONIALS:
         quotes = "".join('<article class="tile"><p>“%s”</p><p><b>%s</b></p></article>' % (esc(q["text"]), esc(q["name"])) for q in TESTIMONIALS)
@@ -243,6 +234,6 @@ def home(lang):
     if not is_ph(SITE["email"]): biz["email"] = SITE["email"]
     return dict(key=key, lang=lang, schema=[biz, faq_ld],
         title=t("Stabil Umzug Essen: Umzug planen und anfragen", "Stabil Umzug Essen: plan and request your move", lang),
-        desc=t("Umzug in Essen und ganz Deutschland. Räume und Möbel im Planer erfassen, Volumen und Fahrzeug schätzen, Zusammenfassung als PDF senden.",
-               "Moving in Essen and all over Germany. Record rooms and furniture, estimate volume and vehicle, send the summary as a PDF.", lang),
+        desc=t("Umzug in Essen und ganz Deutschland. Räume und Möbel im Planer erfassen, Volumen und Fahrzeug schätzen, Zusammenfassung per WhatsApp oder E-Mail senden.",
+               "Moving in Essen and all over Germany. Record rooms and furniture, estimate volume and vehicle, send the summary via WhatsApp or email.", lang),
         body=body)
