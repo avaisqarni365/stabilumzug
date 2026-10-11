@@ -3,16 +3,17 @@
 import os, json, sys
 sys.path.insert(0, os.path.dirname(__file__))
 from config import SITE
-import lib, pages, pages2
+import lib, pages, pages2, guides
 from lib import PAGES, url_of, render, is_ph
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
 BUILDERS = {
     "home": pages.home, "services": pages.services, "planner": pages.planner, "contact": pages.contact,
-    "guides": pages2.guides, "checklist": pages2.checklist, "parking": pages2.parking, "register": pages2.register,
-    "essen": pages2.essen, "about": pages2.about, "imprint": pages2.imprint, "privacy": pages2.privacy,
+    "guides": guides.hub, "essen": pages2.essen, "about": pages2.about, "imprint": pages2.imprint, "privacy": pages2.privacy,
 }
+for _k in lib.GUIDES:
+    BUILDERS[_k] = guides.guide(_k)
 
 def write(rel, text):
     p = os.path.join(ROOT, rel)

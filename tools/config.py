@@ -38,6 +38,7 @@ SERVICES_ENABLED = {
     "disposal": True,
     "parking": True,
     "storage": True,
+    "piano": True,         # named in the design handoff
     "restoration": True,   # named on the current website
 }
 
