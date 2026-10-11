@@ -52,9 +52,10 @@
 /* body */
 .uf-body{flex:1;padding:14px 16px 24px;display:flex;flex-direction:column;gap:18px}
 .uf-head h2{font-size:30px;line-height:1.05;letter-spacing:-.02em;margin:0 0 8px;text-wrap:balance}
-.uf-lead{color:var(--c-n700);text-wrap:pretty}
+.uf-lead{color:var(--c-n700);text-align:justify;hyphens:auto;-webkit-hyphens:auto}
 .uf-strong{font-weight:700}
-.uf-small{font-size:13px;color:var(--c-n700)}
+.uf-small{font-size:13px;color:var(--c-n700);hyphens:auto;-webkit-hyphens:auto}
+p.uf-small,.uf-how .uf-small,.uf-card .uf-small{text-align:justify}
 .uf-block-s{display:block;margin-top:3px}
 .uf-mt{margin-top:10px}
 .uf-num{font-variant-numeric:tabular-nums;white-space:nowrap}

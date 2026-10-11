@@ -29,9 +29,9 @@ def essen(lang):
     ]
     tips_html = "".join('<li>%s <a class="link-arrow" href="%s">%s</a></li>' % (esc(a), link(key, k, lang), t("mehr", "more", lang)) for a, k in tips)
     places = "".join("<li>%s</li>" % esc(p if p != "Ganz Deutschland" else t("Ganz Deutschland", "All of Germany", lang)) for p in PLACES)
-    body += ('<section class="section"><div class="container split"><div><span class="kicker red">%s</span>'
-             '<h2 style="font-size:clamp(1.9rem,3.8vw,3rem)">%s</h2><p class="lead-text">%s</p><ul class="checks">%s</ul></div>'
-             '<div><span class="kicker">%s</span><ul class="places">%s</ul></div></div></section>') % (
+    body += ('<section class="section"><div class="container"><div class="head"><div><span class="kicker red">%s</span>'
+             '<h2>%s</h2></div></div><div class="split"><div><p class="lead-text" style="margin-top:0">%s</p><ul class="checks">%s</ul></div>'
+             '<div><span class="kicker">%s</span><ul class="places">%s</ul></div></div></div></section>') % (
         t("Altbau, Hochhaus, Haus", "Old building, tower block, house", lang),
         t("Der Zugang entscheidet über Zeit und Team.", "Access decides time and crew.", lang),
         esc(t("Ob Altbau in Rüttenscheid, Hochhaus im Norden oder Haus im Süden: Wir fragen nach Etage, Aufzug, Treppenhaus und Parkmöglichkeit – an beiden Adressen.",
@@ -78,7 +78,7 @@ def about(lang):
               "Most money and stress are lost when information from one step does not reach the next. So we turned this flow into a simple planner.", lang)
     cells = "".join('<div><h3>%s</h3><p>%s</p></div>' % (esc(t(*a, lang)), esc(t(*b, lang))) for a, b in PRINCIPLES)
     body += ('<section class="section"><div class="container"><div class="head"><div><span class="kicker red">%s</span><h2>%s</h2></div><p>%s</p></div>'
-             '<div class="costs">%s</div></div></section>' % (t("Wie wir arbeiten", "How we work", lang), t("Sechs Versprechen.", "Six promises.", lang), esc(intro), cells))
+             '<div class="costs two">%s</div></div></section>' % (t("Wie wir arbeiten", "How we work", lang), t("Sechs Versprechen.", "Six promises.", lang), esc(intro), cells))
     body += sec('<p class="ph">%s</p>' % t("[Hier kurze Vorstellung des Unternehmens, des Teams um Ibrahim Abdelaal und der Erfahrung eintragen]",
                                             "[Add a short introduction of the company, the team around Ibrahim Abdelaal and its experience here]", lang))
     body += cta(key, lang)
@@ -141,7 +141,7 @@ def privacy(lang):
 
 def not_found():
     body = ('<section class="hero on-dark"><div class="container" style="padding-bottom:clamp(48px,7vw,96px)"><div>'
-            '<span class="kicker">404</span><h1>Seite nicht gefunden.<span>Page not found.</span></h1>'
+            '<span class="kicker">404</span><h1>Seite nicht gefunden.</h1><p class="tagline">Page not found.</p>'
             '<p class="lead">Die Seite gibt es nicht (mehr). This page does not exist (any more).</p>'
             '<div class="actions"><a class="button primary" href="/">Zur Startseite</a><a class="button arrow" href="/en/">English home</a>'
             '<a class="button arrow" href="/umzugsplaner/">Umzugsplaner</a></div></div></div></section>')
