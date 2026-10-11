@@ -137,7 +137,7 @@ def home(lang):
              (t("0 Cookies", "0 cookies", lang), t("keine Werbe-Tracker", "no ad trackers", lang))]
     hero = (
         '<section class="hero on-dark"><div class="container">'
-        '<div><span class="kicker">%s</span><h1>%s <span>%s</span></h1><p class="lead">%s</p>'
+        '<div class="hero-copy"><span class="kicker">%s</span><h1>%s</h1><p class="tagline">%s</p><p class="lead">%s</p>'
         '<div class="actions"><a class="button primary" href="%s">%s</a>%s</div></div>'
         '<div class="hero-art"><img src="%sassets/img/stabil-scene.svg" alt="%s" width="980" height="380"></div>'
         '<ul class="facts">%s</ul>'
@@ -193,7 +193,7 @@ def home(lang):
         t("Team", "Crew", lang), t("3 Personen · ca. 9 Std.", "3 people · approx. 9 h", lang),
         t("Vertrauen", "Confidence", lang), t("Mittel", "Medium", lang),
         t("Beispiel für eine 3-Zimmer-Wohnung, kein Angebot.", "Example for a three-room flat, not a quote.", lang))
-    body += sec(" alt", '<div class="split"><div><span class="kicker red">%s</span><h2 style="font-size:clamp(1.9rem,3.8vw,3rem)">%s</h2><ul class="checks">%s</ul><a class="button primary" href="%s">%s</a></div>%s</div>' % (
+    body += sec(" alt", '<div class="head"><div><span class="kicker red">%s</span><h2>%s</h2></div></div><div class="split"><div><ul class="checks" style="margin-top:0">%s</ul><a class="button primary" href="%s">%s</a></div>%s</div>' % (
         t("Der Umzugsplaner", "The moving planner", lang),
         t("Grob reicht. Ehrlich bleibt es trotzdem.", "Rough is fine. It stays honest anyway.", lang),
         "".join("<li>%s</li>" % esc(t(*x, lang)) for x in [
