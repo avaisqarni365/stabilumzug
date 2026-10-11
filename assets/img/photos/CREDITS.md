@@ -1,14 +1,28 @@
 # Photo sources
 
-All photos are from Unsplash and used under the Unsplash License (free for commercial use, no attribution required).
-Downloaded 2026-10-11 at 1600 px width.
+## Brand photos (supplied by the owner)
+
+Supplied by Stabil Umzug on 2026-10-11 (originals in `assets/img/src/brand/`), saved as JPEG at 1536 px.
+The owner confirms the right to use them. They show the brand look (workwear, boxes, equipment);
+the people are not presented as named staff.
+
+| File | Shows | Used on |
+|---|---|---|
+| loading-boxes.jpg | crew strapping branded boxes in the truck | Umzüge, city pages |
+| sofa-transport.jpg | wrapped sofa strapped in the truck | Möbeltransport |
+| kitchen-assembly.jpg | kitchen cabinet assembly | Zusatzleistungen |
+| bed-assembly.jpg | bed assembly in the new home | home photo band |
+| sofa-assembly.jpg | sofa assembly | Über uns header |
+| uniform.jpg | polo, jacket and trousers with logo | Über uns, "Unser Auftritt" |
+| caps.jpg | caps with logo | Über uns, "Unser Auftritt" |
+| equipment.webp | hand truck, stair climber, dolly, blankets, straps, gloves | home, "Ausrüstung" |
+
+## Unsplash
+
+Used under the Unsplash License (free for commercial use, no attribution required). Downloaded 2026-10-11 at 1600 px width.
 
 | File | Unsplash photo |
 |---|---|
-| couple-carry.jpg | https://unsplash.com/photos/couple-carrying-moving-boxes-into-a-new-home-vV5iOAidkQE |
-| couple-boxes.jpg | https://unsplash.com/photos/couple-surrounded-by-moving-boxes-in-new-home-yxnzg8mn2O8 |
-| truck-furniture.jpg | https://unsplash.com/photos/moving-truck-and-person-carrying-furniture-near-a-building-k0HLWPwfJLU |
-| men-box-street.jpg | https://unsplash.com/photos/young-men-carry-a-cardboard-box-on-a-city-street-1Zllza16Ayc |
 | keys.jpg | https://unsplash.com/photos/hand-holding-house-keys-over-miniature-houses-t0CRdNl_mTg |
 | empty-room.jpg | https://unsplash.com/photos/a-room-with-boxes-and-a-window-bV7WI-AeiTA |
 | boxes-window.jpg | https://unsplash.com/photos/stack-of-cardboard-boxes-near-a-window-gh6uXXV9a5I |

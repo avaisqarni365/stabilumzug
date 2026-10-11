@@ -591,3 +591,9 @@ main h1, main h2, main h3, .kicker, .crumbs, .msg, .facts li, .pfacts dd, .pstep
 .gear{align-items:center}
 .gear-img{margin:0;background:#fff;border:2px solid var(--line-soft)}
 .gear-img img{display:block;width:100%;height:auto}
+.looks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(20px,3vw,40px)}
+.look{margin:0;background:#fff;border-top:4px solid var(--red)}
+.look img{display:block;width:100%;height:auto}
+.look figcaption{padding:16px 0 0;color:var(--ink2);text-align:left}
+.look figcaption b{display:block;color:var(--ink);font-size:1.15rem;margin-bottom:4px}
+@media (max-width:760px){.looks{grid-template-columns:minmax(0,1fr)}}

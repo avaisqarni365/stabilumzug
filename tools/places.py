@@ -32,7 +32,7 @@ def place_page(p):
         km, mins = route(name)
         full = display(name, group, lang)
         city = "Essen" if group == "essen" else name
-        photo = "essen-zollverein.jpg" if group == "essen" else "truck-furniture.jpg"
+        photo = "essen-zollverein.jpg" if group == "essen" else "loading-boxes.jpg"
         pre = prefix_for(key, lang)
         trip = (t("%s km · ca. %s Min. von unserem Standort in Essen-Altenessen", "%s km · approx. %s min from our depot in Essen-Altenessen", lang) % (km, mins)) if km is not None else ""
         head = ('<div class="page-head ph-photo"><div class="container"><div class="ph-text">%s<span class="kicker red">%s</span><h1>%s</h1><p class="lead">%s</p>'

@@ -165,9 +165,9 @@ def home(lang):
                            "Each step needs information from the one before. The first two – measuring the new home and listing your belongings – decide almost everything that follows.", lang))
                 + guides.journey_html(key, lang) + '<p style="margin:28px 0 0"><a class="link-arrow" href="%s">%s</a></p>' % (L("guides"), t("Alle Schritte und Themen", "All steps and topics", lang)))
 
-    body += ('<section class="photo-band"><img src="%sassets/img/photos/couple-carry.jpg" alt="%s" loading="lazy" width="1600" height="1067">'
+    body += ('<section class="photo-band"><img src="%sassets/img/photos/bed-assembly.jpg" alt="%s" loading="lazy" width="1600" height="1067">'
              '<div class="container"><span class="kicker">%s</span><h2>%s</h2><p>%s</p><div class="actions"><a class="button primary" href="%s">%s</a><a class="button arrow" href="%s">%s</a></div></div></section>') % (
-        pre, esc(t("Paar trägt Umzugskartons in die neue Wohnung", "Couple carrying moving boxes into their new home", lang)),
+        pre, esc(t("Zwei Monteure von Stabil Umzug bauen ein Bett in der neuen Wohnung auf", "Two Stabil Umzug fitters assembling a bed in the new home", lang)),
         t("Ankommen statt schleppen", "Arrive instead of carry", lang),
         t("Sie ziehen ein. Wir tragen.", "You move in. We carry.", lang),
         esc(t("Vom ersten Karton bis zum aufgebauten Bett: Unser Team übernimmt das Schwere, damit Sie sich auf Ihr neues Zuhause freuen können.",
