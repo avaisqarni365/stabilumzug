@@ -467,12 +467,45 @@ a.svc-tile:hover .ti img{transform:scale(1.04)}
 .areas-note{margin:18px 0 0;color:#bab6b6;font-size:14px}
 .areas-note a{color:#f3f2f2;font-weight:700}
 
+/* ---------- customer area ---------- */
+.portal-hello{font-size:clamp(1.4rem,2.4vw,2rem);font-weight:700;letter-spacing:-.02em;margin:0 0 18px}
+.portal-msg{font-size:1.05rem;color:var(--ink2);max-width:60ch}
+.portal-ok{border-left:4px solid #1f6b3a;background:var(--surface);padding:12px 16px;font-weight:700;margin:16px 0 0}
+.pstep{list-style:none;margin:0 0 28px;padding:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));border-top:2px solid var(--ink)}
+.pstep li{padding:12px 10px 12px 0;font-weight:600;font-size:14px;color:var(--ink2);border-top:4px solid transparent;margin-top:-3px}
+.pstep li span{display:block;font-size:1.4rem;font-weight:700;line-height:1;margin-bottom:6px}
+.pstep li.done{color:var(--ink);border-top-color:var(--ink)}
+.pstep li.now{color:var(--red-text);border-top-color:var(--red)}
+.pfacts{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));margin:0 0 32px;border-top:1px solid var(--line)}
+.pfacts div{padding:10px 12px 10px 0;border-bottom:1px solid var(--line)}
+.pfacts dt{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink2)}
+.pfacts dd{margin:2px 0 0;font-weight:700}
+.pgrid{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:32px;align-items:start}
+.pcard{border-top:2px solid var(--ink);padding-top:14px;margin-bottom:32px}
+.pcard h2{font-size:1.35rem;margin-bottom:12px}
+.ptab{width:100%;border-collapse:collapse}
+.ptab th,.ptab td{padding:10px 0;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+.ptab th small{display:block;font-weight:500;color:var(--ink2);font-size:13px}
+.ptab td{text-align:right;font-weight:700;white-space:nowrap;padding-left:16px}
+.ptab tfoot th,.ptab tfoot td{border-top:2px solid var(--ink);border-bottom:0;font-size:1.3rem}
+.accept{margin-top:18px;display:grid;gap:12px}
+.accept .consent{display:flex;gap:12px;align-items:flex-start;font-size:15px}
+.accept .consent input{width:22px;height:22px;accent-color:var(--fill);flex:none;margin-top:2px}
+.accept .button{justify-self:start}
+.ph.small{font-size:13px}
+.pcheck{list-style:none;margin:0;padding:0}
+.pcheck li{border-bottom:1px solid var(--line)}
+.pcheck label{display:flex;gap:12px;align-items:flex-start;padding:10px 0;cursor:pointer}
+.pcheck input{width:22px;height:22px;accent-color:var(--fill);flex:none;margin-top:2px}
+.pcheck small{display:block;color:var(--ink2);font-size:13px}
+@media (max-width:860px){.pgrid{grid-template-columns:minmax(0,1fr)}.pstep{grid-template-columns:repeat(5,minmax(64px,1fr));overflow-x:auto}.pstep li{font-size:12px}}
+
 /* ---------- planner page ---------- */
 .uf-wrap{padding-block:clamp(16px,3vw,40px) clamp(40px,6vw,72px)}
 
 /* ---------- text: justified with hyphenation (owner's preference) ---------- */
 main p, main li, main dd, .site-footer p, .faq .a{text-align:justify;hyphens:auto;-webkit-hyphens:auto}
-main h1, main h2, main h3, .kicker, .crumbs, .msg, .facts li, .journey .label, .step-nav a, .places li, .contact-list li, .ptable td, .button{text-align:left;hyphens:manual}
+main h1, main h2, main h3, .kicker, .crumbs, .msg, .facts li, .pfacts dd, .pstep li, .ptab th, .journey .label, .step-nav a, .places li, .contact-list li, .ptable td, .button{text-align:left;hyphens:manual}
 .ptable td{text-align:right}
 
 /* ---------- entrance and scroll reveal (only with JavaScript, never for reduced motion) ---------- */
@@ -501,3 +534,23 @@ main h1, main h2, main h3, .kicker, .crumbs, .msg, .facts li, .journey .label, .
 .photo-band img{z-index:0}
 .photo-band::before{z-index:1}
 .photo-band .container{z-index:2}
+
+/* ---------- responsive fixes from the full page test ---------- */
+/* photo heads: heading row across the full width, lead and buttons beside the photo */
+.ph-photo .ph-text{display:contents}
+.ph-photo .crumbs,.ph-photo .kicker,.ph-photo h1{grid-column:1/-1}
+.ph-photo h1{font-size:clamp(1.7rem,2.6vw,2rem);margin-bottom:4px}
+.ph-photo .lead,.ph-photo .actions{grid-column:1}
+.ph-photo .ph-img{grid-column:2;grid-row:4/span 2;align-self:start}
+@media (max-width:860px){.ph-photo .ph-img{grid-column:1;grid-row:auto}}
+/* long words (e-mail addresses) never push the page sideways */
+.site-footer a,.contact-list a,.footer-top li{overflow-wrap:anywhere}
+/* price tables wrap on very small screens */
+@media (max-width:420px){.ptable td{white-space:normal}}
+/* process steps: two columns on small laptops so step titles stay on one line */
+@media (min-width:861px) and (max-width:1279px){
+  .steps-list{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .steps-list li:nth-child(odd){padding-left:0;border-left:0}
+  .steps-list li:nth-child(n+3){border-top:1px solid var(--line)}
+}
+.places li,.places a{overflow-wrap:anywhere;hyphens:auto;min-width:0}

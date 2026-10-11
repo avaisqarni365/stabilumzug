@@ -88,6 +88,18 @@ def about(lang):
                 desc=t("Stabil Umzug aus Essen: Umzüge einfach planen, Preise nachvollziehbar machen, in einfacher Sprache.",
                        "Stabil Umzug from Essen: simple move planning, traceable prices, plain language.", lang), body=body)
 
+def portal(lang):
+    """Customer area: the content is rendered by assets/js/portal.js from the personal link."""
+    key = "portal"
+    body = page_head(key, lang, t("Mein Umzug", "My move", lang),
+        t("Ihr Angebot, Ihr Status und Ihre Checkliste an einem Ort – über Ihren persönlichen Link, ohne Passwort.",
+          "Your quote, your status and your checklist in one place – with your personal link, no password.", lang),
+        kicker=t("Kundenbereich", "Customer area", lang))
+    body += ('<section class="section"><div class="container"><div id="portal" aria-live="polite">'
+             '<noscript><p>%s</p></noscript></div></div></section>') % t("Für den Kundenbereich wird JavaScript benötigt.", "The customer area needs JavaScript.", lang)
+    return dict(key=key, lang=lang, portal=True, noindex=True, title=t("Mein Umzug | Stabil Umzug", "My move | Stabil Umzug", lang),
+                desc=t("Kundenbereich von Stabil Umzug.", "Stabil Umzug customer area.", lang), body=body)
+
 def admin_login(lang):
     """Staff login: the admin app itself runs on Google; Google handles the sign-in."""
     key = "admin"

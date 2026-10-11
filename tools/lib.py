@@ -24,6 +24,7 @@ PAGES = {
     "imprint":   ("impressum/", "en/imprint/"),
     "quote":     ("angebot/", "en/free-quote/"),
     "admin":     ("admin/", "en/admin/"),
+    "portal":    ("mein-umzug/", "en/my-move/"),
     "prices":    ("preise/", "en/prices/"),
     "privacy":   ("datenschutz/", "en/privacy/"),
 }
@@ -187,8 +188,10 @@ def render(page):
             scripts.append('<script src="%sassets/js/%s.js" defer></script>' % (pre, f))
     if page.get("quote"):
         scripts.append('<script src="%sassets/js/quote.js" defer></script>' % pre)
+    if page.get("portal"):
+        scripts.append('<script src="%sassets/js/portal.js" defer></script>' % pre)
     scripts.append('<script src="%sassets/js/site.js" defer></script>' % pre)
-    no_bar = page.get("planner") or key == "quote"   # the planner has its own footer; the quote page is the bar's target
+    no_bar = page.get("planner") or key in ("quote", "portal")   # the planner has its own footer; the quote page is the bar's target
     return (
         '<!doctype html>\n<html lang="%s">\n<head>\n%s\n</head>\n<body%s>\n'
         '<a class="skip" href="#main">%s</a>\n%s\n<main id="main">\n%s\n</main>\n%s\n%s%s\n</body>\n</html>\n'

@@ -77,8 +77,9 @@ def place_page(p):
         ]
         faq_html = "".join('<details><summary>%s</summary><div class="a"><p>%s</p></div></details>' % (esc(q), esc(a)) for q, a in faq if a)
         body = head + '<section class="section"><div class="container">%s</div></section>' % strip
-        body += ('<section class="section"><div class="container split"><div><span class="kicker red">%s</span><h2 class="h2">%s</h2><ul class="checks">%s</ul></div>'
-                 '<div><span class="kicker">%s</span><ul class="places">%s</ul></div></div></section>') % (
+        body += ('<section class="section"><div class="container"><div class="head"><div><span class="kicker red">%s</span><h2>%s</h2></div></div>'
+                 '<div class="split"><div><ul class="checks" style="margin-top:0">%s</ul></div>'
+                 '<div><span class="kicker">%s</span><ul class="places">%s</ul></div></div></div></section>') % (
             t("Vor Ort", "Local", lang), esc(t("Ihr Umzug in %s.", "Your move in %s.", lang) % full),
             "".join("<li>%s</li>" % esc(x) for x in tips), esc(t("Auch in der Nähe", "Also nearby", lang)), "".join(nb))
         body += '<section class="section alt"><div class="container"><div class="head"><div><span class="kicker red">%s</span><h2>%s</h2></div></div><div class="tiles two">%s</div></div></section>' % (

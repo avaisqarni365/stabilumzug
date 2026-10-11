@@ -45,6 +45,11 @@ var DEFAULT_RATES = [
 function clip_(s, n) { return String(s == null ? '' : s).replace(/[\u0000-\u001f]/g, ' ').trim().slice(0, n || 200); }
 /* Values starting with = + - @ would be read as formulas by Sheets. */
 function cell_(s, n) { s = clip_(s, n); return /^[=+\-@]/.test(s) ? "'" + s : s; }
+function iso_(v) { return v instanceof Date ? v.toISOString() : (v == null ? '' : String(v)); }
+/* Move date: a calendar day. Sheets turns "2026-11-07" into a Date at local midnight – format it in Berlin time, not UTC. */
+function day_(v) { return v instanceof Date ? Utilities.formatDate(v, 'Europe/Berlin', 'yyyy-MM-dd') : (v == null ? '' : String(v)); }
+/* Decimal number in German notation for texts the customer reads ("4,6 Std."). */
+function de_(x, d) { return String(round_(x, d)).replace('.', ','); }
 function round_(x, d) { var f = Math.pow(10, d == null ? 1 : d); return Math.round(x * f) / f; }
 function sheet_(name) { var sh = ss_().getSheetByName(name); if (!sh) throw new Error('Tab fehlt: ' + name + ' – bitte „Einrichten“ ausführen.'); return sh; }
 function config_(key) {
@@ -151,11 +156,11 @@ function quoteLines_(s, values, master, R) {
   var acc = Estimator.accessFactor(s.acc.old) + Estimator.accessFactor(s.acc['new']);
   var days = Math.max(1, Math.ceil(est.hours / 9));
   return {est: est, lines: [
-    ['Arbeit', est.crew + ' Personen × ' + round_(est.hours) + ' Std.', round_(est.crew * est.hours), 'Std.', R.hour],
+    ['Arbeit', est.crew + ' Personen × ' + de_(est.hours) + ' Std.', round_(est.crew * est.hours), 'Std.', R.hour],
     ['Fahrzeug', VEH_DE[est.vehicle] + ' · ' + days + ' Tag(e)', days, 'Tag', R['veh_' + est.vehicle]],
     ['Strecke', est.km + ' km × 2 × ' + est.trips + ' Fahrt(en)' + (est.kmGuess ? ' (geschätzt)' : ''), est.km * 2 * est.trips, 'km', R.km],
     ['Ab- und Aufbau', est.asmMin + ' Minuten laut Katalog', est.asmMin, 'min', R.asm_min],
-    ['Zugang', 'Zugangsfaktor ' + round_(acc) + ' × ' + round_(est.vol) + ' m³', round_(acc * est.vol), 'Pkt.', R.access],
+    ['Zugang', 'Zugangsfaktor ' + de_(acc) + ' × ' + de_(est.vol) + ' m³', round_(acc * est.vol), 'Pkt.', R.access],
     ['Halteverbotszone', s.hvz ? 'gewünscht' : 'nicht gewünscht', s.hvz ? 1 : 0, 'Adr.', R.hvz],
     ['Verpacken', 'nach Absprache', 0, '', 0],
     ['Extras (Küche, Entsorgung, Lager)', 'nach Absprache', 0, '', 0],

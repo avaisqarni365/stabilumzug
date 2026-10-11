@@ -142,7 +142,7 @@ try {
   @("/* Written by backend/deploy-backend.ps1 for this Google account. Not committed. */",
     "var SHEET_ID = '$sheetId';",
     "var SITE_URL = 'https://www.stabilumzug.de';",
-    "var PORTAL_URL = '';   // set when the customer area is live") -join "`n" | Set-Content Config.js -Encoding ASCII
+    "var PORTAL_URL = 'https://www.stabilumzug.de/mein-umzug/';") -join "`n" | Set-Content Config.js -Encoding ASCII
   @('**/**', '!Admin.js', '!Shared.js', '!Estimator.js', '!Config.js', '!Index.html', '!NoAccess.html', '!appsscript.json') -join "`n" | Set-Content .claspignore -Encoding ASCII
   if (-not (Test-Path '.clasp.json')) {
     Copy-Item appsscript.json appsscript.json.keep -Force

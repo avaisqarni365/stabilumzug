@@ -33,9 +33,7 @@ function guard_() {
   return email;
 }
 
-function iso_(v) { return v instanceof Date ? v.toISOString() : (v == null ? '' : String(v)); }
-/* Move date: a calendar day. Sheets turns "2026-11-07" into a Date at local midnight – format it in Berlin time, not UTC. */
-function day_(v) { return v instanceof Date ? Utilities.formatDate(v, 'Europe/Berlin', 'yyyy-MM-dd') : (v == null ? '' : String(v)); }
+/* iso_ and day_ live in Shared.js. */
 
 /* Lead row -> plain object with the fields the admin shows (dates as ISO strings: Apps Script cannot return Date objects). */
 function leadObj_(v) {
@@ -154,7 +152,8 @@ function api_customerLink(id) {
   var hit = findLead_(id); if (!hit) throw new Error('Anfrage ' + id + ' nicht gefunden.');
   var col = leadCol_('Kundentoken'), token = String(hit.values[col - 1] || '');
   if (!token) { token = Utilities.getUuid().replace(/-/g, ''); sheet_(TAB.leads).getRange(hit.row, col).setValue(token); }
-  return PORTAL_URL + '?id=' + encodeURIComponent(id) + '&k=' + token;
+  var base = String(hit.values[leadCol_('Sprache') - 1]) === 'EN' ? PORTAL_URL.replace('/mein-umzug/', '/en/my-move/') : PORTAL_URL;
+  return base + '?id=' + encodeURIComponent(id) + '&k=' + token;
 }
 
 /* German phone numbers for wa.me: digits with country code. */
