@@ -171,10 +171,20 @@ def render(page):
             scripts.append('<script src="%sassets/js/%s.js" defer></script>' % (pre, f))
     scripts.append('<script src="%sassets/js/site.js" defer></script>' % pre)
     return (
-        '<!doctype html>\n<html lang="%s">\n<head>\n%s\n</head>\n<body>\n'
-        '<a class="skip" href="#main">%s</a>\n%s\n<main id="main">\n%s\n</main>\n%s\n%s\n</body>\n</html>\n'
-    ) % (lang, head(page), t("Zum Inhalt springen", "Skip to content", lang),
-         header(key, lang), page["body"], footer(key, lang), "\n".join(scripts))
+        '<!doctype html>\n<html lang="%s">\n<head>\n%s\n</head>\n<body%s>\n'
+        '<a class="skip" href="#main">%s</a>\n%s\n<main id="main">\n%s\n</main>\n%s\n%s%s\n</body>\n</html>\n'
+    ) % (lang, head(page), "" if page.get("planner") else ' class="has-actionbar"', t("Zum Inhalt springen", "Skip to content", lang),
+         header(key, lang), page["body"], footer(key, lang), "" if page.get("planner") else actionbar(key, lang), "\n".join(scripts))
+
+def actionbar(key, lang):
+    """Sticky bar on phones: plan the move, or call / WhatsApp right away."""
+    second = ""
+    if SITE.get("whatsapp"):
+        second = '<a class="ab-wa" href="https://wa.me/%s" rel="noopener">WhatsApp</a>' % esc(SITE["whatsapp"])
+    elif SITE.get("phone_href"):
+        second = '<a class="ab-wa" href="tel:%s">%s</a>' % (esc(SITE["phone_href"]), t("Anrufen", "Call", lang))
+    return ('<nav class="actionbar" aria-label="%s"><a class="ab-plan" href="%s">%s</a>%s</nav>\n'
+            % (t("Schnellzugriff", "Quick actions", lang), link(key, "planner", lang), t("Umzug planen", "Plan your move", lang), second))
 
 def crumbs(key, lang, label, parent=None):
     mid = ""
