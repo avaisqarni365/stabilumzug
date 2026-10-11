@@ -1,6 +1,6 @@
 """Service pages, the price list and the free-quote form."""
 from config import SITE, PRICES_PUBLISHED
-from lib import esc, t, link, crumbs, GUIDES, SVC, is_ph, ph
+from lib import esc, t, link, crumbs, GUIDES, SVC, is_ph, ph, prefix_for
 from services_content import SERVICES
 import prices_content as P
 
@@ -70,7 +70,8 @@ def quote_page(lang):
     body = page_head(key, lang, t("Jetzt kostenloses Angebot anfordern", "Request your free quote now", lang),
         t("Kurz ausfüllen – wir melden uns innerhalb von 24 Stunden mit Ihrem persönlichen, unverbindlichen Angebot. Lieber direkt sprechen? Rufen Sie an oder schreiben Sie per WhatsApp.",
           "Fill in briefly – we reply within 24 hours with your personal, non-binding quote. Prefer to talk? Call or message us on WhatsApp.", lang),
-        kicker=t("Kostenlos und unverbindlich", "Free and non-binding", lang))
+        kicker=t("Kostenlos und unverbindlich", "Free and non-binding", lang), photo="keys.jpg",
+        alt=t("Schlüssel für das neue Zuhause", "Keys to the new home", lang))
     body += ('<section class="section"><div class="container contact-grid"><div>%s</div><div>%s</div></div></section>' % (quote_form(key, lang), contact_aside(lang, key)))
     return dict(key=key, lang=lang, quote=True,
         title=t("Kostenloses Angebot: Umzug, Entrümpelung, Transport | Stabil Umzug Essen", "Free quote: moves, clear-outs, transport | Stabil Umzug Essen", lang),
@@ -137,14 +138,18 @@ LINK_RE = __import__("re").compile(r"\[\[([a-z]+)\|([^\]]+)\]\]")
 def inline(text, key, lang):
     return LINK_RE.sub(lambda m: '<a href="%s">%s</a>' % (link(key, SVC.get(m.group(1), m.group(1)), lang), m.group(2)), esc(text))
 
+PHOTO = {"moves": "couple-carry.jpg", "clearance": "empty-room.jpg", "dissolution": "boxes-window.jpg",
+         "transport": "truck-furniture.jpg", "extras": "men-box-street.jpg"}
+
 def service_page(skey):
     def build(lang):
         from pages import cta
         key = SVC[skey]
         c = SERVICES[skey][lang]
         quote_href = link(key, "quote", lang) + ("?service=%s" % skey if skey != "extras" else "")
-        head = ('<div class="page-head"><div class="container">%s<span class="kicker red">%s</span><h1>%s</h1><p class="lead">%s</p>'
-                '<div class="actions" style="margin-top:28px"><a class="button primary" href="%s">%s</a>%s</div></div></div>') % (
+        head = ('<div class="page-head ph-photo"><div class="container"><div class="ph-text">%s<span class="kicker red">%s</span><h1>%s</h1><p class="lead">%s</p>'
+                '<div class="actions" style="margin-top:28px"><a class="button primary" href="%s">%s</a>%s</div></div>'
+                '<figure class="ph-img"><img src="' + prefix_for(key, lang) + 'assets/img/photos/' + PHOTO[skey] + '" alt="' + esc(c["nav"]) + '" width="1600" height="1067"></figure></div></div>') % (
             crumbs(key, lang, c["nav"], parent="services"), t("Stabil Umzug · Essen", "Stabil Umzug · Essen", lang), esc(c["title"]), inline(c["lead"], key, lang),
             quote_href, t("Jetzt kostenloses Angebot anfordern", "Request your free quote now", lang),
             ('<a class="button arrow" href="tel:%s">%s %s</a>' % (esc(SITE["phone_href"]), t("Anrufen", "Call", lang), esc(SITE["phone"]))) if SITE.get("phone_href") else "")
@@ -207,6 +212,6 @@ def service_tiles(frm, lang, big=False):
     for sk, s in SERVICES.items():
         c = s[lang]
         subs = ('<ul>%s</ul>' % "".join("<li>%s</li>" % esc(a) for a, _ in c["items"][:6])) if big else ""
-        out.append('<a class="tile svc-tile" href="%s"><h3>%s</h3><p>%s</p>%s<span class="link-arrow">%s</span></a>' % (
-            link(frm, SVC[sk], lang), esc(c["nav"]), esc(c["teaser"]), subs, t("Mehr erfahren", "Learn more", lang)))
+        out.append('<a class="tile svc-tile" href="%s"><div class="ti"><img src="%sassets/img/photos/%s" alt="" loading="lazy" width="1600" height="1067"></div><h3>%s</h3><p>%s</p>%s<span class="link-arrow">%s</span></a>' % (
+            link(frm, SVC[sk], lang), prefix_for(frm, lang), PHOTO[sk], esc(c["nav"]), esc(c["teaser"]), subs, t("Mehr erfahren", "Learn more", lang)))
     return '<div class="tiles%s">%s</div>' % (" svc-big" if big else "", "".join(out))

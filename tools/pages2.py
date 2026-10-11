@@ -20,7 +20,8 @@ def essen(lang):
     title = t("Umzug in Essen", "Moving in Essen", lang)
     body = page_head(key, lang, title, t("Wir sitzen in Essen – Karlstraße 32 – und ziehen im ganzen Ruhrgebiet und deutschlandweit um.",
                                          "We are based in Essen – Karlstraße 32 – and move people across the Ruhr area and all of Germany.", lang), title,
-                     kicker=t("Stabil Umzug · Essen", "Stabil Umzug · Essen", lang))
+                     kicker=t("Stabil Umzug · Essen", "Stabil Umzug · Essen", lang), photo="essen-zollverein.jpg",
+                     alt=t("Förderturm der Zeche Zollverein in Essen", "Zollverein colliery headframe in Essen", lang))
     tips = [
         (t("Frühzeitig eine Halteverbotszone beantragen – besonders in dicht bebauten Straßen.", "Apply early for a no-parking zone – especially in dense streets.", lang), "parking"),
         (t("Enge Treppenhäuser im Altbau im Planer angeben, damit das Team passend plant.", "State narrow stairwells in old buildings in the planner so the crew plans accordingly.", lang), "access"),
@@ -71,7 +72,8 @@ def about(lang):
     title = t("Über uns", "About us", lang)
     body = page_head(key, lang, title, t("Ein Umzugsunternehmen aus Essen, das Planung einfach und Preise nachvollziehbar machen will.",
                                          "A moving company from Essen that wants to make planning simple and prices traceable.", lang), title,
-                     kicker=t("Stabil Umzug · Essen", "Stabil Umzug · Essen", lang))
+                     kicker=t("Stabil Umzug · Essen", "Stabil Umzug · Essen", lang), photo="couple-boxes.jpg",
+                     alt=t("Paar zwischen Umzugskartons in der neuen Wohnung", "Couple among moving boxes in their new home", lang))
     intro = t("Ein Umzug ist eine Kette von Schritten: neue Wohnung ausmessen, Hausrat erfassen, Zugang klären, Halteverbot, Kartons, Aufbau, Anmeldung. "
               "Das meiste Geld und der meiste Stress gehen verloren, wenn Angaben von einem Schritt nicht beim nächsten ankommen. Deshalb haben wir diesen Ablauf in einen einfachen Planer übersetzt.",
               "A move is a chain of steps: measure the new home, list your belongings, clarify access, parking permit, boxes, assembly, registration. "

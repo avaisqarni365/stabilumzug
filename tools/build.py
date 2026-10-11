@@ -16,6 +16,9 @@ for _k in lib.GUIDES:
     BUILDERS[_k] = guides.guide(_k)
 BUILDERS["quote"] = services.quote_page
 BUILDERS["admin"] = pages2.admin_login
+import places
+for _p in places.PLACES:
+    BUILDERS[places.page_key(_p[0])] = places.place_page(_p)
 BUILDERS["prices"] = services.prices_page
 for _k in services.SERVICES:
     BUILDERS["svc_" + _k] = services.service_page(_k)
