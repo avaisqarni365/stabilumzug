@@ -149,7 +149,7 @@ def service_page(skey):
         quote_href = link(key, "quote", lang) + ("?service=%s" % skey if skey != "extras" else "")
         head = ('<div class="page-head ph-photo"><div class="container"><div class="ph-text">%s<span class="kicker red">%s</span><h1>%s</h1><p class="lead">%s</p>'
                 '<div class="actions" style="margin-top:28px"><a class="button primary" href="%s">%s</a>%s</div></div>'
-                '<figure class="ph-img"><img src="' + prefix_for(key, lang) + 'assets/img/photos/' + PHOTO[skey] + '" alt="' + esc(c["nav"]) + '" width="1600" height="1067"></figure></div></div>') % (
+                '<figure class="ph-img"><img src="' + prefix_for(key, lang) + 'assets/img/photos/' + PHOTO[skey] + '" alt="' + esc(c["nav"]) + '" width="1600" height="1067" fetchpriority="high"></figure></div></div>') % (
             crumbs(key, lang, c["nav"], parent="services"), t("Stabil Umzug · Essen", "Stabil Umzug · Essen", lang), esc(c["title"]), inline(c["lead"], key, lang),
             quote_href, t("Jetzt kostenloses Angebot anfordern", "Request your free quote now", lang),
             ('<a class="button arrow" href="tel:%s">%s %s</a>' % (esc(SITE["phone_href"]), t("Anrufen", "Call", lang), esc(SITE["phone"]))) if SITE.get("phone_href") else "")
@@ -212,6 +212,6 @@ def service_tiles(frm, lang, big=False):
     for sk, s in SERVICES.items():
         c = s[lang]
         subs = ('<ul>%s</ul>' % "".join("<li>%s</li>" % esc(a) for a, _ in c["items"][:6])) if big else ""
-        out.append('<a class="tile svc-tile" href="%s"><div class="ti"><img src="%sassets/img/photos/%s" alt="" loading="lazy" width="1600" height="1067"></div><h3>%s</h3><p>%s</p>%s<span class="link-arrow">%s</span></a>' % (
+        out.append('<a class="tile svc-tile" href="%s"><div class="ti"><img src="%sassets/img/photos/%s" data-sizes="(max-width:760px) 100vw, 420px" alt="" loading="lazy" width="1600" height="1067"></div><h3>%s</h3><p>%s</p>%s<span class="link-arrow">%s</span></a>' % (
             link(frm, SVC[sk], lang), prefix_for(frm, lang), PHOTO[sk], esc(c["nav"]), esc(c["teaser"]), subs, t("Mehr erfahren", "Learn more", lang)))
     return '<div class="tiles%s">%s</div>' % (" svc-big" if big else "", "".join(out))

@@ -83,6 +83,21 @@
     }
     if (Object.keys(o).length && !S.src) S.src = o;
   })();
+  /* Quick start from the home page hero (?start=1&from=&to=&hh=): fill F1 and open it directly. */
+  (function quickStart() {
+    var p = new URLSearchParams(location.search);
+    if (p.get('start') !== '1') return;
+    var from = (p.get('from') || '').slice(0, 120), to = (p.get('to') || '').slice(0, 120), hh = parseInt(p.get('hh'), 10);
+    if (from) S.f1.from = from;
+    if (to) S.f1.to = to;
+    if (hh >= 0 && hh <= 3) S.f1.hh = hh;
+    if (!S.started) S.started = Date.now();
+    S.step = 1;
+    ['start', 'from', 'to', 'hh'].forEach(function (k) { p.delete(k); });
+    var q = p.toString();
+    try { history.replaceState(null, '', location.pathname + (q ? '?' + q : '')); } catch (e) {}
+    save();
+  })();
   function srcText() {
     var o = S.src;
     if (!o) return lang === 'de' ? 'direkt' : 'direct';
@@ -175,7 +190,7 @@
     return '<div class="uf-hero">' +
       '<h1 tabindex="-1" id="uf-h">' + esc(t.f0.title1) + ' <span>' + esc(t.f0.title2) + '</span></h1>' +
       '<p>' + esc(t.f0.lead) + '</p>' +
-      '<div class="uf-scene"><img src="' + BASE + 'assets/img/stabil-scene.svg" alt="' + esc(lang === 'de' ? 'Stabil Umzug Transporter mit Team' : 'Stabil Umzug transporter with crew') + '" width="980" height="380"></div>' +
+      '<div class="uf-scene"><img src="' + BASE + 'assets/img/van-branded.jpg" alt="' + esc(lang === 'de' ? 'Transporter von Stabil Umzug' : 'Stabil Umzug van') + '" width="1108" height="1108"></div>' +
       '<div class="uf-caption"><span>' + esc(t.f0.fleet) + '</span><span>' + esc(t.f0.kicker) + '</span></div></div>' +
       '<div><h3 class="uf-h6">' + esc(t.f0.how) + '</h3><ol class="uf-how">' + t.f0.steps.map(function (x, i) {
         return '<li><span class="uf-n" aria-hidden="true">0' + (i + 1) + '</span><div><div class="uf-strong">' + esc(x[0]) + '</div><div class="uf-small">' + esc(x[1]) + '</div></div></li>';

@@ -6,7 +6,7 @@ def page_head(key, lang, title, lead, label=None, kicker=None, parent=None, phot
     k = '<span class="kicker red">%s</span>' % esc(kicker) if kicker else ""
     inner = '%s%s<h1>%s</h1>%s' % (crumbs(key, lang, label or title, parent), k, esc(title), ('<p class="lead">%s</p>' % esc(lead)) if lead else "")
     if photo:
-        return ('<div class="page-head ph-photo"><div class="container"><div class="ph-text">%s</div><figure class="ph-img"><img src="%sassets/img/photos/%s" alt="%s" width="1600" height="1067"></figure></div></div>'
+        return ('<div class="page-head ph-photo"><div class="container"><div class="ph-text">%s</div><figure class="ph-img"><img src="%sassets/img/photos/%s" alt="%s" width="1600" height="1067" fetchpriority="high"></figure></div></div>'
                 % (inner, prefix_for(key, lang), photo, esc(alt or title)))
     return '<div class="page-head"><div class="container">%s</div></div>' % inner
 
@@ -127,6 +127,24 @@ def faq_html(lang, key):
         items.append('<details><summary>%s</summary><div class="a"><p>%s%s</p></div></details>' % (esc(t(*q, lang)), esc(t(*a, lang)), more))
     return '<div class="faq">%s</div>' % "".join(items)
 
+def quick_plan(key, lang):
+    """Planner quick start in the first screen: from, to, household; opens the planner at step 1 (F1) with these filled in."""
+    hh = [t("1 Person", "1 person", lang), t("2 Personen", "2 people", lang), "3–4", "5+"]
+    chips = "".join('<label class="qp-chip"><input type="radio" name="hh" value="%d"%s><span>%s</span></label>' % (i, " checked" if i == 1 else "", esc(x)) for i, x in enumerate(hh))
+    return ('<form class="quick-plan" action="%s" method="get" aria-labelledby="qp-h"><input type="hidden" name="start" value="1">'
+            '<div class="qp-head"><span class="qp-k">%s</span><h2 id="qp-h">%s</h2></div>'
+            '<div class="qp-row"><label class="qp-field"><span>%s</span><input class="input" name="from" autocomplete="address-level2" placeholder="%s"></label>'
+            '<label class="qp-field"><span>%s</span><input class="input" name="to" autocomplete="off" placeholder="%s"></label></div>'
+            '<fieldset class="qp-hh"><legend>%s</legend><div>%s</div></fieldset>'
+            '<button class="button primary qp-go" type="submit">%s</button>'
+            '<p class="qp-note">%s</p></form>') % (
+        link(key, "planner", lang), t("Umzugsplaner · kostenlos", "Moving planner · free", lang), t("Ihren Umzug jetzt planen", "Plan your move now", lang),
+        t("Von", "From", lang), t("z. B. 45130 Essen", "e.g. 45130 Essen", lang),
+        t("Nach", "To", lang), t("z. B. 44793 Bochum", "e.g. 44793 Bochum", lang),
+        t("Haushalt", "Household", lang), chips,
+        t("Umzug planen", "Plan my move", lang),
+        t("Ohne Konto · ca. 10 Minuten · Volumen, Fahrzeug und Team sofort sehen", "No account · about 10 minutes · see volume, vehicle and crew right away", lang))
+
 def home(lang):
     import guides
     import services as services_mod
@@ -140,18 +158,18 @@ def home(lang):
              (t("0 Cookies", "0 cookies", lang), t("keine Werbe-Tracker", "no ad trackers", lang))]
     hero = (
         '<section class="hero on-dark"><div class="container">'
-        '<div class="hero-copy"><span class="kicker">%s</span><h1>%s</h1><p class="tagline">%s</p><p class="lead">%s</p>'
+        '<div class="hero-copy"><span class="kicker">%s</span><h1>%s</h1><p class="tagline">%s</p>%s<p class="lead">%s</p>'
         '<div class="actions"><a class="button primary" href="%s">%s</a>%s</div></div>'
-        '<figure class="hero-art"><img src="%sassets/img/van-branded.png" alt="%s" width="1108" height="1108" fetchpriority="high"><figcaption>%s</figcaption></figure>'
+        '<figure class="hero-art"><img src="%sassets/img/van-branded.jpg" srcset="%sassets/img/van-branded-640.jpg 640w, %sassets/img/van-branded.jpg 1108w" sizes="(max-width:860px) 92vw, 50vw" alt="%s" width="1108" height="1108" fetchpriority="high"><figcaption>%s</figcaption></figure>'
         '<ul class="facts">%s</ul>'
         '</div></section>'
     ) % (
         t("Umzugsunternehmen · Essen", "Moving company · Essen", lang),
-        t("Umzug, Entrümpelung und Transport in Essen.", "Moves, clear-outs and transport in Essen.", lang), t("Stabil geplant.", "Solidly planned.", lang),
+        t("Umzug, Entrümpelung und Transport in Essen.", "Moves, clear-outs and transport in Essen.", lang), t("Stabil geplant.", "Solidly planned.", lang), quick_plan(key, lang),
         esc(t("Umzüge, Entrümpelungen, Wohnungsauflösungen und Transporte – im Ruhrgebiet und in ganz Deutschland. Kostenloses, persönliches Angebot innerhalb von 24 Stunden.",
               "Moves, clear-outs, household clearances and transport – across the Ruhr area and all of Germany. Free personal quote within 24 hours.", lang)),
         L("quote"), t("Jetzt kostenloses Angebot anfordern", "Request your free quote now", lang), call,
-        pre, esc(t("Weißer Stabil-Umzug-Transporter mit roter Beschriftung", "White Stabil Umzug van with red livery", lang)),
+        pre, pre, pre, esc(t("Weißer Transporter mit Stabil-Umzug-Logo in Orange und Navy", "White van with the Stabil Umzug logo in orange and navy", lang)),
         t("Unser Transporter · Essen", "Our van · Essen", lang),
         "".join('<li><b>%s</b>%s</li>' % (esc(a), esc(b)) for a, b in facts))
 
@@ -165,7 +183,7 @@ def home(lang):
                            "Each step needs information from the one before. The first two – measuring the new home and listing your belongings – decide almost everything that follows.", lang))
                 + guides.journey_html(key, lang) + '<p style="margin:28px 0 0"><a class="link-arrow" href="%s">%s</a></p>' % (L("guides"), t("Alle Schritte und Themen", "All steps and topics", lang)))
 
-    body += ('<section class="photo-band"><img src="%sassets/img/photos/bed-assembly.jpg" alt="%s" loading="lazy" width="1600" height="1067">'
+    body += ('<section class="photo-band"><img src="%sassets/img/photos/bed-assembly.jpg" data-sizes="100vw" alt="%s" loading="lazy" width="1600" height="1067">'
              '<div class="container"><span class="kicker">%s</span><h2>%s</h2><p>%s</p><div class="actions"><a class="button primary" href="%s">%s</a><a class="button arrow" href="%s">%s</a></div></div></section>') % (
         pre, esc(t("Zwei Monteure von Stabil Umzug bauen ein Bett in der neuen Wohnung auf", "Two Stabil Umzug fitters assembling a bed in the new home", lang)),
         t("Ankommen statt schleppen", "Arrive instead of carry", lang),
@@ -225,7 +243,7 @@ def home(lang):
             ("Möbeldecken, die jedes Stück einzeln schützen", "Moving blankets that protect every piece"),
             ("Spanngurte, damit im Transporter nichts verrutscht", "Ratchet straps so nothing shifts in the van"),
             ("Arbeitshandschuhe mit Griff – sicher für Team und Möbel", "Grip gloves – safe for crew and furniture")]
-    body += sec(" alt", '<div class="split gear"><figure class="gear-img"><img src="%sassets/img/photos/equipment.webp" alt="%s" loading="lazy" width="1536" height="1024"></figure>'
+    body += sec(" alt", '<div class="split gear"><figure class="gear-img"><img src="%sassets/img/photos/equipment.jpg" alt="%s" loading="lazy" width="1536" height="1024"></figure>'
                 '<div><span class="kicker red">%s</span><h2>%s</h2><p class="lead" style="margin:14px 0 18px">%s</p><ul class="checks" style="margin-top:0">%s</ul></div></div>' % (
         pre, esc(t("Ausrüstung von Stabil Umzug: Sackkarre, Treppensteiger, Möbelroller, Möbeldecken, Spanngurte und Handschuhe",
                    "Stabil Umzug equipment: hand truck, stair climber, dolly, moving blankets, straps and gloves", lang)),
