@@ -139,7 +139,7 @@ def home(lang):
         '<section class="hero on-dark"><div class="container">'
         '<div class="hero-copy"><span class="kicker">%s</span><h1>%s</h1><p class="tagline">%s</p><p class="lead">%s</p>'
         '<div class="actions"><a class="button primary" href="%s">%s</a>%s</div></div>'
-        '<div class="hero-art"><img src="%sassets/img/stabil-scene.svg" alt="%s" width="980" height="380"></div>'
+        '<figure class="hero-art"><img src="%sassets/img/van-branded.png" alt="%s" width="1108" height="1108" fetchpriority="high"><figcaption>%s</figcaption></figure>'
         '<ul class="facts">%s</ul>'
         '</div></section>'
     ) % (
@@ -148,7 +148,8 @@ def home(lang):
         esc(t("Umzüge, Entrümpelungen, Wohnungsauflösungen und Transporte – im Ruhrgebiet und in ganz Deutschland. Kostenloses, persönliches Angebot innerhalb von 24 Stunden.",
               "Moves, clear-outs, household clearances and transport – across the Ruhr area and all of Germany. Free personal quote within 24 hours.", lang)),
         L("quote"), t("Jetzt kostenloses Angebot anfordern", "Request your free quote now", lang), call,
-        pre, esc(t("Stabil Umzug Transporter mit Team", "Stabil Umzug transporter with crew", lang)),
+        pre, esc(t("Weißer Stabil-Umzug-Transporter mit roter Beschriftung", "White Stabil Umzug van with red livery", lang)),
+        t("Unser Transporter · Essen", "Our van · Essen", lang),
         "".join('<li><b>%s</b>%s</li>' % (esc(a), esc(b)) for a, b in facts))
 
     head = lambda kick, h, p: '<div class="head"><div><span class="kicker red">%s</span><h2>%s</h2></div><p>%s</p></div>' % (esc(kick), esc(h), esc(p))

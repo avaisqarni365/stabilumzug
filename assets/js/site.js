@@ -10,6 +10,21 @@
     });
   }
 
+  /* Scroll reveal: sections fade in once as they enter the viewport (CSS skips it for reduced motion). */
+  (function () {
+    var els = document.querySelectorAll('main .section > .container, main .poster > .container, main .cta > .container');
+    if (!els.length) return;
+    if (!('IntersectionObserver' in window)) return;
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+    }, {rootMargin: '0px 0px -8% 0px', threshold: 0.08});
+    Array.prototype.forEach.call(els, function (el) {
+      var r = el.getBoundingClientRect();
+      if (r.top < window.innerHeight) return;   // already on screen: leave it visible
+      el.classList.add('rv'); io.observe(el);
+    });
+  })();
+
   /* Lead source: carry campaign parameters (or the external referrer) along internal links so the planner
      can name the source in the request. Nothing is stored; the values only live in the link. */
   (function () {
