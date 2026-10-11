@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<base target="_top">
+<meta charset="utf-8">
+<style>
+:root{--bg:#f3f2f2;--surface:#eae9e9;--ink:#201e1d;--ink2:#605d5d;--line:rgba(32,30,29,.4);--soft:rgba(32,30,29,.15);--red:#ec3013;--fill:#c8250c;--fill2:#ae1800;--on:#f3f2f2;--tint:#fff2ef;--tint-ink:#7c1405}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:500 15px/1.5 Archivo,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:inherit}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+h1,h2,h3{margin:0;font-weight:700;letter-spacing:-.02em;line-height:1.1}
+.top{position:sticky;top:0;z-index:5;background:var(--ink);color:var(--on);display:flex;align-items:center;gap:6px 18px;flex-wrap:wrap;padding:10px 20px}
+.brand{font-weight:700;letter-spacing:.14em;text-transform:uppercase;font-size:14px;margin-right:auto;display:flex;align-items:center;gap:10px}
+.brand i{width:22px;height:22px;background:var(--red);display:inline-block}
+.brand b{color:#ff563c}
+.top nav{display:flex;gap:2px}
+.top nav a{text-decoration:none;padding:8px 12px;font-weight:600}
+.top nav a[aria-current=page]{box-shadow:inset 0 -3px 0 #ff563c}
+.top .me{font-size:12.5px;color:#bab6b6;display:flex;gap:12px;align-items:center}
+.top .me a{color:#f3f2f2}
+main{max-width:1280px;margin:0 auto;padding:24px 20px 80px}
+.kicker{font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--fill2)}
+.h{display:flex;align-items:end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:6px 0 18px}
+.h h1{font-size:28px}
+.btn{display:inline-flex;align-items:center;justify-content:space-between;gap:16px;border:1px solid var(--line);background:transparent;padding:10px 14px;min-height:42px;font-weight:700;cursor:pointer;text-decoration:none}
+.btn:hover{background:rgba(32,30,29,.07)}
+.btn.primary{background:var(--fill);border-color:var(--fill);color:var(--on)}
+.btn.primary:hover{background:var(--fill2)}
+.btn.small{min-height:34px;padding:6px 10px;font-size:13px}
+.btn:disabled{opacity:.45;cursor:default}
+.grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:2px solid var(--ink)}
+.kpi{padding:16px 16px 18px 0;border-bottom:1px solid var(--line)}
+.kpi + .kpi{padding-left:16px;border-left:1px solid var(--line)}
+.kpi b{display:block;font-size:34px;line-height:1;margin-bottom:6px;font-variant-numeric:tabular-nums}
+.kpi span{font-size:13px;color:var(--ink2)}
+.cols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:32px;margin-top:32px}
+.block h2{font-size:18px;margin-bottom:8px}
+.list{border-top:2px solid var(--ink)}
+.row{display:grid;grid-template-columns:96px minmax(0,1fr) auto;gap:4px 14px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);text-decoration:none}
+.row:hover{background:rgba(32,30,29,.04)}
+.row .id{font-weight:700;font-variant-numeric:tabular-nums}
+.row small{display:block;color:var(--ink2);font-size:13px}
+.empty{color:var(--ink2);padding:12px 0}
+.badge{display:inline-block;font-size:11.5px;font-weight:700;padding:3px 8px;white-space:nowrap;border:1px solid var(--line)}
+/* status order: Neu, In Arbeit, Angebot raus, Gebucht, Erledigt, Verloren */
+.s0{background:var(--fill);border-color:var(--fill);color:var(--on)}
+.s1{background:var(--tint);color:var(--tint-ink);border-color:var(--tint)}
+.s2{background:var(--ink);color:var(--on);border-color:var(--ink)}
+.s3{background:#1f6b3a;color:#fff;border-color:#1f6b3a}
+.s4,.s5{color:var(--ink2)}
+.filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:14px}
+.chip{border:1px solid var(--line);background:transparent;padding:7px 12px;font-weight:600;font-size:13.5px;cursor:pointer}
+.chip[aria-pressed=true]{background:var(--ink);color:var(--on);border-color:var(--ink)}
+.chip span{opacity:.7;margin-left:4px;font-variant-numeric:tabular-nums}
+.input{border:1px solid var(--line);background:var(--surface);padding:9px 12px;min-height:42px;border-radius:0;width:100%}
+.input:focus-visible{border-color:var(--red);outline-offset:0}
+.filters .input{width:auto;flex:1 1 220px}
+table{width:100%;border-collapse:collapse}
+.tbl{border-top:2px solid var(--ink)}
+.tbl th{font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink2);text-align:left;padding:10px 10px 10px 0;border-bottom:2px solid var(--ink)}
+.tbl td{padding:11px 10px 11px 0;border-bottom:1px solid var(--line);vertical-align:top}
+.tbl tbody tr{cursor:pointer}
+.tbl tbody tr:hover{background:rgba(32,30,29,.04)}
+.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.muted{color:var(--ink2);font-size:13px}
+.detail{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:32px;align-items:start}
+.card{border-top:2px solid var(--ink);padding-top:14px;margin-bottom:28px}
+.card h2{font-size:18px;margin-bottom:10px}
+.facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));border-top:1px solid var(--line)}
+.facts div{padding:9px 12px 9px 0;border-bottom:1px solid var(--line);min-width:0}
+.facts div:nth-child(even){padding-left:12px;border-left:1px solid var(--line)}
+.facts dt{font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink2)}
+.facts dd{margin:2px 0 0;font-weight:600;overflow-wrap:anywhere}
+.side .field{margin-bottom:12px}
+.field label{display:block;font-size:12px;color:var(--ink2);margin-bottom:4px}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.qt td{padding:6px 6px 6px 0;border-bottom:1px solid var(--line)}
+.qt th{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink2);text-align:left;padding:6px 6px 6px 0;border-bottom:2px solid var(--ink)}
+.qt .input{min-height:36px;padding:6px 8px;font-size:14px}
+.qt .n{width:84px;text-align:right}
+.qt .u{width:64px}
+.qt .x{border:0;background:transparent;cursor:pointer;font-size:18px;line-height:1;padding:6px;color:var(--ink2)}
+.total{display:flex;justify-content:space-between;align-items:baseline;padding:12px 0;border-bottom:2px solid var(--ink);font-weight:700}
+.total b{font-size:28px;font-variant-numeric:tabular-nums}
+textarea.input{min-height:120px;resize:vertical;line-height:1.5}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--ink);color:var(--on);padding:12px 18px;font-weight:600;z-index:20;max-width:90vw}
+.toast.err{background:var(--fill)}
+.loading{padding:40px 0;color:var(--ink2)}
+.cal-m{font-size:20px;margin:24px 0 8px}
+@media (max-width:900px){
+  .detail,.cols{grid-template-columns:minmax(0,1fr)}
+  .grid4{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .kpi:nth-child(3){padding-left:0;border-left:0}
+  .tbl thead{display:none}
+  .tbl tr{display:grid;grid-template-columns:auto 1fr auto;gap:2px 10px;padding:10px 0;border-bottom:1px solid var(--line)}
+  .tbl td{border:0;padding:0}
+  .tbl td.hide-m{display:none}
+  .top .me span{display:none}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand"><i aria-hidden="true"></i>Stabil <b>Umzug</b> · Admin</div>
+  <nav aria-label="Admin">
+    <a href="#/" data-nav="home">Übersicht</a>
+    <a href="#/anfragen" data-nav="list">Anfragen</a>
+    <a href="#/kalender" data-nav="cal">Kalender</a>
+  </nav>
+  <div class="me"><span><?= email ?></span><a href="#" id="sheet-link" target="_blank" rel="noopener">Tabelle</a><a href="<?= siteUrl ?>" target="_blank" rel="noopener">Website</a><a href="https://accounts.google.com/Logout">Abmelden</a></div>
+</header>
+<main id="app"><p class="loading">Daten werden geladen …</p></main>
+<div id="toast" class="toast" role="status" hidden></div>
+
+<script>
+(function () {
+  'use strict';
+  var S = {leads: [], statuses: [], me: '', portal: false, filter: {status: 'open', q: '', service: ''}, cur: null};
+  var app = document.getElementById('app');
+  var OPEN = ['Neu', 'In Arbeit', 'Angebot raus'];
+
+  /* ---------- helpers ---------- */
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]; }); }
+  function run(fn) {
+    var args = Array.prototype.slice.call(arguments, 1);
+    return new Promise(function (ok, bad) { var r = google.script.run.withSuccessHandler(ok).withFailureHandler(bad); r[fn].apply(r, args); });
+  }
+  var toastT;
+  function toast(msg, err) { var t = document.getElementById('toast'); t.textContent = msg; t.className = 'toast' + (err ? ' err' : ''); t.hidden = false; clearTimeout(toastT); toastT = setTimeout(function () { t.hidden = true; }, 3500); }
+  function fail(e) { toast((e && e.message) || String(e), true); }
+  function eur(n) { return n == null || n === '' || isNaN(n) ? '–' : Number(n).toLocaleString('de-DE', {minimumFractionDigits: 0, maximumFractionDigits: 2}) + ' €'; }
+  function day(iso) { if (!iso) return '–'; var d = new Date(iso); return isNaN(d) ? esc(iso) : d.toLocaleDateString('de-DE', {day: '2-digit', month: '2-digit', year: '2-digit'}); }
+  function dt(iso) { if (!iso) return '–'; var d = new Date(iso); return isNaN(d) ? esc(iso) : d.toLocaleString('de-DE', {day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'}); }
+  function isDate(s) { return /^\d{4}-\d{2}-\d{2}$/.test(s); }
+  function badge(s) { return '<span class="badge s' + S.statuses.indexOf(s) + '">' + esc(s) + '</span>'; }
+  function svc(l) { return String(l.service || '').replace(/ \((Planer|Kurzformular)\)$/, ''); }
+  function route(l) { return [l.from, l.to].filter(Boolean).map(function (x) { return x.split(',').slice(-1)[0].trim(); }).join(' → ') || '–'; }
+  function waNum(p) { var d = String(p).replace(/[^\d+]/g, ''); if (d[0] === '+') return d.slice(1); if (d.slice(0, 2) === '00') return d.slice(2); if (d[0] === '0') return '49' + d.slice(1); return d; }
+  function setNav(k) { document.querySelectorAll('[data-nav]').forEach(function (a) { if (a.getAttribute('data-nav') === k) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); }); }
+
+  /* ---------- routing ---------- */
+  function routeTo() {
+    var h = location.hash.replace(/^#\/?/, '');
+    if (h.indexOf('a/') === 0) return detail(decodeURIComponent(h.slice(2)));
+    if (h === 'anfragen') return list();
+    if (h === 'kalender') return calendar();
+    return home();
+  }
+  window.addEventListener('hashchange', routeTo);
+
+  function reload() { return run('api_bootstrap').then(function (d) { S.leads = d.leads; S.statuses = d.statuses; S.me = d.me; S.portal = d.portal; document.getElementById('sheet-link').href = d.sheetUrl; }); }
+
+  /* ---------- overview ---------- */
+  function home() {
+    setNav('home');
+    var c = function (s) { return S.leads.filter(function (l) { return l.status === s; }).length; };
+    var today = new Date().toISOString().slice(0, 10);
+    var upcoming = S.leads.filter(function (l) { return isDate(l.date) && l.date >= today && l.status !== 'Verloren'; }).sort(function (a, b) { return a.date < b.date ? -1 : 1; }).slice(0, 8);
+    var fresh = S.leads.filter(function (l) { return l.status === 'Neu'; }).slice(0, 8);
+    var stale = S.leads.filter(function (l) { return l.status === 'Angebot raus' && l.quoteSent && (Date.now() - new Date(l.quoteSent)) > 3 * 864e5; });
+    app.innerHTML = '<span class="kicker">Übersicht</span><div class="h"><h1>Guten Tag.</h1><a class="btn primary" href="#/anfragen">Alle Anfragen →</a></div>' +
+      '<div class="grid4">' + ['Neu', 'In Arbeit', 'Angebot raus', 'Gebucht'].map(function (s) { return '<a class="kpi" style="text-decoration:none" href="#/anfragen" data-st="' + esc(s) + '"><b>' + c(s) + '</b><span>' + esc(s) + '</span></a>'; }).join('') + '</div>' +
+      '<div class="cols"><section class="block"><h2>Neue Anfragen</h2><div class="list">' + (fresh.length ? fresh.map(function (l) { return rowHtml(l); }).join('') : '<p class="empty">Keine neuen Anfragen.</p>') + '</div></section>' +
+      '<section class="block"><h2>Nächste Termine</h2><div class="list">' + (upcoming.length ? upcoming.map(function (l) { return rowHtml(l, true); }).join('') : '<p class="empty">Keine festen Termine.</p>') + '</div>' +
+      (stale.length ? '<h2 style="margin-top:24px">Angebot ohne Antwort (> 3 Tage)</h2><div class="list">' + stale.map(function (l) { return rowHtml(l); }).join('') + '</div>' : '') + '</section></div>';
+    app.querySelectorAll('[data-st]').forEach(function (a) { a.addEventListener('click', function () { S.filter.status = a.getAttribute('data-st'); }); });
+  }
+  function rowHtml(l, withDate) {
+    return '<a class="row" href="#/a/' + encodeURIComponent(l.id) + '"><span class="id">' + esc(l.id) + '</span><span>' + esc(l.name || '–') +
+      '<small>' + esc(svc(l)) + ' · ' + esc(route(l)) + (withDate ? ' · ' + day(l.date) : ' · ' + dt(l.received)) + '</small></span>' + badge(l.status) + '</a>';
+  }
+
+  /* ---------- list ---------- */
+  function list() {
+    setNav('list');
+    var counts = {open: 0, all: S.leads.length};
+    S.leads.forEach(function (l) { counts[l.status] = (counts[l.status] || 0) + 1; if (OPEN.indexOf(l.status) >= 0) counts.open++; });
+    var chips = [['open', 'Offen']].concat(S.statuses.map(function (s) { return [s, s]; })).concat([['all', 'Alle']]);
+    var services = ['Umzug', 'Entrümpelung', 'Wohnungsauflösung', 'Transport', 'Sonstiges'];
+    app.innerHTML = '<span class="kicker">Anfragen</span><div class="h"><h1>Alle Anfragen</h1><button class="btn small" id="refresh">Aktualisieren</button></div>' +
+      '<div class="filters" role="group" aria-label="Status">' + chips.map(function (c) { return '<button class="chip" data-f="' + esc(c[0]) + '" aria-pressed="' + (S.filter.status === c[0]) + '">' + esc(c[1]) + '<span>' + (counts[c[0]] || 0) + '</span></button>'; }).join('') + '</div>' +
+      '<div class="filters"><input class="input" id="q" type="search" placeholder="Suchen: Name, ID, Telefon, Adresse" value="' + esc(S.filter.q) + '" aria-label="Suchen">' +
+      '<select class="input" id="svc" aria-label="Leistung" style="flex:0 1 220px"><option value="">Alle Leistungen</option>' + services.map(function (s) { return '<option' + (S.filter.service === s ? ' selected' : '') + '>' + s + '</option>'; }).join('') + '</select></div>' +
+      '<div id="tbl"></div>';
+    app.querySelectorAll('[data-f]').forEach(function (b) { b.addEventListener('click', function () { S.filter.status = b.getAttribute('data-f'); list(); }); });
+    document.getElementById('q').addEventListener('input', function (e) { S.filter.q = e.target.value; table(); });
+    document.getElementById('svc').addEventListener('change', function (e) { S.filter.service = e.target.value; table(); });
+    document.getElementById('refresh').addEventListener('click', function () { reload().then(list).catch(fail); });
+    table();
+  }
+  function table() {
+    var f = S.filter, q = f.q.trim().toLowerCase();
+    var rows = S.leads.filter(function (l) {
+      if (f.status === 'open' && OPEN.indexOf(l.status) < 0) return false;
+      if (f.status !== 'open' && f.status !== 'all' && l.status !== f.status) return false;
+      if (f.service && svc(l) !== f.service) return false;
+      return !q || [l.id, l.name, l.phone, l.email, l.from, l.to, l.owner].join(' ').toLowerCase().indexOf(q) >= 0;
+    });
+    document.getElementById('tbl').innerHTML = rows.length ? '<table class="tbl"><thead><tr><th>Nr.</th><th>Kunde</th><th class="hide-m">Leistung</th><th class="hide-m">Strecke</th><th>Termin</th><th class="num hide-m">Volumen</th><th class="num hide-m">Angebot</th><th>Status</th></tr></thead><tbody>' +
+      rows.map(function (l) {
+        return '<tr data-id="' + esc(l.id) + '"><td><b>' + esc(l.id) + '</b><div class="muted">' + dt(l.received) + '</div></td><td>' + esc(l.name || '–') + '<div class="muted">' + esc(l.owner ? 'Zuständig: ' + l.owner : (l.phone || l.email)) + '</div></td>' +
+          '<td class="hide-m">' + esc(svc(l)) + '</td><td class="hide-m">' + esc(route(l)) + '</td><td>' + (isDate(l.date) ? day(l.date) : '<span class="muted">' + esc(l.date || 'flexibel') + '</span>') + '</td>' +
+          '<td class="num hide-m">' + (l.volMin != null ? esc(l.volMin) + '–' + esc(l.volMax) + ' m³' : '–') + '</td><td class="num hide-m">' + eur(l.total) + '</td><td>' + badge(l.status) + '</td></tr>';
+      }).join('') + '</tbody></table>' : '<p class="empty">Keine Anfragen für diesen Filter.</p>';
+    document.querySelectorAll('#tbl tr[data-id]').forEach(function (tr) { tr.addEventListener('click', function () { location.hash = '#/a/' + encodeURIComponent(tr.getAttribute('data-id')); }); });
+  }
+
+  /* ---------- detail ---------- */
+  function detail(id) {
+    setNav('list');
+    app.innerHTML = '<p class="loading">Anfrage ' + esc(id) + ' wird geladen …</p>';
+    run('api_lead', id).then(function (d) { S.cur = d; drawDetail(); }).catch(fail);
+  }
+  function drawDetail() {
+    var d = S.cur, l = d.lead;
+    var fact = function (k, v) { return v || v === 0 ? '<div><dt>' + esc(k) + '</dt><dd>' + esc(v) + '</dd></div>' : ''; };
+    var facts = fact('Leistung', l.service) + fact('Termin', isDate(l.date) ? day(l.date) : l.date) + fact('Von', l.from) + fact('Nach', l.to) +
+      fact('Entfernung', l.kmMaps != null ? l.kmMaps + ' km (' + l.minutes + ' min)' : (l.kmFamily ? l.kmFamily + ' km (Angabe)' : '')) + fact('Haushalt', l.household) +
+      fact('Zugang Auszug', l.accOld) + fact('Zugang Einzug', l.accNew) + fact('Halteverbot', l.hvz) + fact('Räume', l.rooms) +
+      fact('Volumen', l.volMin != null ? l.volMin + '–' + l.volMax + ' m³' : '') + fact('Gewicht', l.weight ? l.weight + ' kg' : '') +
+      fact('Fahrzeug', l.vehicle) + fact('Team / Stunden', l.crew ? l.crew + ' Personen · ' + l.hours + ' Std.' : '') + fact('Vertrauen', l.confidence) +
+      fact('Quelle', l.source) + fact('Sprache', l.lang) + fact('Eingang', dt(l.received));
+    var items = d.items.length ? '<div class="card"><h2>Gegenstände (' + d.items.reduce(function (a, i) { return a + i.n; }, 0) + ')</h2><table class="tbl" style="border-top:0"><thead><tr><th>Gegenstand</th><th>Herkunft</th><th class="num">Anz.</th><th class="num">m³</th></tr></thead><tbody>' +
+      d.items.map(function (i) { return '<tr style="cursor:default"><td>' + esc(i.name) + (i.size ? ' <span class="muted">' + esc(i.size) + '</span>' : '') + '</td><td class="muted">' + esc(i.source) + '</td><td class="num">' + i.n + '</td><td class="num">' + Number(i.vol).toLocaleString('de-DE') + '</td></tr>'; }).join('') + '</tbody></table></div>' : '';
+    var contact = (l.phone ? '<a class="btn small" href="tel:' + esc(l.phone.replace(/\s/g, '')) + '">Anrufen</a><a class="btn small" target="_blank" rel="noopener" href="https://wa.me/' + waNum(l.phone) + '">WhatsApp</a>' : '') +
+      (l.email ? '<a class="btn small" href="mailto:' + esc(l.email) + '">E-Mail</a>' : '');
+    app.innerHTML = '<a href="#/anfragen" class="muted">← Alle Anfragen</a>' +
+      '<div class="h"><div><span class="kicker">' + esc(l.id) + ' · ' + esc(svc(l)) + '</span><h1>' + esc(l.name || '–') + '</h1>' +
+      '<div class="muted">' + esc([l.phone, l.email].filter(Boolean).join(' · ')) + (l.channel ? ' · bevorzugt: ' + esc(l.channel) : '') + '</div></div><div class="actions">' + contact + '</div></div>' +
+      '<div class="detail"><div>' +
+        '<div class="card"><h2>Angaben</h2><dl class="facts" style="margin:0">' + facts + '</dl>' + (l.message ? '<p style="margin:12px 0 0;white-space:pre-wrap"><b>Nachricht:</b> ' + esc(l.message) + '</p>' : '') + '</div>' +
+        items + quoteHtml() +
+      '</div><aside class="side">' +
+        '<div class="card"><h2>Bearbeitung</h2><div class="field"><label for="st">Status</label><select class="input" id="st">' + S.statuses.map(function (s) { return '<option' + (s === l.status ? ' selected' : '') + '>' + esc(s) + '</option>'; }).join('') + '</select></div>' +
+        '<div class="field"><label for="ow">Zuständig</label><input class="input" id="ow" value="' + esc(l.owner) + '" placeholder="Name"></div>' +
+        '<div class="field"><label for="nt">Interne Notizen</label><textarea class="input" id="nt" placeholder="Nur für das Büro sichtbar">' + esc(l.notes) + '</textarea></div>' +
+        '<button class="btn primary" id="save-meta">Speichern</button></div>' +
+        sendHtml() +
+      '</aside></div>';
+    bindDetail();
+  }
+
+  /* quote editor */
+  function quoteHtml() {
+    var q = S.cur.quote;
+    return '<div class="card" id="quote"><h2>Angebot ' + (q.saved ? '<span class="muted">Version ' + q.version + '</span>' : '<span class="muted">Vorschlag aus den Angaben' + (q.range ? ' (Spanne ±' + q.range + ' %)' : '') + '</span>') + '</h2>' +
+      '<div style="overflow-x:auto"><table class="qt"><thead><tr><th>Position</th><th>Basis</th><th class="num">Menge</th><th>Einheit</th><th class="num">Satz €</th><th class="num">Betrag</th><th></th></tr></thead><tbody id="qlines">' +
+      q.lines.map(lineHtml).join('') + '</tbody></table></div>' +
+      '<div class="actions" style="margin:10px 0"><button class="btn small" id="addline">+ Position</button></div>' +
+      '<div class="total"><span>Gesamt <span class="muted">(mindestens ' + eur(S.cur.minPrice) + ')</span></span><b id="qtotal"></b></div>' +
+      '<div class="actions" style="margin-top:12px"><button class="btn primary" id="saveq">Angebot speichern</button></div></div>';
+  }
+  function lineHtml(l) {
+    return '<tr><td><input class="input" value="' + esc(l[0]) + '" aria-label="Position"></td><td><input class="input" value="' + esc(l[1]) + '" aria-label="Basis"></td>' +
+      '<td><input class="input n" type="number" step="any" value="' + esc(l[2]) + '" aria-label="Menge"></td><td><input class="input u" value="' + esc(l[3]) + '" aria-label="Einheit"></td>' +
+      '<td><input class="input n" type="number" step="any" value="' + esc(l[4]) + '" aria-label="Satz"></td><td class="num amt"></td><td><button class="x" title="Entfernen" aria-label="Position entfernen">×</button></td></tr>';
+  }
+  function readLines() {
+    return Array.prototype.map.call(document.querySelectorAll('#qlines tr'), function (tr) { var i = tr.querySelectorAll('input'); return [i[0].value, i[1].value, Number(i[2].value) || 0, i[3].value, Number(i[4].value) || 0]; });
+  }
+  function totals() {
+    var sum = 0;
+    document.querySelectorAll('#qlines tr').forEach(function (tr) { var i = tr.querySelectorAll('input'), a = (Number(i[2].value) || 0) * (Number(i[4].value) || 0); sum += a; tr.querySelector('.amt').textContent = eur(Math.round(a * 100) / 100); });
+    var t = Math.max(S.cur.minPrice || 0, Math.round(sum * 100) / 100);
+    document.getElementById('qtotal').textContent = eur(t);
+    return t;
+  }
+
+  /* message to the customer */
+  function sendHtml() {
+    var l = S.cur.lead;
+    return '<div class="card" id="send"><h2>Angebot senden</h2><p class="muted" style="margin:0 0 8px">Text vor dem Senden anpassen. WhatsApp oder E-Mail öffnet sich mit diesem Text; die Anfrage wird als „Angebot raus“ markiert.</p>' +
+      '<textarea class="input" id="msg" style="min-height:260px"></textarea>' +
+      '<div class="actions" style="margin-top:10px"><button class="btn primary" id="send-wa"' + (l.phone ? '' : ' disabled') + '>Per WhatsApp senden</button><button class="btn" id="send-mail"' + (l.email ? '' : ' disabled') + '>Per E-Mail senden</button></div>' +
+      (l.quoteSent ? '<p class="muted" style="margin:8px 0 0">Zuletzt gesendet: ' + dt(l.quoteSent) + '</p>' : '') + '</div>';
+  }
+  function message(total, link) {
+    var l = S.cur.lead, en = l.lang === 'EN', lines = readLines().filter(function (x) { return x[2] * x[4] > 0; });
+    var date = isDate(l.date) ? new Date(l.date).toLocaleDateString(en ? 'en-GB' : 'de-DE') : '';
+    var first = (l.name || '').split(' ')[0];
+    if (en) return ['Hello ' + (l.name || '') + ',', '', 'thank you for your request at Stabil Umzug (' + l.id + ').', '',
+      'Our quote for your ' + svc(l).toLowerCase() + (date ? ' on ' + date : '') + ':'].concat(lines.map(function (x) { return '– ' + x[0] + (x[1] ? ' (' + x[1] + ')' : '') + ': ' + eur(Math.round(x[2] * x[4] * 100) / 100); }))
+      .concat(['', 'Total price: ' + eur(total), '', 'The quote is valid for 14 days. If everything suits you, just reply "Yes" and we will reserve your date.'])
+      .concat(link ? ['', 'Your quote online: ' + link] : []).concat(['', 'Questions? Call or WhatsApp 0163 9688190.', '', 'Kind regards', 'Ibrahim Abdelaal', 'Stabil Umzug · Karlstraße 32 · 45329 Essen']).join('\n');
+    return ['Hallo ' + (l.name || first) + ',', '', 'vielen Dank für Ihre Anfrage bei Stabil Umzug (' + l.id + ').', '',
+      'Unser Angebot für Ihren Auftrag „' + svc(l) + '“' + (date ? ' am ' + date : '') + ':'].concat(lines.map(function (x) { return '– ' + x[0] + (x[1] ? ' (' + x[1] + ')' : '') + ': ' + eur(Math.round(x[2] * x[4] * 100) / 100); }))
+      .concat(['', 'Gesamtpreis: ' + eur(total), '', 'Das Angebot gilt 14 Tage. Wenn alles passt, antworten Sie einfach mit „Ja“ – dann reservieren wir Ihren Termin.'])
+      .concat(link ? ['', 'Ihr Angebot online: ' + link] : []).concat(['', 'Bei Fragen erreichen Sie uns unter 0163 9688190 (Telefon und WhatsApp).', '', 'Viele Grüße', 'Ibrahim Abdelaal', 'Stabil Umzug · Karlstraße 32 · 45329 Essen']).join('\n');
+  }
+
+  function bindDetail() {
+    var d = S.cur, l = d.lead, link = '';
+    var refreshMsg = function () { document.getElementById('msg').value = message(totals(), link); };
+    var qlines = document.getElementById('qlines');
+    qlines.addEventListener('input', refreshMsg);
+    qlines.addEventListener('click', function (e) { if (e.target.classList.contains('x')) { e.target.closest('tr').remove(); refreshMsg(); } });
+    document.getElementById('addline').addEventListener('click', function () { qlines.insertAdjacentHTML('beforeend', lineHtml(['', '', 1, '', 0])); qlines.lastElementChild.querySelector('input').focus(); refreshMsg(); });
+    refreshMsg();
+    if (S.portal) run('api_customerLink', l.id).then(function (u) { link = u; refreshMsg(); }).catch(function () {});
+
+    document.getElementById('save-meta').addEventListener('click', function (e) {
+      var b = e.target; b.disabled = true;
+      run('api_update', l.id, {status: document.getElementById('st').value, owner: document.getElementById('ow').value, notes: document.getElementById('nt').value})
+        .then(function (nl) { b.disabled = false; S.cur.lead = nl; patchLead(nl); toast('Gespeichert.'); })
+        .catch(function (err) { b.disabled = false; fail(err); });
+    });
+    document.getElementById('saveq').addEventListener('click', function (e) {
+      var b = e.target; b.disabled = true;
+      run('api_saveQuote', l.id, readLines())
+        .then(function (r) { b.disabled = false; S.cur.quote = {version: r.version, lines: readLines(), saved: true}; toast('Angebot Version ' + r.version + ' gespeichert: ' + eur(r.total)); patchLead({id: l.id, total: r.total}); document.querySelector('#quote h2').innerHTML = 'Angebot <span class="muted">Version ' + r.version + '</span>'; })
+        .catch(function (err) { b.disabled = false; fail(err); });
+    });
+    var send = function (channel) {
+      var w = channel === 'wa' ? window.open('', '_blank') : null;   // open now, so the popup is not blocked
+      run('api_sendQuote', l.id, document.getElementById('msg').value, channel === 'wa' ? 'wa' : 'mail')
+        .then(function (r) {
+          if (channel === 'wa') { if (w) w.location = r.wa; else location.href = r.wa; } else location.href = r.mail;
+          toast('Als „Angebot raus“ markiert.'); patchLead({id: l.id, status: 'Angebot raus', quoteSent: r.sent});
+        })
+        .catch(function (err) { if (w) w.close(); fail(err); });
+    };
+    document.getElementById('send-wa').addEventListener('click', function () { send('wa'); });
+    document.getElementById('send-mail').addEventListener('click', function () { send('mail'); });
+  }
+  function patchLead(p) { S.leads.forEach(function (x) { if (x.id === p.id) for (var k in p) x[k] = p[k]; }); }
+
+  /* ---------- calendar ---------- */
+  function calendar() {
+    setNav('cal');
+    var withDate = S.leads.filter(function (l) { return isDate(l.date) && l.status !== 'Verloren'; }).sort(function (a, b) { return a.date < b.date ? -1 : 1; });
+    var today = new Date().toISOString().slice(0, 10), groups = {};
+    withDate.filter(function (l) { return l.date >= today.slice(0, 8) + '01'; }).forEach(function (l) { var m = l.date.slice(0, 7); (groups[m] = groups[m] || []).push(l); });
+    var months = Object.keys(groups).sort();
+    app.innerHTML = '<span class="kicker">Kalender</span><div class="h"><h1>Termine</h1></div>' + (months.length ? months.map(function (m) {
+      var name = new Date(m + '-01T12:00:00').toLocaleDateString('de-DE', {month: 'long', year: 'numeric'});
+      return '<h2 class="cal-m">' + esc(name) + '</h2><div class="list">' + groups[m].map(function (l) {
+        var d = new Date(l.date + 'T12:00:00');
+        return '<a class="row" href="#/a/' + encodeURIComponent(l.id) + '"><span class="id">' + d.toLocaleDateString('de-DE', {weekday: 'short', day: '2-digit', month: '2-digit'}) + '</span><span>' + esc(l.name || '–') +
+          '<small>' + esc(l.id) + ' · ' + esc(svc(l)) + ' · ' + esc(route(l)) + (l.owner ? ' · ' + esc(l.owner) : '') + '</small></span>' + badge(l.status) + '</a>';
+      }).join('') + '</div>';
+    }).join('') : '<p class="empty">Noch keine Anfragen mit festem Termin.</p>');
+  }
+
+  reload().then(routeTo).catch(function (e) { app.innerHTML = '<p class="loading">Fehler beim Laden: ' + esc(e && e.message || e) + '</p>'; });
+})();
+</script>
+</body>
+</html>

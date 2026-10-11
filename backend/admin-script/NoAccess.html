@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<base target="_top">
+<meta charset="utf-8">
+<style>
+html,body{margin:0;background:#201e1d;color:#f3f2f2;font:500 16px/1.6 Archivo,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:640px;margin:0 auto;padding:12vh 24px}
+.k{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#bab6b6}
+h1{font-size:34px;line-height:1.05;letter-spacing:-.03em;margin:10px 0 0}
+h1 span{color:#ff563c;display:block}
+p{color:#d7d3d3}
+a{color:#f3f2f2;font-weight:700}
+.b{display:inline-flex;gap:24px;justify-content:space-between;background:#c8250c;color:#f3f2f2;text-decoration:none;padding:13px 18px;margin-top:12px}
+</style>
+</head>
+<body>
+<main>
+  <div class="k">Stabil Umzug · Admin</div>
+  <h1>Kein Zugriff.<span>No access.</span></h1>
+  <p>Sie sind als <b><?= email || 'unbekannt' ?></b> angemeldet. Dieser Bereich ist nur für das Team von Stabil Umzug. Wenn Sie zum Team gehören, bitten Sie Ibrahim Abdelaal, die Tabelle „Stabil Umzug – Anfragen“ mit diesem Google-Konto zu teilen (als Bearbeiter).</p>
+  <p>You are signed in as <b><?= email || 'unknown' ?></b>. This area is for the Stabil Umzug team only.</p>
+  <a class="b" href="https://accounts.google.com/Logout">Mit anderem Konto anmelden <span>→</span></a>
+  <p><a href="<?= siteUrl ?>">Zur Website</a></p>
+</main>
+</body>
+</html>

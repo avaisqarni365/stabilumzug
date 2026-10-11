@@ -22,6 +22,7 @@ PAGES = {
     "about":     ("ueber-uns/", "en/about-us/"),
     "imprint":   ("impressum/", "en/imprint/"),
     "quote":     ("angebot/", "en/free-quote/"),
+    "admin":     ("admin/", "en/admin/"),
     "prices":    ("preise/", "en/prices/"),
     "privacy":   ("datenschutz/", "en/privacy/"),
 }
@@ -116,7 +117,7 @@ def footer(key, lang):
         '<div><h3>%s</h3><ul>%s<li><a href="%s">%s</a></li></ul></div>'
         '<div><h3>%s</h3><ul><li><a href="%s">%s</a></li><li><a href="%s">%s</a></li><li><a href="%s">%s</a></li><li><a href="%s">%s</a></li><li><a href="%s">%s</a></li></ul></div>'
         '</div>'
-        '<div class="legal-row"><span>© %s %s · %s</span><span><a href="%s">%s</a> · <a href="%s">%s</a></span></div>'
+        '<div class="legal-row"><span>© %s %s · %s</span><span><a href="%s">%s</a> · <a href="%s">%s</a> · <a href="%s">%s</a></span></div>'
         '</div></footer>'
     ) % (
         esc(t("Umzüge, Klaviertransporte und Entrümpelungen aus Essen – im Ruhrgebiet und in ganz Deutschland.",
@@ -132,6 +133,7 @@ def footer(key, lang):
         "2026", esc(SITE["company"]), esc(SITE["city"]),
         L("imprint"), t("Impressum", "Imprint", lang),
         L("privacy"), t("Datenschutz", "Privacy", lang),
+        L("admin"), t("Mitarbeiter-Login", "Staff login", lang),
     )
 
 def head(page):
