@@ -108,6 +108,7 @@ textarea.input{min-height:120px;resize:vertical;line-height:1.5}
     <a href="#/" data-nav="home">Übersicht</a>
     <a href="#/anfragen" data-nav="list">Anfragen</a>
     <a href="#/kalender" data-nav="cal">Kalender</a>
+    <a href="#/belege" data-nav="docs">Belege</a>
   </nav>
   <div class="me"><span><?= email ?></span><a href="#" id="sheet-link" target="_blank" rel="noopener">Tabelle</a><a href="<?= siteUrl ?>" target="_blank" rel="noopener">Website</a><a href="https://accounts.google.com/Logout">Abmelden</a></div>
 </header>
@@ -143,6 +144,7 @@ textarea.input{min-height:120px;resize:vertical;line-height:1.5}
   /* ---------- routing ---------- */
   function routeTo() {
     var h = location.hash.replace(/^#\/?/, '');
+    if (window.SUDocs && window.SUDocs.route(h)) return;   // Angebote und Rechnungen (BelegeUi.html)
     if (h.indexOf('a/') === 0) return detail(decodeURIComponent(h.slice(2)));
     if (h === 'anfragen') return list();
     if (h === 'kalender') return calendar();
@@ -238,8 +240,10 @@ textarea.input{min-height:120px;resize:vertical;line-height:1.5}
         '<div class="field"><label for="nt">Interne Notizen</label><textarea class="input" id="nt" placeholder="Nur für das Büro sichtbar">' + esc(l.notes) + '</textarea></div>' +
         '<button class="btn primary" id="save-meta">Speichern</button></div>' +
         sendHtml() +
+        '<div class="card" id="lead-docs"></div>' +
       '</aside></div>';
     bindDetail();
+    if (window.SUDocs) window.SUDocs.leadCard(l, document.getElementById('lead-docs'));
   }
 
   /* quote editor */
@@ -343,8 +347,12 @@ textarea.input{min-height:120px;resize:vertical;line-height:1.5}
     }).join('') : '<p class="empty">Noch keine Anfragen mit festem Termin.</p>');
   }
 
+  /* shared with BelegeUi.html */
+  window.SU = {run: run, esc: esc, eur: eur, dt: dt, day: day, toast: toast, fail: fail, app: app, setNav: setNav, waNum: waNum};
+
   reload().then(routeTo).catch(function (e) { app.innerHTML = '<p class="loading">Fehler beim Laden: ' + esc(e && e.message || e) + '</p>'; });
 })();
 </script>
+<?!= include_('BelegeUi') ?>
 </body>
 </html>
