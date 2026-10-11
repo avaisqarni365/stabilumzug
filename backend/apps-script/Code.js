@@ -352,7 +352,7 @@ function routeMap_(b) {
 /* "Rüttenscheider Str. 12, 45130 Essen, Deutschland" -> "45130 Essen". Never returns the street. */
 function place_(addr) {
   var a = String(addr || ''), m = a.match(/\b(\d{5})\s+([^,\d]+)/);
-  if (m) return m[1] + ' ' + m[2].trim();
+  if (m) return m[1] + ' ' + m[2].trim().replace(/-Stadtbezirke?\s+\S+$/, '');   // "Essen-Stadtbezirke V" -> "Essen"
   var parts = a.split(',').map(function (x) { return x.trim(); }).filter(function (x) { return x && !/\d/.test(x) && !/^(deutschland|germany)$/i.test(x); });
   return parts.length ? parts[parts.length - 1].slice(0, 60) : '–';
 }

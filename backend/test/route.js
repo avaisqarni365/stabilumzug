@@ -45,6 +45,7 @@ console.log('ok guard: short input rejected, daily quota limit answers "busy"');
 // place_ never returns a street
 assert.strictEqual(ctx.place_('Hauptstr. 5, 45127 Essen, Deutschland'), '45127 Essen');
 assert.strictEqual(ctx.place_('Bochum'), 'Bochum');
+assert.strictEqual(ctx.place_('Karlstraße 32, 45329 Essen-Stadtbezirke V, Deutschland'), '45329 Essen');
 assert.strictEqual(ctx.place_('Kettwiger Str. 1'), '–');
 
 // admin statistics
