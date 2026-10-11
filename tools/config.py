@@ -22,25 +22,14 @@ SITE = {
     "hours": "Mo–Fr 9–19 Uhr · Sa/So 9–17 Uhr",
     # Legal details for the imprint (Impressum). Have them checked by a lawyer.
     "owner": "Ibrahim Abdelaal",
-    "legal_form": "[Rechtsform]",
+    "legal_form": "Einzelunternehmen",
     "vat_id": "DE458214531",
-    "register": "[Handelsregister und Nummer, falls vorhanden]",
+    "register": "",
     "hosting": "GitHub Pages (GitHub, Inc., 88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, USA)",
 }
 
-# Switch a service off if the company does not offer it. The pages update on the next build.
-SERVICES_ENABLED = {
-    "private": True,
-    "business": True,
-    "packing": True,
-    "assembly": True,
-    "kitchen": True,
-    "disposal": True,
-    "parking": True,
-    "storage": True,
-    "piano": True,         # named in the design handoff
-    "restoration": True,   # named on the current website
-}
+# Price list page (tools/prices_content.py). False = page is built for review at /preise/ but hidden (noindex, not linked).
+PRICES_PUBLISHED = False
 
 # Real customer reviews go here. The reviews section appears only when this list has entries.
 # Example: {"name": "A. Mustermann", "text": "…", "place": "Essen"}

@@ -3,7 +3,7 @@
 import os, json, sys
 sys.path.insert(0, os.path.dirname(__file__))
 from config import SITE
-import lib, pages, pages2, guides
+import lib, pages, pages2, guides, services
 from lib import PAGES, url_of, render, is_ph
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -14,6 +14,10 @@ BUILDERS = {
 }
 for _k in lib.GUIDES:
     BUILDERS[_k] = guides.guide(_k)
+BUILDERS["quote"] = services.quote_page
+BUILDERS["prices"] = services.prices_page
+for _k in services.SERVICES:
+    BUILDERS["svc_" + _k] = services.service_page(_k)
 
 def write(rel, text):
     p = os.path.join(ROOT, rel)

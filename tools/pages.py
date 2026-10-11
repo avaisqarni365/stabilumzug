@@ -1,5 +1,5 @@
 """Page bodies (German + English) part 1: home, services, planner, contact."""
-from config import SITE, SERVICES_ENABLED, TESTIMONIALS
+from config import SITE, TESTIMONIALS
 from lib import esc, t, link, url_of, crumbs, ph, is_ph, prefix_for, path_of, GUIDES
 
 def page_head(key, lang, title, lead, label=None, kicker=None, parent=None):
@@ -13,74 +13,20 @@ def phone_link():
     return "tel:" + (SITE["phone_href"] or SITE["phone"].replace(" ", ""))
 
 def cta(key, lang, h=None, p=None):
-    h = h or t("Bereit? <span>In 10 Minuten geplant.</span>", "Ready? <span>Planned in 10 minutes.</span>", lang)
-    p = p or t("Beschreiben Sie Ihren Umzug einmal. Wir senden Ihr persönliches Angebot innerhalb von 24 Stunden – per WhatsApp oder E-Mail.",
-               "Describe your move once. We send your personal quote within 24 hours – via WhatsApp or email.", lang)
+    h = h or t("Kostenlos anfragen. <span>Antwort in 24 Std.</span>", "Ask for free. <span>Reply within 24 h.</span>", lang)
+    p = p or t("Umzug, Entrümpelung, Wohnungsauflösung oder Transport: Wir senden Ihr persönliches, unverbindliches Angebot innerhalb von 24 Stunden – per WhatsApp oder E-Mail.",
+               "Move, clear-out, household clearance or transport: we send your personal, non-binding quote within 24 hours – via WhatsApp or email.", lang)
     call = ('<a class="button arrow" href="%s">%s %s</a>' % (phone_link(), t("Anrufen", "Call", lang), esc(SITE["phone"]))) if phone_link() else \
            '<a class="button arrow" href="%s">%s</a>' % (link(key, "contact", lang), t("Direkt anfragen", "Contact us", lang))
     return ('<section class="cta on-dark"><div class="container"><div><h2>%s</h2><p>%s</p></div>'
-            '<div class="actions"><a class="button primary" href="%s">%s</a>%s</div></div></section>'
-            % (h, esc(p), link(key, "planner", lang), t("Umzug planen", "Plan your move", lang), call))
+            '<div class="actions"><a class="button primary" href="%s">%s</a><a class="button arrow" href="%s">%s</a>%s</div></div></section>'
+            % (h, esc(p), link(key, "quote", lang), t("Jetzt kostenloses Angebot anfordern", "Request your free quote now", lang),
+               link(key, "planner", lang), t("Umzug online planen", "Plan your move online", lang), call))
 
 # ---------------------------------------------------------------- services
-SERVICES = {
-    "private": ("Privatumzug", "Private move",
-        "Von der Einzimmerwohnung bis zum Haus: tragen, laden, fahren, aufstellen – mit festem Team und eigenem Transporter.",
-        "From a one-room flat to a house: carry, load, drive, set down – with a fixed crew and our own transporter.", "volume"),
-    "business": ("Büro- und Praxisumzug", "Office and practice move",
-        "Arbeitsplätze, Akten und Technik so umziehen, dass der Betrieb schnell weiterläuft.",
-        "Desks, files and equipment moved so work can resume quickly.", None),
-    "packing": ("Verpackung und Kartons", "Packing and boxes",
-        "Kartons in passenden Größen und auf Wunsch Packhilfe für Geschirr, Bücher und Kleidung.",
-        "Boxes in suitable sizes and, on request, help packing dishes, books and clothes.", "packing"),
-    "assembly": ("Möbel ab- und aufbauen", "Furniture dismantling and assembly",
-        "Betten, Schränke und Regale abbauen und am neuen Ort wieder aufbauen – nach Ihrer Liste.",
-        "Beds, wardrobes and shelves taken apart and rebuilt at the new place – from your list.", "assembly"),
-    "kitchen": ("Küche ab- und aufbauen", "Kitchen removal and fitting",
-        "Küchenmöbel abbauen, transportieren und aufbauen. Wasser- und Stromanschluss nach Absprache.",
-        "Kitchen units taken down, moved and fitted. Water and power connection by arrangement.", "kitchen"),
-    "disposal": ("Entrümpelung und Entsorgung", "Clear-outs and disposal",
-        "Was nicht mitzieht, sortieren, abholen und entsorgen – auch Sperrmüll.",
-        "Sort, collect and dispose of what does not move with you – including bulky waste.", "waste"),
-    "parking": ("Halteverbotszone", "No-parking zone",
-        "Wir beantragen die Zone bei der Stadt, damit der LKW am Umzugstag direkt vor der Tür steht.",
-        "We apply to the city for the zone so the truck can stand right at the door on moving day.", "parking"),
-    "storage": ("Zwischenlagerung", "Temporary storage",
-        "Wenn Auszug und Einzug nicht zusammenfallen: Möbel sicher zwischenlagern.",
-        "When move-out and move-in do not coincide: safe storage for your furniture.", "truck"),
-    "piano": ("Klaviertransport", "Piano transport",
-        "Klaviere und schwere Einzelstücke mit passender Ausrüstung und genug Trägern.",
-        "Pianos and heavy single pieces with the right equipment and enough carriers.", "access"),
-    "restoration": ("Übergabe und Endreinigung", "Handover and final cleaning",
-        "Wohnung besenrein oder gründlich gereinigt an Vermieter oder Nachmieter übergeben.",
-        "Hand the flat back clean to your landlord or the next tenant.", "kitchen"),
-}
-
-def services_tiles(key, lang, limit=None):
-    out = []
-    for k, (dt, et, dd, ed, g) in SERVICES.items():
-        if not SERVICES_ENABLED.get(k):
-            continue
-        more = ('<a class="link-arrow" href="%s">%s</a>' % (link(key, g, lang), esc(GUIDES[g][lang]["nav"]))) if g and g in GUIDES else ""
-        out.append('<article class="tile"><h3>%s</h3><p>%s</p>%s</article>' % (esc(t(dt, et, lang)), esc(t(dd, ed, lang)), more))
-        if limit and len(out) >= limit:
-            break
-    return '<div class="tiles">%s</div>' % "".join(out)
-
 def services(lang):
-    key = "services"
-    body = page_head(key, lang, t("Leistungen", "Services", lang),
-        t("Alles rund um den Umzug aus einer Hand. Nicht jeder braucht jede Leistung: Im Planer wählen Sie, was wir übernehmen sollen – alles fließt in Ihr persönliches Angebot.",
-          "Everything around a move from one team. Nobody needs every service: in the planner you choose what we should handle – it all goes into your personal quote.", lang),
-        kicker=t("Stabil Umzug · Essen", "Stabil Umzug · Essen", lang))
-    body += '<section class="section"><div class="container">%s</div></section>' % services_tiles(key, lang)
-    body += cost_section(key, lang, alt=True)
-    body += cta(key, lang)
-    return dict(key=key, lang=lang,
-        title=t("Leistungen: Umzug, Montage, Entsorgung | Stabil Umzug Essen", "Services: moves, assembly, disposal | Stabil Umzug Essen", lang),
-        desc=t("Privat- und Büroumzug, Verpackung, Möbel- und Küchenmontage, Entsorgung, Halteverbotszone, Zwischenlagerung und Klaviertransport. Stabil Umzug in Essen.",
-               "Private and office moves, packing, furniture and kitchen assembly, disposal, no-parking zones, storage and piano transport. Stabil Umzug in Essen.", lang),
-        body=body)
+    import services as services_mod
+    return services_mod.services_overview(lang)
 
 # ---------------------------------------------------------------- cost drivers (no prices)
 COSTS = [
@@ -125,39 +71,28 @@ def planner(lang):
 
 # ---------------------------------------------------------------- contact
 def contact(lang):
+    import services as services_mod
     key = "contact"
     body = page_head(key, lang, t("Kontakt", "Contact", lang),
-        t("Rufen Sie an, schreiben Sie per WhatsApp – oder senden Sie uns kurz, wohin es geht. Für ein genaues Angebot nutzen Sie den Umzugsplaner.",
-          "Call, message us on WhatsApp – or tell us briefly where you are moving. For an accurate quote, use the moving planner.", lang))
-    phone = ph(SITE["phone"]) if not SITE["phone_href"] else '<a href="tel:%s">%s</a>' % (esc(SITE["phone_href"]), esc(SITE["phone"]))
-    email = ph(SITE["email"]) if is_ph(SITE["email"]) else '<a href="mailto:%s">%s</a>' % (esc(SITE["email"]), esc(SITE["email"]))
-    wa = '<li><b>WhatsApp</b><a href="https://wa.me/%s" rel="noopener">%s</a></li>' % (esc(SITE["whatsapp"]), t("Nachricht schreiben", "Send a message", lang)) if SITE.get("whatsapp") else ""
-    f = lambda i, l, typ="text", req=False, wide=False, ac="": (
-        '<div%s><label for="%s">%s</label><input id="%s" type="%s"%s%s></div>' % (' class="wide"' if wide else "", i, l, i, typ, " required" if req else "", (' autocomplete="%s"' % ac) if ac else ""))
-    form = (
-        '<form class="form" id="contact-form" novalidate>'
-        + f("c-name", t("Name", "Name", lang), req=True, ac="name")
-        + f("c-contact", t("Telefon oder E-Mail", "Phone or email", lang), req=True)
-        + f("c-from", t("Von (Ort/Adresse)", "From (place/address)", lang))
-        + f("c-to", t("Nach (Ort/Adresse)", "To (place/address)", lang))
-        + f("c-date", t("Wunschtermin", "Preferred date", lang), "date")
-        + '<div class="wide"><label for="c-note">%s</label><textarea id="c-note"></textarea></div>' % t("Anmerkungen", "Notes", lang)
-        + '<div class="wide actions"><button class="button primary" type="button" id="send-wa">%s</button>'
-          '<button class="button arrow" type="button" id="send-mail">%s</button></div>'
-          '<p class="wide msg" id="contact-msg" role="status"></p>' % (t("Per WhatsApp senden", "Send by WhatsApp", lang), t("Per E-Mail senden", "Send by email", lang))
-        + '</form>')
-    note = t("Die Buttons öffnen WhatsApp oder Ihr E-Mail-Programm mit einem vorbereiteten Text. Es wird nichts über unsere Website gesendet.",
-             "The buttons open WhatsApp or your email app with a prepared text. Nothing is sent through our website.", lang)
-    side = ('<ul class="contact-list"><li><b>%s</b>%s</li>%s<li><b>%s</b>%s</li><li><b>%s</b>%s</li><li><b>%s</b>%s<br>%s %s</li></ul>'
-            % (t("Telefon", "Phone", lang), phone, wa, "E-Mail", email, t("Erreichbar", "Hours", lang), ph(SITE["hours"]),
-               t("Adresse", "Address", lang), ph(SITE["street"]), ph(SITE["zip"]), esc(SITE["city"])))
-    body += ('<section class="section"><div class="container contact-grid"><div>%s<p class="msg">%s</p>'
-             '<p><a class="link-arrow" href="%s">%s</a></p></div><div>%s</div></div></section>'
-             % (form, esc(note), link(key, "planner", lang), t("Genaues Angebot: zum Umzugsplaner", "Accurate quote: open the moving planner", lang), side))
-    return dict(key=key, lang=lang,
-        title=t("Kontakt und Anfrage | Stabil Umzug Essen", "Contact and request | Stabil Umzug Essen", lang),
-        desc=t("Umzugsanfrage an Stabil Umzug in Essen: Telefon, WhatsApp oder E-Mail. Mo–Fr 9–19 Uhr, Sa/So 9–17 Uhr.", "Send a moving request to Stabil Umzug in Essen by phone, WhatsApp or email.", lang),
+        t("Rufen Sie an, schreiben Sie per WhatsApp – oder senden Sie uns kurz Ihre Anfrage. Wir melden uns innerhalb von 24 Stunden.",
+          "Call, message us on WhatsApp – or send us your request. We reply within 24 hours.", lang),
+        kicker=t("Stabil Umzug · Karlstraße 32 · Essen", "Stabil Umzug · Karlstraße 32 · Essen", lang))
+    body += ('<section class="section"><div class="container contact-grid"><div>%s</div><div>%s</div></div></section>'
+             % (services_mod.quote_form(key, lang), services_mod.contact_aside(lang, key)))
+    biz = {"@context": "https://schema.org", "@type": "MovingCompany", "name": SITE["company"], "url": SITE["domain"] + "/",
+           "telephone": SITE["phone"], "email": SITE["email"],
+           "address": {"@type": "PostalAddress", "streetAddress": SITE["street"], "postalCode": SITE["zip"], "addressLocality": SITE["city"], "addressCountry": "DE"},
+           "openingHoursSpecification": OPENING}
+    return dict(key=key, lang=lang, quote=True, schema=[biz],
+        title=t("Kontakt: Umzugsunternehmen Essen | Stabil Umzug", "Contact: moving company Essen | Stabil Umzug", lang),
+        desc=t("Stabil Umzug, Karlstraße 32, 45329 Essen. Telefon und WhatsApp 0163 9688190, Mo–Fr 9–19 Uhr, Sa/So 9–17 Uhr. Kostenloses Angebot in 24 Stunden.",
+               "Stabil Umzug, Karlstraße 32, 45329 Essen. Phone and WhatsApp 0163 9688190. Free quote within 24 hours.", lang),
         body=body)
+
+OPENING = [
+    {"@type": "OpeningHoursSpecification", "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"], "opens": "09:00", "closes": "19:00"},
+    {"@type": "OpeningHoursSpecification", "dayOfWeek": ["Saturday", "Sunday"], "opens": "09:00", "closes": "17:00"},
+]
 
 # ---------------------------------------------------------------- home
 FAQ = [
@@ -191,6 +126,7 @@ def faq_html(lang, key):
 
 def home(lang):
     import guides
+    import services as services_mod
     key = "home"
     L = lambda k: link(key, k, lang)
     pre = prefix_for(key, lang)
@@ -208,10 +144,10 @@ def home(lang):
         '</div></section>'
     ) % (
         t("Umzugsunternehmen · Essen", "Moving company · Essen", lang),
-        t("Umzug in Essen und ganz Deutschland.", "Moving in Essen and across Germany.", lang), t("Stabil geplant.", "Solidly planned.", lang),
-        esc(t("Beschreiben Sie Ihren Umzug einmal – Räume, Möbel, Zugang. Sie sehen sofort Volumen, Fahrzeug und Teamgröße. Ihr persönliches Angebot kommt innerhalb von 24 Stunden.",
-              "Describe your move once – rooms, furniture, access. You see volume, vehicle and crew size right away. Your personal quote follows within 24 hours.", lang)),
-        L("planner"), t("Umzug planen", "Plan your move", lang), call,
+        t("Umzug, Entrümpelung und Transport in Essen.", "Moves, clear-outs and transport in Essen.", lang), t("Stabil geplant.", "Solidly planned.", lang),
+        esc(t("Umzüge, Entrümpelungen, Wohnungsauflösungen und Transporte – im Ruhrgebiet und in ganz Deutschland. Kostenloses, persönliches Angebot innerhalb von 24 Stunden.",
+              "Moves, clear-outs, household clearances and transport – across the Ruhr area and all of Germany. Free personal quote within 24 hours.", lang)),
+        L("quote"), t("Jetzt kostenloses Angebot anfordern", "Request your free quote now", lang), call,
         pre, esc(t("Stabil Umzug Transporter mit Team", "Stabil Umzug transporter with crew", lang)),
         "".join('<li><b>%s</b>%s</li>' % (esc(a), esc(b)) for a, b in facts))
 
@@ -269,7 +205,7 @@ def home(lang):
 
     body += sec("", head(t("Leistungen", "Services", lang), t("Alles aus einer Hand.", "Everything from one team.", lang),
                          t("Sie wählen, was wir übernehmen. Der Rest bleibt bei Ihnen – und günstiger.", "You choose what we handle. The rest stays with you – and costs less.", lang))
-                + services_tiles(key, lang, 6) + '<p style="margin:28px 0 0"><a class="link-arrow" href="%s">%s</a></p>' % (L("services"), t("Alle Leistungen", "All services", lang)))
+                + services_mod.service_tiles(key, lang) + '<p style="margin:28px 0 0"><a class="link-arrow" href="%s">%s</a></p>' % (L("services"), t("Alle Leistungen", "All services", lang)))
 
     cover = [(("Gesetzliche Haftung", "Statutory carrier liability"), ("Inklusive. Deckt Verlust und Schäden während des Umzugs, begrenzt je Kubikmeter. Nicht gedeckt: selbst gepackte Kartons, Wertsachen, Bargeld.", "Included. Covers loss and damage during the move, limited per cubic metre. Not covered: self-packed boxes, valuables, cash.")),
              (("Transportversicherung", "Goods-in-transit cover"), ("Auf Anfrage. Deckt bis zu Ihrem angegebenen Wert, auch Kratzer und Glasbruch.", "On request. Covers up to your declared value, including scratches and glass breakage.")),
@@ -294,8 +230,13 @@ def home(lang):
     faq_ld = {"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [
         {"@type": "Question", "name": t(*q, lang), "acceptedAnswer": {"@type": "Answer", "text": t(*a, lang)}} for (q, a) in FAQ]}
     biz = {"@context": "https://schema.org", "@type": "MovingCompany", "name": SITE["company"], "url": SITE["domain"] + "/",
-           "address": {"@type": "PostalAddress", "addressLocality": SITE["city"], "addressRegion": SITE["region"], "addressCountry": "DE"},
-           "areaServed": "DE", "inLanguage": ["de", "en"]}
+           "image": SITE["domain"] + "/assets/img/og.png", "logo": SITE["domain"] + "/assets/img/favicon.svg",
+           "address": {"@type": "PostalAddress", "streetAddress": SITE["street"], "postalCode": SITE["zip"], "addressLocality": SITE["city"],
+                       "addressRegion": SITE["region"], "addressCountry": "DE"},
+           "openingHoursSpecification": OPENING, "areaServed": ["Essen", "Ruhrgebiet", "Deutschland"], "inLanguage": ["de", "en"],
+           "founder": SITE["owner"], "vatID": SITE["vat_id"],
+           "hasOfferCatalog": {"@type": "OfferCatalog", "name": "Leistungen", "itemListElement": [
+               {"@type": "Offer", "itemOffered": {"@type": "Service", "name": n}} for n in ("Umzug", "Entrümpelung", "Wohnungsauflösung", "Transport")]}}
     if not is_ph(SITE["phone"]): biz["telephone"] = SITE["phone"]
     if not is_ph(SITE["email"]): biz["email"] = SITE["email"]
     return dict(key=key, lang=lang, schema=[biz, faq_ld],

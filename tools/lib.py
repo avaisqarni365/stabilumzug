@@ -2,6 +2,8 @@
 import html, json
 from config import SITE
 from guides_content import GUIDES
+from services_content import SERVICES
+from config import PRICES_PUBLISHED
 
 def esc(s):
     return html.escape(str(s), quote=True)
@@ -19,10 +21,17 @@ PAGES = {
     "contact":   ("kontakt/", "en/contact/"),
     "about":     ("ueber-uns/", "en/about-us/"),
     "imprint":   ("impressum/", "en/imprint/"),
+    "quote":     ("angebot/", "en/free-quote/"),
+    "prices":    ("preise/", "en/prices/"),
     "privacy":   ("datenschutz/", "en/privacy/"),
 }
 for _k, _g in GUIDES.items():
     PAGES[_k] = _g["paths"]
+# service pages: page key "svc_<name>"; SVC maps content keys (and inline-link keys) to page keys
+SVC = {"quote": "quote", "planner": "planner", "contact": "contact", "prices": "prices", "services": "services"}
+for _k, _s in SERVICES.items():
+    PAGES["svc_" + _k] = _s["paths"]
+    SVC[_k] = "svc_" + _k
 
 # The ten steps of a move, in order (guide keys with a step number), and the topic guides.
 JOURNEY = sorted([k for k, g in GUIDES.items() if g["step"]], key=lambda k: GUIDES[k]["step"])
@@ -45,11 +54,12 @@ def link(frm_key, to_key, lang, to_lang=None):
     p = prefix_for(frm_key, lang) + path_of(to_key, to_lang)
     return p or "./"
 
-NAV = ["services", "guides", "costs", "about", "contact"]
+NAV = ["services"] + (["prices"] if PRICES_PUBLISHED else []) + ["planner", "guides", "about", "contact"]
 NAV_LABEL = {
     "services": ("Leistungen", "Services"),
     "planner": ("Umzugsplaner", "Moving planner"),
-    "guides": ("Ihr Umzug", "Your move"),
+    "guides": ("Ratgeber", "Guides"),
+    "prices": ("Preise", "Prices"),
     "costs": ("Kosten", "Costs"),
     "about": ("Über uns", "About us"),
     "contact": ("Kontakt", "Contact"),
@@ -69,7 +79,7 @@ def brand(key, lang):
 def header(key, lang):
     items = []
     for k in NAV:
-        here = k == key or (k == "guides" and key in GUIDE_KEYS and k != "costs" and key != "costs")
+        here = k == key or (k == "guides" and key in GUIDE_KEYS) or (k == "services" and key.startswith("svc_"))
         cur = ' aria-current="page"' if here else ""
         items.append('<a href="%s"%s>%s</a>' % (link(key, k, lang), cur, esc(t(*NAV_LABEL[k], lang))))
     sw = ('<div class="lang" role="group" aria-label="%s">'
@@ -84,7 +94,7 @@ def header(key, lang):
         '<a class="button primary small" href="%s">%s</a>'
         '</div></header>'
     ) % (brand(key, lang), t("Menü", "Menu", lang), t("Hauptnavigation", "Main navigation", lang), "".join(items), sw,
-         link(key, "planner", lang), t("Umzug planen", "Plan your move", lang))
+         link(key, "quote", lang), t("Kostenloses Angebot", "Free quote", lang))
 
 def footer(key, lang):
     L = lambda k: link(key, k, lang)
@@ -97,7 +107,7 @@ def footer(key, lang):
     wa = ""
     if SITE.get("whatsapp"):
         wa = '<li><a href="https://wa.me/%s" rel="noopener">WhatsApp</a></li>' % esc(SITE["whatsapp"])
-    steps = "".join('<li><a href="%s">%s</a></li>' % (L(k), esc(GUIDES[k][lang]["nav"])) for k in JOURNEY[:5])
+    steps = "".join('<li><a href="%s">%s</a></li>' % (L("svc_" + k), esc(s[lang]["nav"])) for k, s in SERVICES.items())
     return (
         '<footer class="site-footer"><div class="container">'
         '<div class="footer-top">'
@@ -112,10 +122,10 @@ def footer(key, lang):
         esc(t("Umzüge, Klaviertransporte und Entrümpelungen aus Essen – im Ruhrgebiet und in ganz Deutschland.",
               "Moves, piano transport and clear-outs from Essen – across the Ruhr area and all of Germany.", lang)),
         t("Kontakt", "Contact", lang), phone, email, wa, ph(SITE["hours"]), ph(SITE["street"]), esc(SITE["city"]),
-        t("Ihr Umzug", "Your move", lang), steps, L("guides"), t("Alle 10 Schritte", "All 10 steps", lang),
+        t("Leistungen", "Services", lang), steps, L("quote"), t("Kostenloses Angebot", "Free quote", lang),
         t("Stabil Umzug", "Stabil Umzug", lang),
         L("planner"), t("Umzugsplaner", "Moving planner", lang),
-        L("services"), t("Leistungen", "Services", lang),
+        L("guides"), t("Ratgeber: 10 Schritte", "Guides: 10 steps", lang),
         L("costs"), t("Umzugskosten", "Moving costs", lang),
         L("essen"), t("Umzug in Essen", "Moving in Essen", lang),
         L("about"), t("Über uns", "About us", lang),
@@ -169,12 +179,15 @@ def render(page):
     if page.get("planner"):
         for f in ("flow-i18n", "flow-data", "estimator", "flow"):
             scripts.append('<script src="%sassets/js/%s.js" defer></script>' % (pre, f))
+    if page.get("quote"):
+        scripts.append('<script src="%sassets/js/quote.js" defer></script>' % pre)
     scripts.append('<script src="%sassets/js/site.js" defer></script>' % pre)
+    no_bar = page.get("planner") or key == "quote"   # the planner has its own footer; the quote page is the bar's target
     return (
         '<!doctype html>\n<html lang="%s">\n<head>\n%s\n</head>\n<body%s>\n'
         '<a class="skip" href="#main">%s</a>\n%s\n<main id="main">\n%s\n</main>\n%s\n%s%s\n</body>\n</html>\n'
-    ) % (lang, head(page), "" if page.get("planner") else ' class="has-actionbar"', t("Zum Inhalt springen", "Skip to content", lang),
-         header(key, lang), page["body"], footer(key, lang), "" if page.get("planner") else actionbar(key, lang), "\n".join(scripts))
+    ) % (lang, head(page), "" if no_bar else ' class="has-actionbar"', t("Zum Inhalt springen", "Skip to content", lang),
+         header(key, lang), page["body"], footer(key, lang), "" if no_bar else actionbar(key, lang), "\n".join(scripts))
 
 def actionbar(key, lang):
     """Sticky bar on phones: plan the move, or call / WhatsApp right away."""
@@ -184,7 +197,7 @@ def actionbar(key, lang):
     elif SITE.get("phone_href"):
         second = '<a class="ab-wa" href="tel:%s">%s</a>' % (esc(SITE["phone_href"]), t("Anrufen", "Call", lang))
     return ('<nav class="actionbar" aria-label="%s"><a class="ab-plan" href="%s">%s</a>%s</nav>\n'
-            % (t("Schnellzugriff", "Quick actions", lang), link(key, "planner", lang), t("Umzug planen", "Plan your move", lang), second))
+            % (t("Schnellzugriff", "Quick actions", lang), link(key, "quote", lang), t("Kostenloses Angebot", "Free quote", lang), second))
 
 def crumbs(key, lang, label, parent=None):
     mid = ""
