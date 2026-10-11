@@ -1,0 +1,67 @@
+<!doctype html>
+<!-- Branded van: the livery is drawn flat, then projected onto the side panel of assets/img/src/van-white.png
+     with a perspective transform (matrix3d from four corner points) and multiplied into the photo's shading.
+     Render (from the repo root):
+     msedge --headless=new --disable-gpu --hide-scrollbars --force-device-scale-factor=2 --window-size=554,554
+            --screenshot=assets/img/van-branded.png tools/van.html
+     Corner points are in photo pixels (554 x 554). -->
+<html lang="de"><head><meta charset="utf-8">
+<style>
+@font-face{font-family:'Archivo';font-weight:700;src:url('../assets/fonts/archivo-latin-700-normal.woff2') format('woff2')}
+@font-face{font-family:'Archivo';font-weight:600;src:url('../assets/fonts/archivo-latin-600-normal.woff2') format('woff2')}
+html,body{margin:0;width:554px;height:554px;overflow:hidden;background:#fff}
+.stage{position:relative;width:554px;height:554px}
+.stage img{position:absolute;inset:0;width:554px;height:554px}
+.plane{position:absolute;left:0;top:0;transform-origin:0 0;mix-blend-mode:multiply;font-family:'Archivo',sans-serif}
+/* side panel livery, flat design in a 600 x 400 plane */
+#side{width:600px;height:400px}
+#side .word{position:absolute;left:40px;top:26px;font-weight:700;letter-spacing:-4px;line-height:.86;font-size:118px;color:#201e1d}
+#side .word b{display:block;color:#ec3013}
+#side .tag{position:absolute;left:44px;top:236px;font-weight:600;font-size:21px;letter-spacing:3px;color:#201e1d}
+#side .band{position:absolute;left:0;right:0;top:318px;bottom:0;background:#ec3013}
+#side .band span{position:absolute;left:44px;top:22px;font-weight:700;font-size:28px;letter-spacing:1px;color:#fff;white-space:nowrap}
+#door{width:200px;height:400px}
+#door .band{position:absolute;left:0;right:0;top:318px;bottom:0;background:#ec3013}
+/* grille badge replacing the manufacturer emblem */
+#badge{position:absolute;left:450px;top:289px;width:36px;height:36px;background:#2e2e2e;border-radius:3px}
+#badge b{position:absolute;left:6px;top:6px;width:24px;height:24px;background:#ec3013}
+#badge i{position:absolute;left:10px;top:16px;width:16px;height:10px;background:#f3f2f2}
+#badge i::before{content:"";position:absolute;left:0;top:0;width:16px;height:2px;background:#201e1d}
+#badge i::after{content:"";position:absolute;left:0;top:-6px;width:16px;height:2px;background:#201e1d}
+</style></head>
+<body><div class="stage">
+<img src="../assets/img/src/van-white.png" alt="">
+<div class="plane" id="side">
+  <div class="word">STABIL<b>UMZUG</b></div>
+  <div class="tag">UMZ&Uuml;GE &middot; ENTR&Uuml;MPELUNG &middot; TRANSPORT</div>
+  <div class="band"><span>STABILUMZUG.DE &middot; 0163 9688190</span></div>
+</div>
+<div class="plane" id="door"><div class="band"></div></div>
+<div id="badge"><b></b><i></i></div>
+</div>
+<script>
+/* Homography: maps the w x h rectangle onto the quad (TL, TR, BR, BL) and returns a CSS matrix3d. */
+function fit(el, w, h, q) {
+  var src = [[0, 0], [w, 0], [w, h], [0, h]], A = [], b = [];
+  for (var i = 0; i < 4; i++) {
+    var x = src[i][0], y = src[i][1], X = q[i][0], Y = q[i][1];
+    A.push([x, y, 1, 0, 0, 0, -x * X, -y * X]); b.push(X);
+    A.push([0, 0, 0, x, y, 1, -x * Y, -y * Y]); b.push(Y);
+  }
+  // Gaussian elimination
+  for (var c = 0; c < 8; c++) {
+    var p = c; for (var r = c + 1; r < 8; r++) if (Math.abs(A[r][c]) > Math.abs(A[p][c])) p = r;
+    var t = A[c]; A[c] = A[p]; A[p] = t; t = b[c]; b[c] = b[p]; b[p] = t;
+    for (r = c + 1; r < 8; r++) { var f = A[r][c] / A[c][c]; for (var k = c; k < 8; k++) A[r][k] -= f * A[c][k]; b[r] -= f * b[c]; }
+  }
+  var s = new Array(8);
+  for (r = 7; r >= 0; r--) { var v = b[r]; for (k = r + 1; k < 8; k++) v -= A[r][k] * s[k]; s[r] = v / A[r][r]; }
+  var m = [s[0], s[3], 0, s[6], s[1], s[4], 0, s[7], 0, 0, 1, 0, s[2], s[5], 0, 1];
+  el.style.transform = 'matrix3d(' + m.join(',') + ')';
+}
+/* side panel: rear-top, front-top, front-bottom (top of the black rub strip), rear-bottom */
+fit(document.getElementById('side'), 600, 400, [[37, 194], [186, 161], [186, 329], [25, 316]]);
+/* sliding door up to the front wheel arch: same band height, continuing the perspective */
+fit(document.getElementById('door'), 200, 400, [[186, 161], [238, 150], [238, 334], [186, 329]]);
+</script>
+</body></html>

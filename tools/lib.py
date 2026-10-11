@@ -4,6 +4,7 @@ from config import SITE
 from guides_content import GUIDES
 from services_content import SERVICES
 from config import PRICES_PUBLISHED
+from places_content import PLACES, paths as place_paths, page_key as place_key
 
 def esc(s):
     return html.escape(str(s), quote=True)
@@ -23,6 +24,7 @@ PAGES = {
     "imprint":   ("impressum/", "en/imprint/"),
     "quote":     ("angebot/", "en/free-quote/"),
     "admin":     ("admin/", "en/admin/"),
+    "portal":    ("mein-umzug/", "en/my-move/"),
     "prices":    ("preise/", "en/prices/"),
     "privacy":   ("datenschutz/", "en/privacy/"),
 }
@@ -33,6 +35,8 @@ SVC = {"quote": "quote", "planner": "planner", "contact": "contact", "prices": "
 for _k, _s in SERVICES.items():
     PAGES["svc_" + _k] = _s["paths"]
     SVC[_k] = "svc_" + _k
+for _p in PLACES:
+    PAGES[place_key(_p[0])] = place_paths(_p[0], _p[2])
 
 # The ten steps of a move, in order (guide keys with a step number), and the topic guides.
 JOURNEY = sorted([k for k, g in GUIDES.items() if g["step"]], key=lambda k: GUIDES[k]["step"])
@@ -109,7 +113,8 @@ def footer(key, lang):
     if SITE.get("whatsapp"):
         wa = '<li><a href="https://wa.me/%s" rel="noopener">WhatsApp</a></li>' % esc(SITE["whatsapp"])
     steps = "".join('<li><a href="%s">%s</a></li>' % (L("svc_" + k), esc(s[lang]["nav"])) for k, s in SERVICES.items())
-    return (
+    import places
+    return places.area_band(key, lang) + (
         '<footer class="site-footer"><div class="container">'
         '<div class="footer-top">'
         '<div><div class="wordmark">Stabil<span>Umzug.</span></div><p>%s</p></div>'
@@ -183,8 +188,10 @@ def render(page):
             scripts.append('<script src="%sassets/js/%s.js" defer></script>' % (pre, f))
     if page.get("quote"):
         scripts.append('<script src="%sassets/js/quote.js" defer></script>' % pre)
+    if page.get("portal"):
+        scripts.append('<script src="%sassets/js/portal.js" defer></script>' % pre)
     scripts.append('<script src="%sassets/js/site.js" defer></script>' % pre)
-    no_bar = page.get("planner") or key == "quote"   # the planner has its own footer; the quote page is the bar's target
+    no_bar = page.get("planner") or key in ("quote", "portal")   # the planner has its own footer; the quote page is the bar's target
     return (
         '<!doctype html>\n<html lang="%s">\n<head>\n%s\n</head>\n<body%s>\n'
         '<a class="skip" href="#main">%s</a>\n%s\n<main id="main">\n%s\n</main>\n%s\n%s%s\n</body>\n</html>\n'

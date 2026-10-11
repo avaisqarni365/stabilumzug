@@ -25,6 +25,7 @@ function doGet(e) {
   try {
     if (p.action === 'health') return json({ok: true, version: masterVersion_()});
     if (p.action === 'draft') return json(loadDraft_(String(p.ref || ''), String(p.token || '')));
+    if (p.action === 'portal') return json(portal_(String(p.id || ''), String(p.k || '')));
     return json({ok: false, error: 'unknown_action'});
   } catch (err) {
     console.error(err);
@@ -43,6 +44,8 @@ function doPost(e) {
       case 'quick': return json(saveQuick_(body));
       case 'route': return json(route_(String(body.from || ''), String(body.to || '')));
       case 'saveDraft': return json(saveDraft_(body));
+      case 'accept': return json(accept_(String(body.id || ''), String(body.k || ''), body.confirm === true));
+      case 'resend': return json(resend_(String(body.email || ''), String(body.lang || 'de')));
       default: return json({ok: false, error: 'unknown_action'});
     }
   } catch (err) {
@@ -195,6 +198,86 @@ function notifyOffice_(id, name, phone, email, s, est, route) {
     '', 'Tabelle: ' + url
   ].join('\n');
   try { MailApp.sendEmail({to: to, subject: 'Neue Umzugsanfrage ' + id + ' – ' + name, body: body}); } catch (err) { console.error(err); }
+}
+
+/* ------------------------------------------------------------------ customer area ("Mein Umzug") */
+
+/* The request behind a personal link, or null. The token is created by the admin when the quote is sent. */
+function leadByToken_(id, k) {
+  if (!id || !/^[0-9a-f]{32}$/.test(k)) return null;
+  var hit = findLead_(id);
+  if (!hit || String(hit.values[leadCol_('Kundentoken') - 1]) !== k) return null;
+  return hit;
+}
+
+/* What the customer sees: no internal notes, no other customers' data. */
+function portal_(id, k) {
+  var hit = leadByToken_(id, k);
+  if (!hit) return {ok: false, error: 'not_found'};
+  var v = hit.values, g = function (n) { return v[leadCol_(n) - 1]; };
+  var q = latestQuote_(id), lines = [];
+  if (q) q.lines.forEach(function (l) { var a = Math.round(l[2] * l[4] * 100) / 100; if (a > 0) lines.push({pos: l[0], basis: l[1], amount: a}); });
+  var name = String(g('Name') || '');
+  return {
+    ok: true, id: id, name: name, service: String(g('Leistung') || 'Umzug').replace(/ \((Planer|Kurzformular)\)$/, ''),
+    status: String(g('Status') || STATUS[0]), date: day_(g('Termin')), from: String(g('Von') || ''), to: String(g('Nach') || ''),
+    lang: String(g('Sprache') || 'DE'), quoteSent: iso_(g('Angebot gesendet')),
+    quote: q ? {version: q.version, lines: lines, total: Number(g('Angebot €')) || quoteTotal_(q.lines, rates_().min_price)} : null
+  };
+}
+
+/* "Zahlungspflichtig beauftragen": the customer accepts the latest quote. */
+function accept_(id, k, confirm) {
+  if (!confirm) return {ok: false, error: 'confirm'};
+  var lock = LockService.getScriptLock(); lock.waitLock(20000);
+  var hit, res;
+  try {
+    hit = leadByToken_(id, k);
+    if (!hit) return {ok: false, error: 'not_found'};
+    var status = String(hit.values[leadCol_('Status') - 1]);
+    if (status === 'Gebucht' || status === 'Erledigt') return {ok: true, already: true, status: status};
+    if (!latestQuote_(id)) return {ok: false, error: 'no_quote'};
+    if (status === 'Verloren') return {ok: false, error: 'closed'};
+    sheet_(TAB.leads).getRange(hit.row, leadCol_('Status')).setValue('Gebucht');
+    sheet_(TAB.audit).appendRow([new Date(), 'Kunde (Link)', TAB.leads, id + ' · Status', status, 'Gebucht – Angebot online angenommen']);
+    res = {ok: true, status: 'Gebucht'};
+  } finally { lock.releaseLock(); }
+  var to = config_('notify_email') || Session.getEffectiveUser().getEmail();
+  if (to) {
+    var v = hit.values;
+    try {
+      MailApp.sendEmail({to: to, subject: 'Auftrag erteilt: ' + id + ' – ' + v[leadCol_('Name') - 1],
+        body: 'Der Kunde hat das Angebot ' + id + ' über „Mein Umzug“ zahlungspflichtig beauftragt.\n\nName: ' + v[leadCol_('Name') - 1] +
+          '\nTelefon: ' + (v[leadCol_('Telefon') - 1] || '—') + '\nAngebot: ' + (v[leadCol_('Angebot €') - 1] || '—') + ' €\n\nBitte Termin bestätigen.\n' + ss_().getUrl()});
+    } catch (err) { console.error(err); }
+  }
+  return res;
+}
+
+/* "Link vergessen?": e-mails the personal links for this address. Always answers ok, so nobody can probe addresses. */
+function resend_(email, lang) {
+  email = clip_(email, 120).toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return {ok: false, error: 'email'};
+  var cache = CacheService.getScriptCache(), ck = 'rs_' + Utilities.base64EncodeWebSafe(email);
+  if (cache.get(ck)) return {ok: true};
+  cache.put(ck, '1', 600);   // at most one mail per address every 10 minutes
+  var portal = String(config_('portal_url') || (DEFAULT_SITE + '/mein-umzug/'));
+  var sh = sheet_(TAB.leads), n = sh.getLastRow(), links = [];
+  if (n >= 2) {
+    sh.getRange(2, 1, n - 1, LEAD_COLS.length).getValues().forEach(function (v) {
+      var tok = String(v[leadCol_('Kundentoken') - 1] || '');
+      if (tok && String(v[leadCol_('E-Mail') - 1]).toLowerCase() === email) links.push(v[0] + ': ' + portal + '?id=' + encodeURIComponent(v[0]) + '&k=' + tok);
+    });
+  }
+  if (links.length) {
+    var en = lang === 'en';
+    try {
+      MailApp.sendEmail({to: email, subject: en ? 'Your Stabil Umzug link' : 'Ihr Link zu „Mein Umzug“ – Stabil Umzug',
+        body: (en ? 'Here is your personal link to your quote and move status:\n\n' : 'Hier ist Ihr persönlicher Link zu Angebot und Umzugsstatus:\n\n') + links.join('\n') +
+          (en ? '\n\nQuestions? Call or WhatsApp 0163 9688190.\nStabil Umzug · Karlstraße 32 · 45329 Essen' : '\n\nFragen? Telefon und WhatsApp 0163 9688190.\nStabil Umzug · Karlstraße 32 · 45329 Essen')});
+    } catch (err) { console.error(err); }
+  }
+  return {ok: true};
 }
 
 /* ------------------------------------------------------------------ route (Google Maps, built in) */

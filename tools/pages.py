@@ -2,10 +2,13 @@
 from config import SITE, TESTIMONIALS
 from lib import esc, t, link, url_of, crumbs, ph, is_ph, prefix_for, path_of, GUIDES
 
-def page_head(key, lang, title, lead, label=None, kicker=None, parent=None):
+def page_head(key, lang, title, lead, label=None, kicker=None, parent=None, photo=None, alt=""):
     k = '<span class="kicker red">%s</span>' % esc(kicker) if kicker else ""
-    return ('<div class="page-head"><div class="container">%s%s<h1>%s</h1>%s</div></div>'
-            % (crumbs(key, lang, label or title, parent), k, esc(title), ('<p class="lead">%s</p>' % esc(lead)) if lead else ""))
+    inner = '%s%s<h1>%s</h1>%s' % (crumbs(key, lang, label or title, parent), k, esc(title), ('<p class="lead">%s</p>' % esc(lead)) if lead else "")
+    if photo:
+        return ('<div class="page-head ph-photo"><div class="container"><div class="ph-text">%s</div><figure class="ph-img"><img src="%sassets/img/photos/%s" alt="%s" width="1600" height="1067"></figure></div></div>'
+                % (inner, prefix_for(key, lang), photo, esc(alt or title)))
+    return '<div class="page-head"><div class="container">%s</div></div>' % inner
 
 def phone_link():
     if is_ph(SITE["phone"]):
@@ -139,7 +142,7 @@ def home(lang):
         '<section class="hero on-dark"><div class="container">'
         '<div class="hero-copy"><span class="kicker">%s</span><h1>%s</h1><p class="tagline">%s</p><p class="lead">%s</p>'
         '<div class="actions"><a class="button primary" href="%s">%s</a>%s</div></div>'
-        '<div class="hero-art"><img src="%sassets/img/stabil-scene.svg" alt="%s" width="980" height="380"></div>'
+        '<figure class="hero-art"><img src="%sassets/img/van-branded.png" alt="%s" width="1108" height="1108" fetchpriority="high"><figcaption>%s</figcaption></figure>'
         '<ul class="facts">%s</ul>'
         '</div></section>'
     ) % (
@@ -148,7 +151,8 @@ def home(lang):
         esc(t("Umzüge, Entrümpelungen, Wohnungsauflösungen und Transporte – im Ruhrgebiet und in ganz Deutschland. Kostenloses, persönliches Angebot innerhalb von 24 Stunden.",
               "Moves, clear-outs, household clearances and transport – across the Ruhr area and all of Germany. Free personal quote within 24 hours.", lang)),
         L("quote"), t("Jetzt kostenloses Angebot anfordern", "Request your free quote now", lang), call,
-        pre, esc(t("Stabil Umzug Transporter mit Team", "Stabil Umzug transporter with crew", lang)),
+        pre, esc(t("Weißer Stabil-Umzug-Transporter mit roter Beschriftung", "White Stabil Umzug van with red livery", lang)),
+        t("Unser Transporter · Essen", "Our van · Essen", lang),
         "".join('<li><b>%s</b>%s</li>' % (esc(a), esc(b)) for a, b in facts))
 
     head = lambda kick, h, p: '<div class="head"><div><span class="kicker red">%s</span><h2>%s</h2></div><p>%s</p></div>' % (esc(kick), esc(h), esc(p))
@@ -160,6 +164,15 @@ def home(lang):
                          t("Jeder Schritt braucht Angaben aus dem vorherigen. Die ersten beiden – die neue Wohnung ausmessen und den Hausrat erfassen – bestimmen fast alles, was danach kommt.",
                            "Each step needs information from the one before. The first two – measuring the new home and listing your belongings – decide almost everything that follows.", lang))
                 + guides.journey_html(key, lang) + '<p style="margin:28px 0 0"><a class="link-arrow" href="%s">%s</a></p>' % (L("guides"), t("Alle Schritte und Themen", "All steps and topics", lang)))
+
+    body += ('<section class="photo-band"><img src="%sassets/img/photos/couple-carry.jpg" alt="%s" loading="lazy" width="1600" height="1067">'
+             '<div class="container"><span class="kicker">%s</span><h2>%s</h2><p>%s</p><div class="actions"><a class="button primary" href="%s">%s</a><a class="button arrow" href="%s">%s</a></div></div></section>') % (
+        pre, esc(t("Paar trägt Umzugskartons in die neue Wohnung", "Couple carrying moving boxes into their new home", lang)),
+        t("Ankommen statt schleppen", "Arrive instead of carry", lang),
+        t("Sie ziehen ein. Wir tragen.", "You move in. We carry.", lang),
+        esc(t("Vom ersten Karton bis zum aufgebauten Bett: Unser Team übernimmt das Schwere, damit Sie sich auf Ihr neues Zuhause freuen können.",
+              "From the first box to the assembled bed: our crew takes the heavy lifting so you can look forward to your new home.", lang)),
+        L("quote"), t("Jetzt kostenloses Angebot anfordern", "Request your free quote now", lang), L("svc_moves"), t("Mehr über Umzüge", "More about moves", lang))
 
     steps = [(("Online planen", "Plan online"), ("Räume, Möbel, Zugang – grob reicht. Sie sehen sofort Volumen, Fahrzeug und Teamgröße.", "Rooms, furniture, access – rough is fine. You see volume, vehicle and crew size right away.")),
              (("Persönliches Angebot", "Personal quote"), ("Wir prüfen Ihre Angaben und senden das Angebot per WhatsApp oder E-Mail. Bei Unsicherheit ein kurzer Video-Check.", "We check your details and send the quote via WhatsApp or email. A short video check if anything is uncertain.")),

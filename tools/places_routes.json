@@ -1,0 +1,170 @@
+[
+ {
+  "group": "essen",
+  "name": "Rüttenscheid",
+  "query": "Essen-Rüttenscheid",
+  "km": 9,
+  "min": 22
+ },
+ {
+  "group": "essen",
+  "name": "Altenessen",
+  "query": "Essen-Altenessen",
+  "km": 1,
+  "min": 3
+ },
+ {
+  "group": "essen",
+  "name": "Borbeck",
+  "query": "Essen-Borbeck",
+  "km": 7,
+  "min": 16
+ },
+ {
+  "group": "essen",
+  "name": "Steele",
+  "query": "Essen-Steele",
+  "km": 10,
+  "min": 22
+ },
+ {
+  "group": "essen",
+  "name": "Werden",
+  "query": "Essen-Werden",
+  "km": 15,
+  "min": 28
+ },
+ {
+  "group": "essen",
+  "name": "Kettwig",
+  "query": "Essen-Kettwig",
+  "km": 19,
+  "min": 28
+ },
+ {
+  "group": "essen",
+  "name": "Frohnhausen",
+  "query": "Essen-Frohnhausen",
+  "km": 10,
+  "min": 18
+ },
+ {
+  "group": "essen",
+  "name": "Holsterhausen",
+  "query": "Essen-Holsterhausen",
+  "km": 9,
+  "min": 17
+ },
+ {
+  "group": "essen",
+  "name": "Kray",
+  "query": "Essen-Kray",
+  "km": 8,
+  "min": 18
+ },
+ {
+  "group": "essen",
+  "name": "Bredeney",
+  "query": "Essen-Bredeney",
+  "km": 13,
+  "min": 25
+ },
+ {
+  "group": "essen",
+  "name": "Katernberg",
+  "query": "Essen-Katernberg",
+  "km": 4,
+  "min": 9
+ },
+ {
+  "group": "essen",
+  "name": "Stadtkern",
+  "query": "Essen Hauptbahnhof",
+  "km": 7,
+  "min": 16
+ },
+ {
+  "group": "ruhr",
+  "name": "Bochum",
+  "query": "Bochum Hauptbahnhof",
+  "km": 23,
+  "min": 35
+ },
+ {
+  "group": "ruhr",
+  "name": "Gelsenkirchen",
+  "query": "Gelsenkirchen Hauptbahnhof",
+  "km": 9,
+  "min": 16
+ },
+ {
+  "group": "ruhr",
+  "name": "Mülheim an der Ruhr",
+  "query": "Mülheim an der Ruhr Hauptbahnhof",
+  "km": 16,
+  "min": 27
+ },
+ {
+  "group": "ruhr",
+  "name": "Oberhausen",
+  "query": "Oberhausen Hauptbahnhof",
+  "km": 17,
+  "min": 18
+ },
+ {
+  "group": "ruhr",
+  "name": "Duisburg",
+  "query": "Duisburg Hauptbahnhof",
+  "km": 27,
+  "min": 26
+ },
+ {
+  "group": "ruhr",
+  "name": "Dortmund",
+  "query": "Dortmund Hauptbahnhof",
+  "km": 39,
+  "min": 32
+ },
+ {
+  "group": "ruhr",
+  "name": "Bottrop",
+  "query": "Bottrop Hauptbahnhof",
+  "km": 8,
+  "min": 11
+ },
+ {
+  "group": "ruhr",
+  "name": "Gladbeck",
+  "query": "Gladbeck Rathaus",
+  "km": 10,
+  "min": 16
+ },
+ {
+  "group": "ruhr",
+  "name": "Herne",
+  "query": "Herne Bahnhof",
+  "km": 17,
+  "min": 15
+ },
+ {
+  "group": "ruhr",
+  "name": "Velbert",
+  "query": "Velbert Rathaus",
+  "km": 24,
+  "min": 36
+ },
+ {
+  "group": "ruhr",
+  "name": "Hattingen",
+  "query": "Hattingen Rathaus",
+  "km": 31,
+  "min": 39
+ },
+ {
+  "group": "nrw",
+  "name": "Düsseldorf",
+  "query": "Düsseldorf Hauptbahnhof",
+  "km": 40,
+  "min": 47
+ }
+]

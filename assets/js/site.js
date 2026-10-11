@@ -10,6 +10,36 @@
     });
   }
 
+  /* Footer service area: switch between the Essen and Ruhr lists (both visible without JavaScript). */
+  (function () {
+    var tabs = document.querySelectorAll('.areas-tabs [data-tab]');
+    if (!tabs.length) return;
+    function show(id) {
+      Array.prototype.forEach.call(tabs, function (b) {
+        var on = b.getAttribute('data-tab') === id;
+        b.setAttribute('aria-selected', String(on));
+        document.getElementById(b.getAttribute('data-tab')).hidden = !on;
+      });
+    }
+    Array.prototype.forEach.call(tabs, function (b) { b.addEventListener('click', function () { show(b.getAttribute('data-tab')); }); });
+    show('areas-essen');
+  })();
+
+  /* Scroll reveal: sections fade in once as they enter the viewport (CSS skips it for reduced motion). */
+  (function () {
+    var els = document.querySelectorAll('main .section > .container, main .poster > .container, main .cta > .container');
+    if (!els.length) return;
+    if (!('IntersectionObserver' in window)) return;
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+    }, {rootMargin: '0px 0px -8% 0px', threshold: 0.08});
+    Array.prototype.forEach.call(els, function (el) {
+      var r = el.getBoundingClientRect();
+      if (r.top < window.innerHeight) return;   // already on screen: leave it visible
+      el.classList.add('rv'); io.observe(el);
+    });
+  })();
+
   /* Lead source: carry campaign parameters (or the external referrer) along internal links so the planner
      can name the source in the request. Nothing is stored; the values only live in the link. */
   (function () {
