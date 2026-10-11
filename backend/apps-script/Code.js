@@ -26,6 +26,7 @@ function doGet(e) {
     if (p.action === 'health') return json({ok: true, version: masterVersion_()});
     if (p.action === 'draft') return json(loadDraft_(String(p.ref || ''), String(p.token || '')));
     if (p.action === 'portal') return json(portal_(String(p.id || ''), String(p.k || '')));
+    if (p.action === 'slots') return json(slots_(String(p.type || '')));
     return json({ok: false, error: 'unknown_action'});
   } catch (err) {
     console.error(err);
@@ -44,6 +45,8 @@ function doPost(e) {
       case 'quick': return json(saveQuick_(body));
       case 'route': return json(route_(String(body.from || ''), String(body.to || '')));
       case 'routeMap': return json(routeMap_(body));
+      case 'book': return json(book_(body));
+      case 'hit': return json(hit_(body));
       case 'saveDraft': return json(saveDraft_(body));
       case 'accept': return json(accept_(String(body.id || ''), String(body.k || ''), body.confirm === true));
       case 'resend': return json(resend_(String(body.email || ''), String(body.lang || 'de')));
@@ -477,6 +480,8 @@ function setup() {
   ensureTab_(TAB.drafts, DRAFT_COLS);
   ensureTab_(TAB.config, ['Schlüssel', 'Wert']);
   ensureTab_(TAB.routes, ROUTE_COLS, [130, 160, 160, 60, 90, 160, 70, 140]);
+  ensureTab_(TAB.appts, APPT_COLS, [70, 130, 90, 160, 90, 60, 70, 150, 120, 170, 220]);
+  ensureTab_(TAB.visits, VISIT_COLS, [90, 220, 140, 90, 70, 70, 70]);
 
   var leads = sheet_(TAB.leads);
   var statusRule = SpreadsheetApp.newDataValidation().requireValueInList(STATUS, true).build();
@@ -557,6 +562,12 @@ function onEditAudit(e) {
 function daily() {
   var drafts = sheet_(TAB.drafts), data = drafts.getDataRange().getValues(), now = new Date();
   for (var i = data.length - 1; i >= 1; i--) { if (data[i][3] && new Date(data[i][3]) < now) drafts.deleteRow(i + 1); }
+  try { flushHits(); } catch (err) { console.error(err); }
+  var visits = ss_().getSheetByName(TAB.visits);   // anonymous daily counts: kept 13 months for year-on-year comparison
+  if (visits) {
+    var vv = visits.getDataRange().getValues(), vcut = Utilities.formatDate(new Date(now.getTime() - 400 * 864e5), 'Europe/Berlin', 'yyyy-MM-dd');
+    for (var k = vv.length - 1; k >= 1; k--) { if (String(day_(vv[k][0])).replace(/^'/, '') < vcut) visits.deleteRow(k + 1); }
+  }
   var routes = ss_().getSheetByName(TAB.routes);   // route checks are kept 6 months, like requests
   if (routes) {
     var rv = routes.getDataRange().getValues(), cut = new Date(now.getTime() - 183 * 864e5);

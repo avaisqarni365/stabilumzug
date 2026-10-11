@@ -352,6 +352,22 @@
 <xhtml:link rel="alternate" hreflang="de" href="https://www.stabilumzug.de/angebot/"/>
 <xhtml:link rel="alternate" hreflang="en" href="https://www.stabilumzug.de/en/free-quote/"/>
 </url>
+<url><loc>https://www.stabilumzug.de/termin/</loc>
+<xhtml:link rel="alternate" hreflang="de" href="https://www.stabilumzug.de/termin/"/>
+<xhtml:link rel="alternate" hreflang="en" href="https://www.stabilumzug.de/en/appointment/"/>
+</url>
+<url><loc>https://www.stabilumzug.de/en/appointment/</loc>
+<xhtml:link rel="alternate" hreflang="de" href="https://www.stabilumzug.de/termin/"/>
+<xhtml:link rel="alternate" hreflang="en" href="https://www.stabilumzug.de/en/appointment/"/>
+</url>
+<url><loc>https://www.stabilumzug.de/termin/</loc>
+<xhtml:link rel="alternate" hreflang="de" href="https://www.stabilumzug.de/termin/"/>
+<xhtml:link rel="alternate" hreflang="en" href="https://www.stabilumzug.de/en/appointment/"/>
+</url>
+<url><loc>https://www.stabilumzug.de/en/appointment/</loc>
+<xhtml:link rel="alternate" hreflang="de" href="https://www.stabilumzug.de/termin/"/>
+<xhtml:link rel="alternate" hreflang="en" href="https://www.stabilumzug.de/en/appointment/"/>
+</url>
 <url><loc>https://www.stabilumzug.de/umzug-essen/altenessen/</loc>
 <xhtml:link rel="alternate" hreflang="de" href="https://www.stabilumzug.de/umzug-essen/altenessen/"/>
 <xhtml:link rel="alternate" hreflang="en" href="https://www.stabilumzug.de/en/moving-essen/altenessen/"/>

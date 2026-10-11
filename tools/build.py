@@ -17,6 +17,7 @@ for _k in lib.GUIDES:
 BUILDERS["quote"] = services.quote_page
 BUILDERS["admin"] = pages2.admin_login
 BUILDERS["portal"] = pages2.portal
+BUILDERS["booking"] = pages2.booking
 import places
 for _p in places.PLACES:
     BUILDERS[places.page_key(_p[0])] = places.place_page(_p)

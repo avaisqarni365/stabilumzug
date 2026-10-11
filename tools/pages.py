@@ -22,8 +22,9 @@ def cta(key, lang, h=None, p=None):
     call = ('<a class="button arrow" href="%s">%s %s</a>' % (phone_link(), t("Anrufen", "Call", lang), esc(SITE["phone"]))) if phone_link() else \
            '<a class="button arrow" href="%s">%s</a>' % (link(key, "contact", lang), t("Direkt anfragen", "Contact us", lang))
     return ('<section class="cta on-dark"><div class="container"><div><h2>%s</h2><p>%s</p></div>'
-            '<div class="actions"><a class="button primary" href="%s">%s</a><a class="button arrow" href="%s">%s</a>%s</div></div></section>'
+            '<div class="actions"><a class="button primary" href="%s">%s</a><a class="button arrow" href="%s">%s</a><a class="button arrow" href="%s">%s</a>%s</div></div></section>'
             % (h, esc(p), link(key, "quote", lang), t("Jetzt kostenloses Angebot anfordern", "Request your free quote now", lang),
+               link(key, "booking", lang), t("Kostenlose Besichtigung buchen", "Book a free viewing", lang),
                link(key, "planner", lang), t("Umzug online planen", "Plan your move online", lang), call))
 
 # ---------------------------------------------------------------- services

@@ -21,6 +21,7 @@ PAGES = {
     "guides":    ("ratgeber/", "en/guides/"),
     "essen":     ("umzug-essen/", "en/moving-essen/"),
     "contact":   ("kontakt/", "en/contact/"),
+    "booking":   ("termin/", "en/appointment/"),
     "about":     ("ueber-uns/", "en/about-us/"),
     "imprint":   ("impressum/", "en/imprint/"),
     "quote":     ("angebot/", "en/free-quote/"),
@@ -60,7 +61,7 @@ def link(frm_key, to_key, lang, to_lang=None):
     p = prefix_for(frm_key, lang) + path_of(to_key, to_lang)
     return p or "./"
 
-NAV = ["services"] + (["prices"] if PRICES_PUBLISHED else []) + ["planner", "guides", "about", "contact"]
+NAV = ["services"] + (["prices"] if PRICES_PUBLISHED else []) + ["planner", "booking", "guides", "about", "contact"]
 NAV_LABEL = {
     "services": ("Leistungen", "Services"),
     "planner": ("Umzugsplaner", "Moving planner"),
@@ -69,6 +70,7 @@ NAV_LABEL = {
     "costs": ("Kosten", "Costs"),
     "about": ("Über uns", "About us"),
     "contact": ("Kontakt", "Contact"),
+    "booking": ("Termin", "Booking"),
 }
 
 def is_ph(v):
@@ -199,6 +201,8 @@ def render(page):
             scripts.append('<script src="%sassets/js/%s.js" defer></script>' % (pre, f))
     if page.get("quote"):
         scripts.append('<script src="%sassets/js/quote.js" defer></script>' % pre)
+    if page.get("booking"):
+        scripts.append('<script src="%sassets/js/booking.js" defer></script>' % pre)
     if page.get("route"):
         scripts.append('<script src="%sassets/js/route.js" defer></script>' % pre)
     if page.get("portal"):

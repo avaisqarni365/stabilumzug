@@ -7,7 +7,8 @@
 
 var TAB = {
   leads: 'Anfragen', items: 'Gegenstände', quotes: 'Angebote', catalog: 'Katalog', settings: 'Regeln',
-  rates: 'Preise', audit: 'Protokoll', drafts: 'Entwürfe', config: 'Konfiguration', routes: 'Strecken'
+  rates: 'Preise', audit: 'Protokoll', drafts: 'Entwürfe', config: 'Konfiguration', routes: 'Strecken',
+  appts: 'Termine', visits: 'Besuche'
 };
 var DEFAULT_SITE = 'https://www.stabilumzug.de';   // first catalogue is read from here unless SITE_URL or GITHUB_REPO is set
 var STATUS = ['Neu', 'In Arbeit', 'Angebot raus', 'Gebucht', 'Erledigt', 'Verloren'];
@@ -24,6 +25,92 @@ var AUDIT_COLS = ['Zeit', 'Nutzer', 'Tab', 'Zelle', 'Alt', 'Neu'];
 var DRAFT_COLS = ['Referenz', 'Token', 'Gespeichert', 'Läuft ab', 'Daten (JSON)'];
 /* Route checks on the website: only postcode and town are stored, never the street – anonymous interest, no personal data. */
 var ROUTE_COLS = ['Zeit', 'Von (PLZ Ort)', 'Nach (PLZ Ort)', 'km', 'Fahrzeit min', 'Seite', 'Sprache', 'Quelle'];
+/* Appointments booked on the website (Termine tab). */
+var APPT_COLS = ['Nr', 'Eingang', 'Status', 'Art', 'Datum', 'Uhrzeit', 'Dauer min', 'Name', 'Telefon', 'E-Mail', 'Adresse', 'Umzug nach',
+  'Nachricht', 'Anfrage', 'Sprache', 'Quelle', 'Kalender', 'Notiz'];
+var APPT_STATUS = ['Gebucht', 'Bestätigt', 'Verschoben', 'Erledigt', 'Abgesagt'];
+var APPT_TYPES = {
+  visit: {de: 'Besichtigung vor Ort', en: 'On-site viewing', min: 60},
+  video: {de: 'Video-Besichtigung', en: 'Video viewing', min: 30},
+  call: {de: 'Rückruf und Beratung', en: 'Call-back and advice', min: 30}
+};
+/* Website traffic, counted without cookies: one row per day, page, source, device and language (Besuche tab). */
+var VISIT_COLS = ['Datum', 'Seite', 'Quelle', 'Gerät', 'Sprache', 'Aufrufe', 'Einstiege'];
+
+/* Bookable hours per weekday (0 = Sunday): [from, to] in hours, set in Konfiguration "termin_zeiten" as JSON. */
+var APPT_HOURS_DEFAULT = {1: [9, 18], 2: [9, 18], 3: [9, 18], 4: [9, 18], 5: [9, 18], 6: [9, 16]};
+function apptHours_() {
+  var v = config_('termin_zeiten');
+  try { var o = JSON.parse(v); if (o && typeof o === 'object') return o; } catch (err) {}
+  return APPT_HOURS_DEFAULT;
+}
+/* Days without appointments (holidays, full days): Konfiguration "termin_gesperrt", dates separated by commas. */
+function apptBlocked_() { return String(config_('termin_gesperrt') || '').split(/[\s,;]+/).filter(function (d) { return /^\d{4}-\d{2}-\d{2}$/.test(d); }); }
+/* The Art column holds the German label; back to the key (visit, video, call). */
+function apptType_(label) { for (var k in APPT_TYPES) if (APPT_TYPES[k].de === String(label) || k === String(label)) return k; return String(label); }
+function hhmm_(min) { return ('0' + Math.floor(min / 60)).slice(-2) + ':' + ('0' + (min % 60)).slice(-2); }
+
+/* All appointments as objects (newest last). */
+function allAppts_() {
+  var sh = ss_().getSheetByName(TAB.appts);
+  if (!sh || sh.getLastRow() < 2) return [];
+  return sh.getRange(2, 1, sh.getLastRow() - 1, APPT_COLS.length).getValues().filter(function (v) { return v[0]; }).map(function (v, i) {
+    var g = function (n) { return v[APPT_COLS.indexOf(n)]; };
+    var time = g('Uhrzeit') instanceof Date ? Utilities.formatDate(g('Uhrzeit'), 'Europe/Berlin', 'HH:mm') : String(g('Uhrzeit')).replace(/^'/, '');
+    return {row: i + 2, nr: String(g('Nr')), received: iso_(g('Eingang')), status: String(g('Status')), type: apptType_(g('Art')), date: String(day_(g('Datum'))).replace(/^'/, ''), time: time,
+      min: Number(g('Dauer min')) || 30, name: String(g('Name')), phone: String(g('Telefon')), email: String(g('E-Mail')), address: String(g('Adresse')),
+      to: String(g('Umzug nach')), message: String(g('Nachricht')), lead: String(g('Anfrage')), lang: String(g('Sprache') || 'DE'), source: String(g('Quelle')),
+      calendar: String(g('Kalender') || ''), note: String(g('Notiz') || '')};
+  });
+}
+
+/* Free start times per day for the next `days` days, starting tomorrow (Berlin time). Every 30 minutes; an appointment
+   needs its whole length inside the opening hours and must not overlap another one. On-site viewings are not offered
+   on days with a booked move. Returns [{date, slots: ['09:00', …]}]. */
+function freeSlots_(type, days, todayIso) {
+  var T = APPT_TYPES[type]; if (!T) return [];
+  var hours = apptHours_(), blocked = apptBlocked_(), taken = {}, moveDays = {};
+  allAppts_().forEach(function (a) {
+    if (a.status === 'Abgesagt') return;
+    var m = a.time.split(':'), s = Number(m[0]) * 60 + Number(m[1]);
+    (taken[a.date] = taken[a.date] || []).push([s, s + a.min]);
+  });
+  if (type === 'visit') {
+    var ls = ss_().getSheetByName(TAB.leads);
+    if (ls && ls.getLastRow() > 1) ls.getRange(2, 1, ls.getLastRow() - 1, LEAD_COLS.length).getValues().forEach(function (v) {
+      if (v[LEAD_COLS.indexOf('Status')] === 'Gebucht') moveDays[day_(v[LEAD_COLS.indexOf('Termin')])] = true;
+    });
+  }
+  var out = [], base = new Date((todayIso || Utilities.formatDate(new Date(), 'Europe/Berlin', 'yyyy-MM-dd')) + 'T12:00:00');
+  for (var i = 1; i <= (days || 21); i++) {
+    var d = new Date(base.getTime() + i * 864e5), iso = Utilities.formatDate(d, 'Europe/Berlin', 'yyyy-MM-dd');
+    var h = hours[d.getDay()] || hours[String(d.getDay())], slots = [];
+    if (h && blocked.indexOf(iso) < 0 && !moveDays[iso]) {
+      for (var s = h[0] * 60; s + T.min <= h[1] * 60; s += 30) {
+        var busy = (taken[iso] || []).some(function (r) { return s < r[1] && s + T.min > r[0]; });
+        if (!busy) slots.push(hhmm_(s));
+      }
+    }
+    out.push({date: iso, slots: slots});
+  }
+  return out;
+}
+
+/* Calendar file (.ics) for an appointment, so customer and office can add it with one click. */
+function ics_(a, title, location, description) {
+  var p = a.date.split('-'), t = a.time.split(':');
+  var start = new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]), Number(t[0]), Number(t[1])), end = new Date(start.getTime() + a.min * 60000);
+  var z = function (d) { return d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, ''); };
+  var e = function (s) { return String(s || '').replace(/([,;\\])/g, '\\$1').replace(/\n/g, '\\n'); };
+  return ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Stabil Umzug//Termine//DE', 'METHOD:PUBLISH', 'BEGIN:VEVENT',
+    'UID:' + a.nr + '@stabilumzug.de', 'DTSTAMP:' + z(new Date()), 'DTSTART:' + z(start), 'DTEND:' + z(end),
+    'SUMMARY:' + e(title), 'LOCATION:' + e(location), 'DESCRIPTION:' + e(description), 'END:VEVENT', 'END:VCALENDAR'].join('\r\n');
+}
+function apptStart_(a) { var p = a.date.split('-'), t = a.time.split(':'); return new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]), Number(t[0]), Number(t[1])); }
+function dayDeLong_(iso) {
+  var d = new Date(iso + 'T12:00:00'), wd = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'][d.getDay()];
+  return wd + ', ' + iso.slice(8, 10) + '.' + iso.slice(5, 7) + '.' + iso.slice(0, 4);
+}
 var FLOORS = ['EG', '1–2', '3–4', '5+'], LIFTS = ['kein Aufzug', 'Aufzug klein', 'Aufzug groß', 'Aufzug ?'], PARKS = ['vor der Tür', 'bis 30 m', 'über 30 m', 'Parken ?'];
 var HH = ['1 Person', '2 Personen', '3–4', '5+'];
 var SRC_DE = {pick: 'Katalog', custom: 'Eigener', list: 'Liste', photo: 'Foto', preset: 'Vorlage', guess: 'Schätzung'};
@@ -203,4 +290,54 @@ function latestQuote_(id) {
   if (!best) return null;
   data.forEach(function (r) { if (r[0] === id && Number(r[1]) === best && r[4] !== 'Summe') lines.push([String(r[4]), String(r[5]), Number(r[6]) || 0, String(r[7]), Number(r[8]) || 0]); });
   return {version: best, lines: lines};
+}
+
+/* ------------------------------------------------------------------ appointment e-mails (website and admin) */
+
+/* E-mails about an appointment. kind: booked (customer + office), cancelled or moved (customer). Shared by the admin. */
+function apptMails_(a, kind, note) {
+  var T = APPT_TYPES[a.type] || {de: a.type, en: a.type, min: a.min};
+  var en = a.lang === 'EN', when = (en ? a.date.split('-').reverse().join('/') : dayDeLong_(a.date)) + (en ? ', ' : ', ') + a.time + (en ? '' : ' Uhr');
+  var where = a.type === 'visit' ? a.address : a.type === 'video' ? (en ? 'Video call (WhatsApp)' : 'Videoanruf (WhatsApp)') : (en ? 'Phone call' : 'Telefon');
+  var how = {
+    visit: en ? 'We come to ' + a.address + ', look at everything that needs to be moved and give you a fixed quote afterwards. Takes about 60 minutes, free of charge.'
+      : 'Wir kommen zu Ihnen (' + a.address + '), sehen uns alles an, was umziehen soll, und schicken Ihnen danach ein verbindliches Angebot. Dauer etwa 60 Minuten, kostenlos.',
+    video: en ? 'We call you by WhatsApp video on ' + a.phone + '. Walk us through your rooms with your phone – about 30 minutes, free of charge.'
+      : 'Wir rufen Sie per WhatsApp-Video unter ' + a.phone + ' an. Sie zeigen uns die Räume mit dem Handy – etwa 30 Minuten, kostenlos.',
+    call: en ? 'We call you on ' + a.phone + ' and answer your questions about your move.' : 'Wir rufen Sie unter ' + a.phone + ' an und beantworten Ihre Fragen rund um den Umzug.'
+  }[a.type] || '';
+  var sign = en ? '\n\nKind regards\nStabil Umzug · Karlstraße 32 · 45329 Essen · 0163 9688190' : '\n\nViele Grüße\nStabil Umzug · Karlstraße 32 · 45329 Essen · 0163 9688190';
+  var title = (en ? T.en : T.de) + ' – Stabil Umzug';
+  var file = Utilities.newBlob(ics_(a, title, where, how), 'text/calendar', 'termin-' + a.nr + '.ics');
+  var subject, body;
+  if (kind === 'booked') {
+    subject = en ? 'Your appointment on ' + when + ' – Stabil Umzug' : 'Ihr Termin am ' + when + ' – Stabil Umzug';
+    body = (en ? 'Hello ' + a.name + ',\n\nthank you – your appointment is booked:\n\n' : 'Guten Tag ' + a.name + ',\n\nvielen Dank – Ihr Termin ist gebucht:\n\n') +
+      (en ? T.en : T.de) + '\n' + when + ' (' + a.min + ' min)\n' + where + '\n\n' + how +
+      (en ? '\n\nThe calendar file is attached. Need to change it? Just reply to this e-mail or call us.' : '\n\nDie Kalenderdatei ist angehängt. Sie möchten den Termin ändern? Antworten Sie einfach auf diese E-Mail oder rufen Sie uns an.') +
+      (en ? '\n\nReference: ' : '\n\nTerminnummer: ') + a.nr + sign;
+  } else if (kind === 'cancelled') {
+    subject = en ? 'Appointment cancelled – Stabil Umzug' : 'Termin abgesagt – Stabil Umzug';
+    body = (en ? 'Hello ' + a.name + ',\n\nunfortunately we have to cancel your appointment on ' + when + '.' : 'Guten Tag ' + a.name + ',\n\nleider müssen wir Ihren Termin am ' + when + ' absagen.') +
+      (note ? '\n\n' + note : '') + (en ? '\n\nPlease book a new time on www.stabilumzug.de/en/appointment/ or call us.' : '\n\nBitte buchen Sie einen neuen Termin auf www.stabilumzug.de/termin/ oder rufen Sie uns an.') + sign;
+    file = null;
+  } else {
+    subject = en ? 'New time for your appointment: ' + when + ' – Stabil Umzug' : 'Neue Zeit für Ihren Termin: ' + when + ' – Stabil Umzug';
+    body = (en ? 'Hello ' + a.name + ',\n\nwe have moved your appointment to:\n\n' : 'Guten Tag ' + a.name + ',\n\nwir haben Ihren Termin verschoben auf:\n\n') +
+      (en ? T.en : T.de) + '\n' + when + '\n' + where + (note ? '\n\n' + note : '') +
+      (en ? '\n\nThe updated calendar file is attached.' : '\n\nDie aktualisierte Kalenderdatei ist angehängt.') + sign;
+  }
+  try {
+    var mail = {to: a.email, subject: subject, body: body, name: 'Stabil Umzug'};
+    if (file) mail.attachments = [file];
+    var office = String(config_('notify_email') || Session.getEffectiveUser().getEmail() || '');
+    if (office) mail.replyTo = office;
+    MailApp.sendEmail(mail);
+    if (kind === 'booked' && office) {
+      MailApp.sendEmail({to: office, subject: 'Neuer Termin ' + a.nr + ': ' + T.de + ' ' + when + ' – ' + a.name, attachments: [Utilities.newBlob(ics_(a, T.de + ': ' + a.name, where, how), 'text/calendar', 'termin-' + a.nr + '.ics')],
+        body: ['Neuer Termin über die Website', '', T.de + ' · ' + when + ' (' + a.min + ' min)', 'Name: ' + a.name, 'Telefon: ' + a.phone, 'E-Mail: ' + a.email,
+          'Adresse: ' + (a.address || '—'), 'Umzug nach: ' + (a.to || '—'), 'Nachricht: ' + (a.message || '—'), 'Anfrage: ' + a.lead, 'Quelle: ' + a.source,
+          '', 'Die Kalenderdatei ist angehängt (in Gmail: „Zu Kalender hinzufügen“).', 'Tabelle: ' + ss_().getUrl()].join('\n')});
+    }
+  } catch (err) { console.error(err); }
 }

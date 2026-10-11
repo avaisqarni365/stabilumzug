@@ -96,6 +96,24 @@ def about(lang):
                 desc=t("Stabil Umzug aus Essen: Umzüge einfach planen, Preise nachvollziehbar machen, in einfacher Sprache.",
                        "Stabil Umzug from Essen: simple move planning, traceable prices, plain language.", lang), body=body)
 
+def booking(lang):
+    """Appointment booking: the steps are drawn by assets/js/booking.js from the free times in the company sheet."""
+    key = "booking"
+    body = page_head(key, lang, t("Termin buchen", "Book an appointment", lang),
+        t("Kostenlose Besichtigung vor Ort, per Video oder ein Rückruf: Wählen Sie eine freie Zeit – Sie bekommen sofort eine Bestätigung per E-Mail mit Kalendereintrag.",
+          "Free on-site viewing, video viewing or a call-back: pick a free time – you get a confirmation by email with a calendar entry right away.", lang),
+        kicker=t("Kostenlos und unverbindlich", "Free and non-binding", lang), photo="uniform.jpg",
+        alt=t("Arbeitskleidung von Stabil Umzug in Orange und Navy", "Stabil Umzug workwear in orange and navy", lang))
+    phone = ('<a href="tel:%s">%s</a>' % (esc(SITE["phone_href"]), esc(SITE["phone"]))) if SITE.get("phone_href") else ""
+    body += ('<section class="section"><div class="container"><div id="booking" data-privacy="%s" aria-live="polite">'
+             '<noscript><p>%s %s</p></noscript></div></div></section>') % (
+        link(key, "privacy", lang), t("Für die Terminbuchung wird JavaScript benötigt. Rufen Sie uns gern an:", "Booking needs JavaScript. Feel free to call us:", lang), phone)
+    return dict(key=key, lang=lang, booking=True,
+                title=t("Termin buchen: kostenlose Umzugsbesichtigung in Essen | Stabil Umzug", "Book a free moving viewing in Essen | Stabil Umzug", lang),
+                desc=t("Kostenlose Besichtigung vor Ort, Video-Besichtigung oder Rückruf online buchen – freie Zeiten sofort sehen, Bestätigung per E-Mail.",
+                       "Book a free on-site viewing, video viewing or call-back online – see free times at once, confirmation by email.", lang),
+                body=body)
+
 def portal(lang):
     """Customer area: the content is rendered by assets/js/portal.js from the personal link."""
     key = "portal"
@@ -147,14 +165,20 @@ def privacy(lang):
     if lang == "de":
         inner = ("<h2>Verantwortlicher</h2><p>%s, %s, %s %s. E-Mail: %s</p>"
                  "<h2>Hosting</h2><p>Diese Website wird bei %s gehostet. Beim Aufruf verarbeitet der Hosting-Anbieter technisch notwendige Daten, etwa die IP-Adresse, in Server-Logfiles.</p>"
-                 "<h2>Cookies und Tracking</h2><p>Wir setzen keine Cookies und keine Analyse- oder Werbedienste ein. Schriften und Skripte laden wir von unserer eigenen Domain.</p>"
+                 "<h2>Cookies und Besucherzählung</h2><p>Wir setzen keine Cookies und keine Werbe- oder Analysedienste Dritter ein. Schriften und Skripte laden wir von unserer eigenen Domain. "
+                 "Um zu sehen, wie die Website genutzt wird, zählen wir Seitenaufrufe ohne Cookies und ohne IP-Adresse: Bei jedem Aufruf übermittelt Ihr Browser an unser Google-Konto nur die aufgerufene Seite, "
+                 "die Art der Herkunft (z. B. „Google“, „WhatsApp“ oder „direkt“), die Geräteart (Handy, Tablet, Computer) und die Sprache. Wir speichern daraus nur Tagessummen, "
+                 "die keinen Rückschluss auf Sie zulassen, und löschen sie nach 13 Monaten (Art. 6 Abs. 1 lit. f DSGVO).</p>"
                  "<h2>Umzugsplaner</h2><p>Ihre Eingaben im Planer werden nur in Ihrem Browser verarbeitet und nicht an uns übertragen. Damit Sie später weitermachen können, speichert der Planer Ihren Entwurf im lokalen Speicher Ihres Browsers auf diesem Gerät (keine Cookies). Sie können ihn jederzeit im Planer mit „Entwurf löschen und neu beginnen“ oder über die Browsereinstellungen löschen. Erst wenn Sie die Zusammenfassung selbst per WhatsApp oder E-Mail senden, erhalten wir die darin enthaltenen Angaben, einschließlich der Angabe, über welche Seite oder Kampagne Sie zu uns gekommen sind. Dabei gelten die Datenschutzbestimmungen Ihres E-Mail- oder Messenger-Anbieters.</p>"
                  "<h2>Kontakt</h2><p>Wenn Sie uns schreiben, verarbeiten wir Ihre Angaben zur Bearbeitung der Anfrage (Art. 6 Abs. 1 lit. b DSGVO).</p>"
                  "<h2>Ihre Rechte</h2><p>Sie haben Rechte auf Auskunft, Berichtigung, Löschung, Einschränkung, Datenübertragbarkeit und Widerspruch sowie das Recht auf Beschwerde bei einer Aufsichtsbehörde.</p>")
     else:
         inner = ("<h2>Controller</h2><p>%s, %s, %s %s. Email: %s</p>"
                  "<h2>Hosting</h2><p>This website is hosted by %s. When you visit, the host processes technically necessary data, such as the IP address, in server logs.</p>"
-                 "<h2>Cookies and tracking</h2><p>We use no cookies and no analytics or advertising services. Fonts and scripts load from our own domain.</p>"
+                 "<h2>Cookies and visitor counting</h2><p>We use no cookies and no third-party advertising or analytics services. Fonts and scripts load from our own domain. "
+                 "To see how the website is used, we count page views without cookies and without IP address: on each view your browser sends only the page, "
+                 "the kind of source (e.g. “Google”, “WhatsApp” or “direct”), the device type (phone, tablet, computer) and the language to our Google account. We keep only daily totals "
+                 "that cannot be traced back to you and delete them after 13 months (Art. 6(1)(f) GDPR).</p>"
                  "<h2>Moving planner</h2><p>Your entries in the planner are processed only in your browser and are not transferred to us. So you can continue later, the planner keeps your draft in your browser's local storage on this device (no cookies). You can delete it at any time with “Delete draft and start over” in the planner or in your browser settings. Only when you send the summary yourself via WhatsApp or email do we receive the details in it, including which page or campaign brought you to us. The privacy terms of your email or messenger provider apply.</p>"
                  "<h2>Contact</h2><p>If you write to us we process your details to handle the request (Art. 6(1)(b) GDPR).</p>"
                  "<h2>Your rights</h2><p>You have rights of access, rectification, erasure, restriction, portability and objection, and the right to complain to a supervisory authority.</p>")
@@ -169,7 +193,9 @@ def privacy(lang):
             "<p>Mit „Entfernung berechnen“ und „Strecke und Karte anzeigen“ werden die beiden eingegebenen Orte über unseren Server an Google Maps übermittelt, um Fahrstrecke, Fahrzeit und eine Karte zu berechnen; Ihr Browser verbindet sich dabei nicht mit Google. "
             "Für unsere Statistik speichern wir je Berechnung nur Zeitpunkt, Postleitzahl und Ort von Start und Ziel, Entfernung, die aufgerufene Seite und die Kampagne – keine Straße, keine Kontaktdaten – und löschen diese Einträge nach 6 Monaten (Art. 6 Abs. 1 lit. f DSGVO, berechtigtes Interesse an der Planung unseres Angebots). "
             "Mit „Auf einem anderen Gerät weitermachen“ speichern wir Ihren Entwurf nach Ihrer Einwilligung 30 Tage und löschen ihn danach automatisch. "
-            "Sie können Ihre Einwilligung jederzeit per E-Mail an uns widerrufen.</p>",
+            "Sie können Ihre Einwilligung jederzeit per E-Mail an uns widerrufen.</p>"
+            "<h2>Terminbuchung</h2><p>Wenn Sie über „Termin buchen“ einen Termin vereinbaren, speichern wir Art, Tag und Uhrzeit des Termins sowie Name, Telefon, E-Mail, Adresse und Ihre Nachricht "
+            "in unserer Google-Tabelle und senden Ihnen und uns eine Bestätigung per E-Mail (Art. 6 Abs. 1 lit. b DSGVO). Wir löschen die Angaben nach 6 Monaten, wenn daraus kein Auftrag wird.</p>",
             "<h2>Requests sent through the moving planner</h2><p>When you click “Send request” in the planner, we transfer your details "
             "(contact details, addresses, access, items and which page or campaign brought you to us) to our Google account and store them in a Google spreadsheet "
             "to prepare a quote for you (Art. 6(1)(b) GDPR, your consent under Art. 6(1)(a) GDPR). "
@@ -178,7 +204,9 @@ def privacy(lang):
             "<p>“Calculate distance” and “Show route and map” send the two places you entered to Google Maps via our server to calculate distance, drive time and a map; your browser does not connect to Google. "
             "For our statistics we store, for each calculation, only the time, postcode and town of start and destination, the distance, the page and the campaign – no street, no contact details – and delete these entries after 6 months (Art. 6(1)(f) GDPR, legitimate interest in planning our service). "
             "“Continue on another device” stores your draft for 30 days with your consent and deletes it automatically afterwards. "
-            "You can withdraw your consent at any time by emailing us.</p>", lang)
+            "You can withdraw your consent at any time by emailing us.</p>"
+            "<h2>Appointment booking</h2><p>When you book an appointment, we store its type, day and time as well as your name, phone, email, address and message "
+            "in our Google spreadsheet and send a confirmation email to you and to us (Art. 6(1)(b) GDPR). We delete the details after 6 months if no order follows.</p>", lang)
     body += sec(flag + inner)
     return dict(key=key, lang=lang, title=t("Datenschutz | Stabil Umzug", "Privacy | Stabil Umzug", lang), desc=t("Datenschutzerklärung von Stabil Umzug.", "Privacy policy of Stabil Umzug.", lang), body=body, noindex=True)
 
