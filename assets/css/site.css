@@ -9,9 +9,9 @@
 @font-face{font-family:'Archivo';font-weight:700;font-style:normal;font-display:swap;src:url('../fonts/archivo-latin-700-normal.woff2') format('woff2')}
 
 :root{
-  --bg:#f3f2f2; --surface:#eae9e9; --ink:#17304f; --ink2:#55606f; --line:color-mix(in srgb,#17304f 40%,transparent);
+  --bg:#ffffff; --surface:#fff4ec; --ink:#17304f; --ink2:#55606f; --line:color-mix(in srgb,#17304f 40%,transparent);
   --line-soft:color-mix(in srgb,#17304f 18%,transparent);
-  --red:#f0650f; --fill:#c2410c; --fill-hover:#9a3412; --on-fill:#f3f2f2; --red-text:#b4420e; --tint:#fff1e8; --tint-ink:#7a2a06;
+  --red:#e85a0a; --fill:#c2410c; --fill-hover:#9a3412; --on-fill:#f3f2f2; --red-text:#b4420e; --tint:#fff1e8; --tint-ink:#7a2a06;
   --dark:#10233b; --dark-ink:#f3f2f2; --dark-ink2:#b8c1ce; --dark-line:color-mix(in srgb,#f3f2f2 30%,transparent); --dark-red:#ff7a2e;
   --logo-orange:#f0650f;
   --font:'Archivo',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
@@ -439,8 +439,8 @@ a.tile:hover h3{color:var(--red-text)}
 
 /* ---------- photo band (cinematic) ---------- */
 .photo-band{position:relative;min-height:clamp(380px,52vw,620px);display:flex;align-items:flex-end;color:#f3f2f2;overflow:hidden;border-bottom:2px solid var(--line)}
-.photo-band img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:saturate(.8) contrast(1.08)}
-.photo-band::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(11,10,10,.92) 0%,rgba(11,10,10,.62) 45%,rgba(11,10,10,.15) 100%),linear-gradient(0deg,rgba(11,10,10,.7),transparent 50%)}
+.photo-band img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:saturate(1.05)}
+.photo-band::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(16,35,59,.9) 0%,rgba(16,35,59,.55) 45%,rgba(16,35,59,.05) 100%),linear-gradient(0deg,rgba(16,35,59,.6),transparent 50%)}
 .photo-band .container{position:relative;padding-block:clamp(40px,6vw,80px)}
 .photo-band .kicker{color:#ff7a2e}
 .photo-band h2{font-size:clamp(1.8rem,3.4vw,2.9rem);line-height:1.02;letter-spacing:-.03em;margin-bottom:14px}
@@ -560,3 +560,31 @@ main h1, main h2, main h3, .kicker, .crumbs, .msg, .facts li, .pfacts dd, .pstep
   .steps-list li:nth-child(n+3){border-top:1px solid var(--line)}
 }
 .places li,.places a{overflow-wrap:anywhere;hyphens:auto;min-width:0}
+
+/* ---------- fresh and light (brand photos: white, orange, navy) ----------
+   The hero and the CTA band are light with an orange glow; the footer stays navy as the anchor. */
+:root:not([data-theme="dark"]) .hero{color:var(--ink);background:radial-gradient(90% 80% at 80% 55%,#ffe3cf 0%,#fff3ea 45%,#ffffff 80%)}
+:root:not([data-theme="dark"]) .hero::after,:root:not([data-theme="dark"]) .cta::after{display:none}
+:root:not([data-theme="dark"]) .hero .kicker{color:var(--red-text)}
+:root:not([data-theme="dark"]) .hero .lead{color:var(--ink2)}
+:root:not([data-theme="dark"]) .hero .tagline{color:var(--red)}
+:root:not([data-theme="dark"]) .hero-art{background:radial-gradient(closest-side at 50% 54%,#ffffff 0%,#ffffff 55%,#fff1e6 80%,#ffe3cf 100%)}
+:root:not([data-theme="dark"]) .hero-art::after{background:linear-gradient(90deg,transparent,var(--red) 30%,var(--red) 70%,transparent)}
+:root:not([data-theme="dark"]) .hero .button:not(.primary){color:var(--ink);border-color:var(--ink)}
+:root:not([data-theme="dark"]) .cta{background:linear-gradient(100deg,#fff1e6 0%,#ffe3cf 100%);color:var(--ink);border-top:6px solid var(--red)}
+:root:not([data-theme="dark"]) .cta h2 span{color:var(--red-text)}
+:root:not([data-theme="dark"]) .cta p{color:var(--ink2)}
+:root:not([data-theme="dark"]) .cta .button:not(.primary){color:var(--ink);border-color:var(--ink)}
+.site-header{border-bottom-color:var(--red)}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]) .hero{color:var(--dark-ink);background:radial-gradient(120% 95% at 78% 62%,#203a5a 0%,#10233b 52%,#071321 100%)}
+  :root:not([data-theme="light"]) .hero .kicker,:root:not([data-theme="light"]) .hero .lead{color:var(--dark-ink2)}
+  :root:not([data-theme="light"]) .hero .tagline{color:var(--dark-red)}
+  :root:not([data-theme="light"]) .hero-art{background:radial-gradient(closest-side at 50% 54%,#f3f2f2 0%,#eceae9 46%,#9ea8b6 70%,#1b3150 92%,#132a45 100%)}
+  :root:not([data-theme="light"]) .hero-art::after{background:linear-gradient(90deg,transparent,var(--dark-red) 30%,var(--dark-red) 70%,transparent)}
+  :root:not([data-theme="light"]) .hero .button:not(.primary),:root:not([data-theme="light"]) .cta .button:not(.primary){color:var(--dark-ink);border-color:var(--dark-ink)}
+  :root:not([data-theme="light"]) .hero::after,:root:not([data-theme="light"]) .cta::after{display:block}
+  :root:not([data-theme="light"]) .cta{background:var(--dark);color:var(--dark-ink);border-top:0}
+  :root:not([data-theme="light"]) .cta h2 span{color:var(--dark-red)}
+  :root:not([data-theme="light"]) .cta p{color:var(--dark-ink2)}
+}
