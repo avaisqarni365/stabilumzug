@@ -15,29 +15,28 @@ html,body{margin:0;width:554px;height:554px;overflow:hidden;background:#fff}
 .plane{position:absolute;left:0;top:0;transform-origin:0 0;mix-blend-mode:multiply;font-family:'Archivo',sans-serif}
 /* side panel livery, flat design in a 600 x 400 plane */
 #side{width:600px;height:400px}
-#side .word{position:absolute;left:40px;top:26px;font-weight:700;letter-spacing:-4px;line-height:.86;font-size:118px;color:#201e1d}
-#side .word b{display:block;color:#ec3013}
-#side .tag{position:absolute;left:44px;top:236px;font-weight:600;font-size:21px;letter-spacing:3px;color:#201e1d}
-#side .band{position:absolute;left:0;right:0;top:318px;bottom:0;background:#ec3013}
+#side .mk{position:absolute;left:34px;top:62px;width:214px;height:89px}
+#side .word{position:absolute;left:266px;top:30px;font-weight:700;letter-spacing:-4px;line-height:.9;font-size:100px;color:#17304f}
+#side .word b{display:block;color:#f0650f}
+#side .tag{position:absolute;left:44px;top:236px;font-weight:600;font-size:21px;letter-spacing:3px;color:#17304f}
+#side .band{position:absolute;left:0;right:0;top:318px;bottom:0;background:#f0650f}
 #side .band span{position:absolute;left:44px;top:22px;font-weight:700;font-size:28px;letter-spacing:1px;color:#fff;white-space:nowrap}
 #door{width:200px;height:400px}
-#door .band{position:absolute;left:0;right:0;top:318px;bottom:0;background:#ec3013}
+#door .band{position:absolute;left:0;right:0;top:318px;bottom:0;background:#f0650f}
 /* grille badge replacing the manufacturer emblem */
 #badge{position:absolute;left:450px;top:289px;width:36px;height:36px;background:#2e2e2e;border-radius:3px}
-#badge b{position:absolute;left:6px;top:6px;width:24px;height:24px;background:#ec3013}
-#badge i{position:absolute;left:10px;top:16px;width:16px;height:10px;background:#f3f2f2}
-#badge i::before{content:"";position:absolute;left:0;top:0;width:16px;height:2px;background:#201e1d}
-#badge i::after{content:"";position:absolute;left:0;top:-6px;width:16px;height:2px;background:#201e1d}
+#badge img{position:absolute;left:3px;top:11px;width:30px;height:13px}
 </style></head>
 <body><div class="stage">
 <img src="../assets/img/src/van-white.png" alt="">
 <div class="plane" id="side">
-  <div class="word">STABIL<b>UMZUG</b></div>
+  <img class="mk" src="../assets/img/logo-mark.svg" alt="">
+  <div class="word">Stabil<b>Umzug</b></div>
   <div class="tag">UMZ&Uuml;GE &middot; ENTR&Uuml;MPELUNG &middot; TRANSPORT</div>
   <div class="band"><span>STABILUMZUG.DE &middot; 0163 9688190</span></div>
 </div>
 <div class="plane" id="door"><div class="band"></div></div>
-<div id="badge"><b></b><i></i></div>
+<div id="badge"><img src="../assets/img/logo-mark-light.svg" alt=""></div>
 </div>
 <script>
 /* Homography: maps the w x h rectangle onto the quad (TL, TR, BR, BL) and returns a CSS matrix3d. */
