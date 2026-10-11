@@ -7,7 +7,7 @@
 
 var TAB = {
   leads: 'Anfragen', items: 'Gegenstände', quotes: 'Angebote', catalog: 'Katalog', settings: 'Regeln',
-  rates: 'Preise', audit: 'Protokoll', drafts: 'Entwürfe', config: 'Konfiguration'
+  rates: 'Preise', audit: 'Protokoll', drafts: 'Entwürfe', config: 'Konfiguration', routes: 'Strecken'
 };
 var DEFAULT_SITE = 'https://www.stabilumzug.de';   // first catalogue is read from here unless SITE_URL or GITHUB_REPO is set
 var STATUS = ['Neu', 'In Arbeit', 'Angebot raus', 'Gebucht', 'Erledigt', 'Verloren'];
@@ -22,6 +22,8 @@ var QUOTE_COLS = ['Anfrage', 'Version', 'Erstellt', 'Stammdaten', 'Position', 'B
 var CAT_COLS = ['item_id', 'Größe', 'Name DE', 'Name EN', 'Suchwörter', 'Raum', 'Volumen m³', 'kg min', 'kg max', 'Abbau min', 'Aufbau min', 'Träger', 'Zerbrechlich', 'Aktiv'];
 var AUDIT_COLS = ['Zeit', 'Nutzer', 'Tab', 'Zelle', 'Alt', 'Neu'];
 var DRAFT_COLS = ['Referenz', 'Token', 'Gespeichert', 'Läuft ab', 'Daten (JSON)'];
+/* Route checks on the website: only postcode and town are stored, never the street – anonymous interest, no personal data. */
+var ROUTE_COLS = ['Zeit', 'Von (PLZ Ort)', 'Nach (PLZ Ort)', 'km', 'Fahrzeit min', 'Seite', 'Sprache', 'Quelle'];
 var FLOORS = ['EG', '1–2', '3–4', '5+'], LIFTS = ['kein Aufzug', 'Aufzug klein', 'Aufzug groß', 'Aufzug ?'], PARKS = ['vor der Tür', 'bis 30 m', 'über 30 m', 'Parken ?'];
 var HH = ['1 Person', '2 Personen', '3–4', '5+'];
 var SRC_DE = {pick: 'Katalog', custom: 'Eigener', list: 'Liste', photo: 'Foto', preset: 'Vorlage', guess: 'Schätzung'};

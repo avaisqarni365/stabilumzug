@@ -1,0 +1,513 @@
+<style>
+/* ---------- documents (Belege) ---------- */
+.doc-wrap{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:32px;align-items:start}
+.doc-side{position:sticky;top:74px}
+.sec{border-top:2px solid var(--ink);padding:14px 0 22px}
+.sec > h2{font-size:17px;display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.sec > h2 .no{display:inline-grid;place-items:center;width:26px;height:26px;background:var(--red);color:#fff;font-size:13px;flex:none}
+.sec > h2 small{font-weight:500;color:var(--ink2);font-size:13px;margin-left:auto}
+.f2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 14px}
+.f3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px 14px}
+.f4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px 14px}
+.span2{grid-column:span 2}.span-all{grid-column:1/-1}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg label{position:relative;cursor:pointer}
+.seg input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
+.seg span{display:block;padding:8px 12px;border:1px solid var(--line);font-weight:600;font-size:14px}
+.seg input:checked + span{background:var(--ink);color:var(--on);border-color:var(--ink)}
+.seg input:focus-visible + span{outline:2px solid var(--red);outline-offset:2px}
+.seg input:disabled + span{opacity:.55;cursor:default}
+.sender{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px 14px;font-size:14px;background:#fff;border:1px solid var(--soft);padding:12px 14px}
+.sender b{display:block;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink2);font-weight:600}
+.warn{background:var(--tint);color:var(--tint-ink);border-left:4px solid var(--red);padding:8px 12px;font-size:13.5px;margin:10px 0 0}
+.ok-note{background:#e9f4ec;color:#1f6b3a;border-left:4px solid #1f6b3a;padding:8px 12px;font-size:13.5px;margin:10px 0 0}
+.lines{width:100%;border-collapse:collapse}
+.lines th{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink2);text-align:left;padding:6px 6px 6px 0;border-bottom:2px solid var(--ink);white-space:nowrap}
+.lines td{padding:6px 6px 6px 0;border-bottom:1px solid var(--line);vertical-align:top}
+.lines .input{min-height:36px;padding:6px 8px;font-size:14px}
+.lines .t .input + .input{margin-top:4px;font-size:13px;min-height:32px}
+.lines .n{width:78px;text-align:right}.lines .u{width:70px}.lines .p{width:96px;text-align:right}.lines .v{width:70px}.lines .r{width:62px;text-align:right}
+.lines .amt{text-align:right;font-weight:700;white-space:nowrap;padding-top:14px;font-variant-numeric:tabular-nums}
+.lines .pos{color:var(--ink2);font-weight:700;padding-top:14px;width:28px}
+.lines .lab{text-align:center;padding-top:12px}
+.lines .tools{white-space:nowrap;padding-top:8px}
+.lines .tools button{border:0;background:transparent;cursor:pointer;font-size:15px;padding:3px 5px;color:var(--ink2)}
+.lines .tools button:hover{color:var(--ink)}
+.sumtab{width:100%;max-width:440px;margin-left:auto;border-collapse:collapse;font-variant-numeric:tabular-nums}
+.sumtab td{padding:5px 0;border-bottom:1px solid var(--soft)}
+.sumtab td:last-child{text-align:right;white-space:nowrap}
+.sumtab .g td{border-top:2px solid var(--ink);border-bottom:0;font-weight:700;font-size:18px;padding-top:8px}
+.sumtab .m td{color:var(--ink2);font-size:13px}
+.side-card{background:#fff;border-top:4px solid var(--red);padding:16px;box-shadow:0 14px 30px -22px rgba(23,48,79,.6);margin-bottom:16px}
+.side-card h3{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink2);margin-bottom:8px}
+.big{font-size:30px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
+.side-card .actions{flex-direction:column;align-items:stretch;margin-top:12px}
+.side-card .actions .btn{justify-content:space-between}
+.checks{list-style:none;margin:8px 0 0;padding:0;font-size:13px}
+.checks li{padding:3px 0 3px 20px;position:relative}
+.checks li::before{content:"✓";position:absolute;left:0;color:#1f6b3a;font-weight:700}
+.checks li.no::before{content:"!";color:var(--fill);left:4px}
+.checks li.no{color:var(--tint-ink)}
+.dstat{display:inline-block;font-size:11.5px;font-weight:700;padding:3px 8px;border:1px solid var(--line);white-space:nowrap}
+.dstat.Entwurf{background:var(--surface)}
+.dstat.Offen,.dstat.Gesendet{background:var(--ink);color:var(--on);border-color:var(--ink)}
+.dstat.Teilbezahlt{background:var(--tint);color:var(--tint-ink);border-color:var(--tint)}
+.dstat.Bezahlt,.dstat.Angenommen{background:#1f6b3a;color:#fff;border-color:#1f6b3a}
+.dstat.over{background:var(--fill);color:#fff;border-color:var(--fill)}
+.dstat.Storniert,.dstat.Abgelehnt,.dstat.Ausgeglichen{color:var(--ink2)}
+.modal{position:fixed;inset:0;background:rgba(14,26,43,.55);z-index:30;display:flex;align-items:flex-start;justify-content:center;padding:4vh 16px;overflow:auto}
+.modal .box{background:var(--bg);width:min(880px,100%);padding:18px;box-shadow:0 30px 60px -20px rgba(0,0,0,.5)}
+.modal .box.small{width:min(520px,100%)}
+.modal iframe{width:100%;height:78vh;border:1px solid var(--soft);background:#fff}
+.modal .bar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}
+.log{list-style:none;margin:0;padding:0;font-size:12.5px;color:var(--ink2)}
+.log li{padding:4px 0;border-bottom:1px solid var(--soft)}
+fieldset.lock{border:0;margin:0;padding:0;min-width:0}
+fieldset.lock .input{background:#fff}
+@media (max-width:1000px){.doc-wrap{grid-template-columns:minmax(0,1fr)}.doc-side{position:static}}
+@media (max-width:700px){
+  .f2,.f3,.f4,.sender{grid-template-columns:minmax(0,1fr)}.span2{grid-column:auto}
+  .lines thead{display:none}
+  .lines tr{display:grid;grid-template-columns:28px 1fr 1fr 1fr;gap:6px;padding:10px 0;border-bottom:1px solid var(--line)}
+  .lines td{border:0;padding:0}
+  .lines td.t{grid-column:2/-1}
+  .lines .n,.lines .u,.lines .p,.lines .v,.lines .r{width:100%}
+}
+</style>
+<datalist id="units"><option value="Pausch."><option value="Std."><option value="Tag"><option value="km"><option value="m³"><option value="Stk."><option value="Adr."><option value="min"></datalist>
+<script>
+(function () {
+  'use strict';
+  var U = window.SU, D = {docs: [], filter: 'open', cur: null, company: null, today: ''};
+  var esc = U.esc, run = U.run;
+  var TYPES = {offer: 'Angebot', invoice: 'Rechnung', deposit: 'Abschlagsrechnung', final: 'Schlussrechnung', storno: 'Stornorechnung'};
+  /* Ready-made lines from the customer's price list (starting prices, gross). */
+  var TEMPLATES = [
+    ['Umzug Pauschale', 'Transport, Be- und Entladen laut Angebot', 1, 'Pausch.', 0, false],
+    ['Möbelpacker', 'Arbeit je Person und Stunde', 1, 'Std.', 45, true],
+    ['Transporter 3,5 t', 'inkl. Fahrer, je Tag', 1, 'Tag', 120, false],
+    ['Koffer-LKW 7,5 t', 'inkl. Fahrer, je Tag', 1, 'Tag', 190, false],
+    ['Anfahrt / Strecke', 'je km, hin und zurück', 1, 'km', 0.95, true],
+    ['Möbelabbau und -aufbau', 'nach Aufwand', 1, 'Std.', 45, true],
+    ['Küchenmontage', 'Ab- und Aufbau der Küche', 1, 'Pausch.', 0, true],
+    ['Ein- und Auspackservice', 'nach Aufwand', 1, 'Std.', 45, true],
+    ['Umzugskartons', 'neu, je Stück', 1, 'Stk.', 2.5, false],
+    ['Halteverbotszone', 'Beantragung und Aufstellung, je Adresse', 1, 'Adr.', 120, false],
+    ['Klaviertransport', 'mit Spezialausrüstung', 1, 'Pausch.', 0, true],
+    ['Entsorgung', 'Sperrmüll nach Menge', 1, 'm³', 0, false],
+    ['Kellerentrümpelung', 'ab', 1, 'Pausch.', 149, true],
+    ['Wohnungsentrümpelung', 'ab', 1, 'Pausch.', 299, true],
+    ['Besenreine Übergabe', 'nach Vereinbarung', 1, 'Pausch.', 0, true],
+    ['Kleintransport', 'ab', 1, 'Pausch.', 79, false]
+  ];
+
+  function eur2(n) { return (Number(n) || 0).toLocaleString('de-DE', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' €'; }
+  function dDe(iso) { return /^\d{4}-\d{2}-\d{2}$/.test(iso || '') ? iso.slice(8, 10) + '.' + iso.slice(5, 7) + '.' + iso.slice(0, 4) : '–'; }
+  function addDays(iso, n) { var d = new Date((iso || D.today) + 'T12:00:00'); d.setDate(d.getDate() + (Number(n) || 0)); return d.toISOString().slice(0, 10); }
+  function over(x) { return (x.status === 'Offen' || x.status === 'Teilbezahlt') && x.type !== 'offer' && x.due && x.due < D.today; }
+  function stat(x) { var o = over(x); return '<span class="dstat ' + (o ? 'over' : esc(x.status)) + '">' + (o ? 'Überfällig' : esc(x.status)) + '</span>'; }
+
+  /* Same rules as docTotals_ in Belege.js (the server is the reference; this keeps the form live). */
+  function cents(x) { return Math.round((Number(x) || 0) * 100) / 100; }
+  function totals(doc) {
+    var small = !!doc.small, gross = doc.priceMode !== 'net';
+    var lines = doc.lines.map(function (l) { var base = cents(l.qty * l.price); return {amt: cents(base * (1 - Math.min(100, Math.max(0, l.disc || 0)) / 100)), vat: small ? 0 : Number(l.vat) || 0, labour: !!l.labour}; });
+    var sum = lines.reduce(function (a, l) { return a + l.amt; }, 0), dv = Number(doc.discount.value) || 0, dAmt = 0;
+    if (dv && sum) dAmt = cents(doc.discount.type === 'pct' ? sum * Math.min(100, dv) / 100 : Math.min(Math.abs(dv), Math.abs(sum)) * (sum < 0 ? -1 : 1));
+    var f = sum ? (sum - dAmt) / sum : 1, rates = {}, lg = 0, lv = 0;
+    lines.forEach(function (l) { var a = l.amt * f, r = rates[l.vat] = rates[l.vat] || {rate: l.vat, amount: 0}; r.amount += a; if (l.labour) { var g = gross ? a : a * (1 + l.vat / 100); lg += g; lv += g - g / (1 + l.vat / 100); } });
+    var groups = Object.keys(rates).map(function (k) { var r = rates[k], amount = cents(r.amount), net, vat; if (gross) { net = cents(amount / (1 + r.rate / 100)); vat = cents(amount - net); } else { net = amount; vat = cents(net * r.rate / 100); } return {rate: r.rate, net: net, vat: vat}; }).sort(function (a, b) { return b.rate - a.rate; });
+    var t = {lines: sum, discount: dAmt, groups: groups, net: cents(groups.reduce(function (a, g) { return a + g.net; }, 0)), vat: cents(groups.reduce(function (a, g) { return a + g.vat; }, 0))};
+    t.gross = cents(t.net + t.vat); t.deposit = cents(doc.deposit || 0); t.toPay = cents(t.gross - t.deposit); t.labour = cents(lg); t.labourVat = cents(lv);
+    t.skonto = doc.skonto && doc.skonto.pct ? cents(t.toPay * doc.skonto.pct / 100) : 0;
+    return t;
+  }
+
+  /* ---------- routing (called by Index.html) ---------- */
+  function route(h) {
+    if (h === 'belege') { list(); return true; }
+    if (h.indexOf('beleg/') === 0) { edit(decodeURIComponent(h.slice(6))); return true; }
+    if (h.indexOf('neu/') === 0) { var p = h.split('/'); create(p[1], decodeURIComponent(p[2] || '')); return true; }
+    if (h === 'firma') { company(); return true; }
+    return false;
+  }
+
+  /* ---------- list ---------- */
+  function list() {
+    U.setNav('docs');
+    U.app.innerHTML = '<p class="loading">Belege werden geladen …</p>';
+    run('api_docs').then(function (r) { D.docs = r.docs; D.company = r.company; D.today = r.today; drawList(); }).catch(U.fail);
+  }
+  function drawList() {
+    var inv = D.docs.filter(function (x) { return x.type !== 'offer'; });
+    var openSum = 0, overSum = 0, paidMonth = 0, offersOpen = 0;
+    inv.forEach(function (x) { if (x.status === 'Offen' || x.status === 'Teilbezahlt') { openSum += x.toPay - x.paid; if (over(x)) overSum += x.toPay - x.paid; } if (x.status === 'Bezahlt' && x.date.slice(0, 7) === D.today.slice(0, 7)) paidMonth += x.gross; });
+    D.docs.forEach(function (x) { if (x.type === 'offer' && (x.status === 'Offen' || x.status === 'Gesendet')) offersOpen++; });
+    var F = {open: ['Offen', function (x) { return ['Offen', 'Gesendet', 'Teilbezahlt'].indexOf(x.status) >= 0; }], over: ['Überfällig', over],
+      offer: ['Angebote', function (x) { return x.type === 'offer'; }], inv: ['Rechnungen', function (x) { return x.type !== 'offer'; }],
+      draft: ['Entwürfe', function (x) { return x.status === 'Entwurf'; }], paid: ['Bezahlt', function (x) { return x.status === 'Bezahlt'; }], all: ['Alle', function () { return true; }]};
+    var rows = D.docs.filter(F[D.filter][1]);
+    U.app.innerHTML = '<span class="kicker">Belege</span><div class="h"><h1>Angebote und Rechnungen</h1><div class="actions">' +
+      '<a class="btn" href="#/neu/offer">+ Neues Angebot</a><a class="btn primary" href="#/neu/invoice">+ Neue Rechnung</a></div></div>' +
+      '<div class="grid4"><div class="kpi"><b>' + U.eur(openSum) + '</b><span>offene Rechnungen</span></div><div class="kpi"><b' + (overSum ? ' style="color:var(--fill)"' : '') + '>' + U.eur(overSum) + '</b><span>davon überfällig</span></div>' +
+      '<div class="kpi"><b>' + U.eur(paidMonth) + '</b><span>bezahlt diesen Monat</span></div><div class="kpi"><b>' + offersOpen + '</b><span>offene Angebote</span></div></div>' +
+      '<div class="filters" style="margin-top:22px">' + Object.keys(F).map(function (k) { return '<button class="chip" data-df="' + k + '" aria-pressed="' + (D.filter === k) + '">' + F[k][0] + '<span>' + D.docs.filter(F[k][1]).length + '</span></button>'; }).join('') +
+      '<a class="btn small" href="#/firma" style="margin-left:auto">Firmendaten</a></div>' +
+      (rows.length ? '<table class="tbl"><thead><tr><th>Nr.</th><th>Art</th><th>Kunde</th><th class="hide-m">Datum</th><th class="hide-m">Fällig / gültig</th><th class="num">Betrag</th><th>Status</th></tr></thead><tbody>' +
+        rows.map(function (x) {
+          return '<tr data-nr="' + esc(x.nr) + '"><td><b>' + esc(x.status === 'Entwurf' ? 'Entwurf' : x.nr) + '</b>' + (x.lead ? '<div class="muted">' + esc(x.lead) + '</div>' : '') + '</td><td>' + esc(x.typeLabel) + '</td><td>' + esc(x.customer || '–') + '</td>' +
+            '<td class="hide-m">' + dDe(x.date) + '</td><td class="hide-m">' + dDe(x.type === 'offer' ? x.validUntil : x.due) + '</td><td class="num">' + eur2(x.gross) + (x.paid && x.status !== 'Bezahlt' ? '<div class="muted">bezahlt ' + eur2(x.paid) + '</div>' : '') + '</td><td>' + stat(x) + '</td></tr>';
+        }).join('') + '</tbody></table>' : '<p class="empty">Keine Belege für diesen Filter.</p>');
+    U.app.querySelectorAll('[data-df]').forEach(function (b) { b.addEventListener('click', function () { D.filter = b.getAttribute('data-df'); drawList(); }); });
+    U.app.querySelectorAll('tr[data-nr]').forEach(function (tr) { tr.addEventListener('click', function () { location.hash = '#/beleg/' + encodeURIComponent(tr.getAttribute('data-nr')); }); });
+  }
+
+  function create(type, lead) {
+    U.setNav('docs');
+    U.app.innerHTML = '<p class="loading">' + esc(TYPES[type] || 'Beleg') + ' wird vorbereitet …</p>';
+    run('api_docNew', type, lead || '').then(function (nr) { location.replace('#/beleg/' + encodeURIComponent(nr)); }).catch(U.fail);
+  }
+
+  /* ---------- the form, top to bottom ---------- */
+  function edit(nr) {
+    U.setNav('docs');
+    U.app.innerHTML = '<p class="loading">Beleg wird geladen …</p>';
+    run('api_doc', nr).then(function (r) { D.cur = r; D.company = r.company; D.today = D.today || new Date().toISOString().slice(0, 10); drawForm(); }).catch(U.fail);
+  }
+  function seg(name, opts, cur, dis) {
+    return '<div class="seg" role="radiogroup">' + opts.map(function (o) { return '<label><input type="radio" name="' + name + '" value="' + esc(o[0]) + '"' + (String(cur) === String(o[0]) ? ' checked' : '') + (dis ? ' disabled' : '') + '><span>' + esc(o[1]) + '</span></label>'; }).join('') + '</div>';
+  }
+  function fld(label, html, cls) { return '<div class="field' + (cls ? ' ' + cls : '') + '"><label>' + esc(label) + '</label>' + html + '</div>'; }
+  function inp(id, val, type, extra) { return '<input class="input" id="' + id + '" type="' + (type || 'text') + '" value="' + esc(val == null ? '' : val) + '"' + (extra || '') + '>'; }
+  function sec(no, title, body, note) { return '<section class="sec"><h2><span class="no">' + no + '</span>' + esc(title) + (note ? '<small>' + note + '</small>' : '') + '</h2>' + body + '</section>'; }
+
+  function lineRow(l, i) {
+    return '<tr><td class="pos">' + (i + 1) + '</td>' +
+      '<td class="t"><input class="input" data-k="title" value="' + esc(l.title) + '" placeholder="Bezeichnung" list="tpl-list" aria-label="Bezeichnung"><input class="input" data-k="detail" value="' + esc(l.detail) + '" placeholder="Beschreibung (optional)" aria-label="Beschreibung"></td>' +
+      '<td><input class="input n" data-k="qty" type="number" step="any" value="' + esc(l.qty) + '" aria-label="Menge"></td>' +
+      '<td><input class="input u" data-k="unit" value="' + esc(l.unit) + '" list="units" aria-label="Einheit"></td>' +
+      '<td><input class="input p" data-k="price" type="number" step="0.01" value="' + esc(l.price) + '" aria-label="Einzelpreis"></td>' +
+      '<td><select class="input v" data-k="vat" aria-label="USt"' + (D.cur.doc.small ? ' disabled' : '') + '>' + [19, 7, 0].map(function (v) { return '<option value="' + v + '"' + (Number(l.vat) === v ? ' selected' : '') + '>' + v + ' %</option>'; }).join('') + '</select></td>' +
+      '<td><input class="input r" data-k="disc" type="number" step="any" min="0" max="100" value="' + esc(l.disc || 0) + '" aria-label="Rabatt %"></td>' +
+      '<td class="lab"><input type="checkbox" data-k="labour"' + (l.labour ? ' checked' : '') + ' title="Lohnanteil (§ 35a EStG)" aria-label="Lohnanteil § 35a"></td>' +
+      '<td class="amt"></td>' +
+      '<td class="tools"><button type="button" data-act="up" title="Nach oben" aria-label="Nach oben">↑</button><button type="button" data-act="down" title="Nach unten" aria-label="Nach unten">↓</button><button type="button" data-act="dup" title="Duplizieren" aria-label="Duplizieren">⧉</button><button type="button" data-act="del" title="Entfernen" aria-label="Entfernen">×</button></td></tr>';
+  }
+
+  function drawForm() {
+    var r = D.cur, d = r.doc, c = r.company, draft = d.status === 'Entwurf', offer = d.type === 'offer', storno = d.type === 'storno';
+    var typeOpts = storno ? [['storno', 'Stornorechnung']] : [['offer', 'Angebot'], ['invoice', 'Rechnung'], ['deposit', 'Abschlagsrechnung'], ['final', 'Schlussrechnung']];
+    var senderWarn = [];
+    if (!c.vat_id && !c.tax_no) senderWarn.push('USt-IdNr. oder Steuernummer fehlt');
+    if (!c.iban) senderWarn.push('IBAN fehlt – für Überweisungen nötig');
+    var html = '<a href="#/belege" class="muted">← Alle Belege</a>' +
+      '<div class="h"><div><span class="kicker">' + esc(TYPES[d.type]) + (d.lead ? ' · Anfrage <a href="#/a/' + encodeURIComponent(d.lead) + '">' + esc(d.lead) + '</a>' : '') + '</span><h1>' + (draft ? 'Entwurf' : esc(d.nr)) + ' ' + stat({status: d.status, type: d.type, due: d.due}) + '</h1></div></div>' +
+      '<div class="doc-wrap"><div><fieldset class="lock" id="docform"' + (draft ? '' : ' disabled') + '>' +
+
+      sec(1, 'Belegart', seg('type', typeOpts, d.type, !draft) + '<p class="muted" style="margin:8px 0 0">' +
+        (offer ? 'Angebot: unverbindlich, mit Gültigkeitsdatum. Nummernkreis AN-Jahr-Nummer.' : 'Rechnungen haben einen fortlaufenden Nummernkreis RE-Jahr-Nummer. Nach dem Ausstellen nicht mehr änderbar – Korrektur nur per Stornorechnung.') + '</p>') +
+
+      sec(2, 'Absender', '<div class="sender"><div><b>Firma</b>' + esc(c.name) + '<br>' + esc(c.legal) + ' · ' + esc(c.owner) + '</div><div><b>Anschrift</b>' + esc(c.street) + '<br>' + esc(c.city) + '</div>' +
+        '<div><b>Kontakt</b>' + esc(c.phone) + '<br>' + esc(c.email) + '</div><div><b>Steuer</b>' + (c.vat_id ? 'USt-IdNr. ' + esc(c.vat_id) : '') + (c.tax_no ? '<br>St.-Nr. ' + esc(c.tax_no) : '') + (c.small ? '<br>Kleinunternehmer § 19' : '') + '</div>' +
+        '<div class="span2"><b>Bank</b>' + (c.iban ? esc(c.bank) + ' · ' + esc(c.iban) + (c.bic ? ' · ' + esc(c.bic) : '') : '<span style="color:var(--fill)">nicht hinterlegt</span>') + '</div></div>' +
+        (senderWarn.length ? '<p class="warn">' + esc(senderWarn.join(' · ')) + ' – <a href="#/firma">Firmendaten ergänzen</a></p>' : ''), '<a href="#/firma">bearbeiten</a>') +
+
+      sec(3, 'Empfänger', '<div class="f2">' + fld('Kundenart', seg('kind', [['privat', 'Privatkunde'], ['firma', 'Firma']], d.to.kind), 'span-all') +
+        fld('Firma', inp('to_company', d.to.company, 'text', ' autocomplete="organization"'), 'firma-only') + fld('USt-IdNr. des Kunden (optional)', inp('to_vatId', d.to.vatId), 'firma-only') +
+        fld('Name / Ansprechpartner *', inp('to_name', d.to.name)) + fld('E-Mail', inp('to_email', d.to.email, 'email')) +
+        fld('Straße und Hausnummer' + (offer ? '' : ' *'), inp('to_street', d.to.street)) + fld('PLZ und Ort' + (offer ? '' : ' *'), inp('to_city', d.to.city)) +
+        fld('Land', inp('to_country', d.to.country)) + fld('Telefon', inp('to_phone', d.to.phone, 'tel')) + '</div>') +
+
+      sec(4, 'Belegdaten', '<div class="f4">' +
+        fld(offer ? 'Angebotsdatum' : 'Rechnungsdatum', inp('date', d.date, 'date')) +
+        (offer ? fld('Gültig bis *', inp('validUntil', d.validUntil, 'date')) + fld('Geplanter Termin', inp('serviceFrom', d.serviceFrom, 'date')) + '<div></div>'
+          : (storno ? '' : fld('Leistungsdatum *', inp('serviceFrom', d.serviceFrom, 'date')) + fld('Leistung bis (Zeitraum)', inp('serviceTo', d.serviceTo, 'date')) + fld('Zahlungsziel (Tage)', inp('payDays', d.payDays, 'number', ' min="0" max="120"')))) +
+        fld('Anfrage-Nr.', inp('lead', d.lead)) + fld(storno ? 'Stornierte Rechnung' : 'Bezug (Angebot / Rechnung)', inp('ref', d.ref)) +
+        (offer || storno ? '' : fld('Fällig am', '<div class="input" id="due-show" style="background:transparent">' + dDe(d.due) + '</div>')) +
+        fld('Betreff', inp('subject', d.subject), 'span-all') + '</div>') +
+
+      sec(5, 'Einleitungstext', '<textarea class="input" id="intro" style="min-height:96px">' + esc(d.intro) + '</textarea>') +
+
+      sec(6, 'Positionen', '<div class="f2" style="margin-bottom:10px">' + fld('Preise eingeben als', seg('priceMode', [['gross', 'Brutto (inkl. USt)'], ['net', 'Netto (zzgl. USt)']], d.priceMode)) +
+        fld('Vorlage einfügen', '<select class="input" id="tpl"><option value="">Leistung aus der Preisliste wählen …</option>' + TEMPLATES.map(function (x, i) { return '<option value="' + i + '">' + esc(x[0]) + (x[4] ? ' · ' + eur2(x[4]) : '') + '</option>'; }).join('') + '</select>') + '</div>' +
+        '<datalist id="tpl-list">' + TEMPLATES.map(function (x) { return '<option value="' + esc(x[0]) + '">'; }).join('') + '</datalist>' +
+        '<div style="overflow-x:auto"><table class="lines"><thead><tr><th>#</th><th>Leistung</th><th class="num">Menge</th><th>Einheit</th><th class="num" id="price-h">Einzelpreis</th><th>USt</th><th class="num">Rabatt %</th><th title="Lohnanteil nach § 35a EStG">Lohn</th><th class="num">Betrag</th><th></th></tr></thead><tbody id="lines">' +
+        d.lines.map(lineRow).join('') + '</tbody></table></div>' +
+        '<div class="actions" style="margin-top:10px"><button type="button" class="btn small" id="add-line">+ Position</button></div>' +
+        '<p class="muted" style="margin:8px 0 0">„Lohn“ markiert Arbeits- und Fahrtkosten: Der Beleg weist sie für § 35a EStG gesondert aus (Privatkunden können 20 % davon von der Steuer abziehen).</p>') +
+
+      sec(7, 'Summen', '<div class="f3" style="margin-bottom:12px">' + fld('Gesamtrabatt', seg('discType', [['pct', '%'], ['eur', '€']], d.discount.type)) + fld('Rabatt-Wert', inp('discValue', d.discount.value, 'number', ' step="any" min="0"')) +
+        fld(d.type === 'final' ? 'Gezahlte Abschläge' : 'Anzahlung / bereits gezahlt (brutto)', inp('deposit', d.deposit, 'number', ' step="0.01" min="0"')) + '</div><table class="sumtab" id="sumtab"></table>') +
+
+      (offer || storno ? '' : sec(8, 'Zahlung', '<div class="f4">' + fld('Zahlungsart', '<select class="input" id="payMethod">' + r.payMethods.map(function (m) { return '<option' + (m === d.payMethod ? ' selected' : '') + '>' + esc(m) + '</option>'; }).join('') + '</select>') +
+        fld('Skonto %', inp('skontoPct', d.skonto.pct, 'number', ' step="any" min="0" max="10"')) + fld('Skonto innerhalb (Tage)', inp('skontoDays', d.skonto.days, 'number', ' min="0" max="60"')) +
+        fld('Verwendungszweck', '<div class="input" style="background:transparent">' + (draft ? 'Rechnungsnummer (beim Ausstellen)' : esc(d.nr)) + '</div>') + '</div>')) +
+
+      sec(offer || storno ? 8 : 9, 'Schlusstext und Hinweise', '<textarea class="input" id="outro" style="min-height:140px">' + esc(d.outro) + '</textarea>' +
+        '<p class="muted" style="margin:8px 0 0">Automatisch auf dem Beleg: ' + (c.small ? '§-19-Hinweis, ' : 'USt je Satz, ') + 'Lohnanteil § 35a, Zahlungsfrist und Bankverbindung, Fußzeile mit Firmendaten.</p>') +
+
+      '</fieldset></div><aside class="doc-side" id="side"></aside></div>';
+    U.app.innerHTML = html;
+    bindForm();
+    side();
+  }
+
+  function readForm() {
+    var d = JSON.parse(JSON.stringify(D.cur.doc)), q = function (id) { var e = document.getElementById(id); return e ? e.value : undefined; };
+    var radio = function (n) { var e = document.querySelector('input[name="' + n + '"]:checked'); return e ? e.value : undefined; };
+    d.type = radio('type') || d.type;
+    d.to = {kind: radio('kind') || 'privat', company: q('to_company'), vatId: q('to_vatId'), name: q('to_name'), email: q('to_email'), street: q('to_street'), city: q('to_city'), country: q('to_country'), phone: q('to_phone')};
+    d.date = q('date'); d.lead = q('lead'); d.ref = q('ref'); d.subject = q('subject'); d.intro = q('intro'); d.outro = q('outro');
+    if (q('validUntil') !== undefined) d.validUntil = q('validUntil');
+    if (q('serviceFrom') !== undefined) d.serviceFrom = q('serviceFrom');
+    if (q('serviceTo') !== undefined) d.serviceTo = q('serviceTo');
+    if (q('payDays') !== undefined) d.payDays = Number(q('payDays')) || 0;
+    if (q('payMethod') !== undefined) d.payMethod = q('payMethod');
+    if (q('skontoPct') !== undefined) d.skonto = {pct: Number(q('skontoPct')) || 0, days: Number(q('skontoDays')) || 0};
+    d.priceMode = radio('priceMode') || d.priceMode;
+    d.discount = {type: radio('discType') || 'pct', value: Number(q('discValue')) || 0};
+    d.deposit = Number(q('deposit')) || 0;
+    d.lines = Array.prototype.map.call(document.querySelectorAll('#lines tr'), function (tr) {
+      var g = function (k) { return tr.querySelector('[data-k="' + k + '"]'); };
+      return {title: g('title').value, detail: g('detail').value, qty: Number(g('qty').value) || 0, unit: g('unit').value, price: Number(g('price').value) || 0,
+        vat: Number(g('vat').value), disc: Number(g('disc').value) || 0, labour: g('labour').checked};
+    });
+    d.due = d.type === 'offer' ? '' : addDays(d.date, d.payDays);
+    return d;
+  }
+
+  /* Checks shown live in the side panel (the server checks the same before issuing). */
+  function checks(d) {
+    var c = D.company, offer = d.type === 'offer', storno = d.type === 'storno', out = [];
+    var add = function (ok, text) { out.push([ok, text]); };
+    add(!!(d.to.name || d.to.company), 'Name des Kunden');
+    if (!offer) add(!!(d.to.street && d.to.city), 'Vollständige Anschrift des Kunden');
+    add(d.lines.length > 0 && d.lines.every(function (l) { return l.title; }), 'Positionen mit Bezeichnung');
+    if (!offer && !storno) add(!!d.serviceFrom, 'Leistungsdatum oder -zeitraum');
+    if (offer) add(!!d.validUntil, 'Gültig bis');
+    if (!offer) add(!!(c.vat_id || c.tax_no), 'USt-IdNr. oder Steuernummer (Firmendaten)');
+    if (!offer && d.payMethod === 'Überweisung') add(!!c.iban, 'IBAN (Firmendaten)');
+    add(!!d.to.email, 'E-Mail-Adresse für den Versand');
+    return out;
+  }
+
+  function recalc() {
+    var d = readForm(), t = totals(d), c = D.company;
+    document.querySelectorAll('#lines tr').forEach(function (tr, i) {
+      var l = d.lines[i]; tr.querySelector('.pos').textContent = i + 1;
+      tr.querySelector('.amt').textContent = eur2(cents(cents(l.qty * l.price) * (1 - (l.disc || 0) / 100)));
+    });
+    var ph = document.getElementById('price-h'); if (ph) ph.textContent = d.priceMode === 'net' ? 'Preis netto' : 'Preis brutto';
+    var rows = '';
+    if (t.discount) rows += '<tr><td>Summe Positionen</td><td>' + eur2(t.lines) + '</td></tr><tr><td>Rabatt</td><td>−' + eur2(t.discount) + '</td></tr>';
+    if (c.small) rows += '<tr class="m"><td colspan="2">Kleinunternehmer: keine Umsatzsteuer (§ 19 UStG)</td></tr>';
+    else {
+      t.groups.forEach(function (g) { rows += '<tr><td>Netto ' + g.rate + ' %</td><td>' + eur2(g.net) + '</td></tr>'; });
+      t.groups.forEach(function (g) { rows += '<tr><td>USt ' + g.rate + ' %</td><td>' + eur2(g.vat) + '</td></tr>'; });
+    }
+    rows += '<tr class="g"><td>Gesamt brutto</td><td>' + eur2(t.gross) + '</td></tr>';
+    if (t.deposit) rows += '<tr><td>abzüglich Anzahlung</td><td>−' + eur2(t.deposit) + '</td></tr><tr class="g"><td>Zu zahlen</td><td>' + eur2(t.toPay) + '</td></tr>';
+    if (t.labour > 0) rows += '<tr class="m"><td>Lohnanteil § 35a EStG</td><td>' + eur2(t.labour) + '</td></tr><tr class="m"><td>möglicher Steuerabzug des Kunden (20 %)</td><td>' + eur2(t.labour * 0.2) + '</td></tr>';
+    if (t.skonto) rows += '<tr class="m"><td>Skonto ' + d.skonto.pct + ' % bei Zahlung in ' + d.skonto.days + ' Tagen</td><td>−' + eur2(t.skonto) + '</td></tr>';
+    document.getElementById('sumtab').innerHTML = rows;
+    var due = document.getElementById('due-show'); if (due) due.textContent = dDe(d.due);
+    document.querySelectorAll('.firma-only').forEach(function (e) { e.style.display = d.to.kind === 'firma' ? '' : 'none'; });
+    var big = document.getElementById('side-total'); if (big) big.textContent = eur2(t.toPay);
+    var ck = document.getElementById('side-checks');
+    if (ck) ck.innerHTML = checks(d).map(function (x) { return '<li class="' + (x[0] ? '' : 'no') + '">' + esc(x[1]) + '</li>'; }).join('');
+    D.dirty = true;
+    return d;
+  }
+
+  /* New type: default texts that were not edited follow the type (the greeting line is kept). */
+  function switchType(type) {
+    var d = readForm(), old = D.cur.doc.type, T = D.cur.texts || {};
+    var GREET = /^(Guten Tag[^\n]*|Sehr geehrte Damen und Herren,)/;
+    var body = function (x) { return String(x || '').replace(GREET, ''); };
+    var hello = (String(d.intro).match(GREET) || ['Sehr geehrte Damen und Herren,'])[0];
+    ['intro', 'outro'].forEach(function (k) {
+      if (T[old] && T[type] && body(d[k]) === body(T[old][k])) d[k] = k === 'intro' ? hello + body(T[type].intro) : T[type].outro;
+    });
+    d.subject = String(d.subject || '').replace(/^(Angebot|Rechnung|Abschlagsrechnung|Schlussrechnung)/, TYPES[type]);
+    d.type = type;
+    if (type === 'offer' && !d.validUntil) d.validUntil = addDays(d.date, D.company.offer_days);
+    D.cur.doc = d; drawForm();
+  }
+
+  function bindForm() {
+    var form = document.getElementById('docform'), lines = document.getElementById('lines');
+    form.addEventListener('input', recalc);
+    form.addEventListener('change', function (e) {
+      if (e.target.name === 'type') { switchType(e.target.value); return; }   // sections and default texts differ per type
+      recalc();
+    });
+    lines.addEventListener('click', function (e) {
+      var b = e.target.closest('button[data-act]'); if (!b) return;
+      var tr = b.closest('tr'), act = b.getAttribute('data-act');
+      if (act === 'del') tr.remove();
+      if (act === 'up' && tr.previousElementSibling) tr.parentNode.insertBefore(tr, tr.previousElementSibling);
+      if (act === 'down' && tr.nextElementSibling) tr.parentNode.insertBefore(tr.nextElementSibling, tr);
+      if (act === 'dup') tr.insertAdjacentElement('afterend', tr.cloneNode(true));
+      recalc();
+    });
+    lines.addEventListener('change', function (e) {   // a template name typed or picked in the title field fills the line
+      if (e.target.getAttribute('data-k') !== 'title') return;
+      var x = TEMPLATES.filter(function (t) { return t[0] === e.target.value; })[0], tr = e.target.closest('tr');
+      if (!x || tr.querySelector('[data-k="price"]').value !== '0') return;
+      tr.querySelector('[data-k="detail"]').value = tr.querySelector('[data-k="detail"]').value || x[1];
+      tr.querySelector('[data-k="unit"]').value = x[3]; tr.querySelector('[data-k="price"]').value = x[4]; tr.querySelector('[data-k="labour"]').checked = x[5];
+      recalc();
+    });
+    var addLine = function (x) {
+      var c = D.company, l = x ? {title: x[0], detail: x[1], qty: x[2], unit: x[3], price: x[4], vat: c.small ? 0 : c.vat, disc: 0, labour: x[5]} : {title: '', detail: '', qty: 1, unit: 'Pausch.', price: 0, vat: c.small ? 0 : c.vat, disc: 0, labour: false};
+      lines.insertAdjacentHTML('beforeend', lineRow(l, lines.children.length));
+      lines.lastElementChild.querySelector('input').focus(); recalc();
+    };
+    document.getElementById('add-line').addEventListener('click', function () { addLine(); });
+    document.getElementById('tpl').addEventListener('change', function (e) { if (e.target.value !== '') addLine(TEMPLATES[Number(e.target.value)]); e.target.value = ''; });
+    recalc(); D.dirty = false;
+  }
+
+  /* ---------- side panel: totals, checks, actions ---------- */
+  function side() {
+    var r = D.cur, d = r.doc, draft = d.status === 'Entwurf', offer = d.type === 'offer', t = d.totals || totals(d);
+    var paid = (d.payments || []).reduce(function (a, p) { return a + p.amount; }, 0);
+    var h = '<div class="side-card"><h3>' + (d.deposit ? 'Zu zahlen' : 'Gesamt brutto') + '</h3><div class="big" id="side-total">' + eur2(t.toPay) + '</div>' +
+      (paid ? '<p class="muted" style="margin:6px 0 0">bezahlt ' + eur2(paid) + ' · offen ' + eur2(Math.max(0, t.toPay - paid)) + '</p>' : '') +
+      (draft ? '<h3 style="margin-top:14px">Pflichtangaben</h3><ul class="checks" id="side-checks"></ul>' : '') +
+      '<div class="actions">';
+    if (draft) h += '<button class="btn" id="b-save">Entwurf speichern</button><button class="btn" id="b-prev">Vorschau ansehen</button>' +
+      '<button class="btn primary" id="b-issue">' + (offer ? 'Angebot ausstellen' : 'Rechnung ausstellen') + ' →</button><button class="btn small" id="b-del">Entwurf löschen</button>';
+    else {
+      h += '<button class="btn primary" id="b-mail">Per E-Mail mit PDF senden</button>' + (d.to.phone ? '<button class="btn" id="b-wa">WhatsApp-Nachricht</button>' : '') +
+        '<button class="btn" id="b-prev">Ansehen</button>' + (d.pdf ? '<a class="btn" href="' + esc(d.pdf) + '" target="_blank" rel="noopener">PDF in Google Drive</a>' : '') + '<button class="btn" id="b-dl">PDF herunterladen</button>';
+      if (offer) h += (['Offen', 'Gesendet'].indexOf(d.status) >= 0 ? '<button class="btn" id="b-acc">Angenommen</button><button class="btn" id="b-rej">Abgelehnt</button>' : '') +
+        '<button class="btn" data-copy="invoice">In Rechnung umwandeln</button><button class="btn" data-copy="deposit">Abschlagsrechnung erstellen</button>';
+      else if (d.type !== 'storno') {
+        if (['Offen', 'Teilbezahlt'].indexOf(d.status) >= 0) h += '<button class="btn" id="b-pay">Zahlung erfassen</button>';
+        if (d.type === 'deposit') h += '<button class="btn" data-copy="final">Schlussrechnung erstellen</button>';
+        if (d.status !== 'Storniert') h += '<button class="btn" id="b-cancel">Stornieren (Stornorechnung)</button>';
+        h += '<button class="btn" data-copy="invoice">Als neuen Entwurf kopieren</button>';
+      }
+    }
+    h += '</div>' + (d.sent ? '<p class="muted" style="margin:10px 0 0">Gesendet: ' + U.dt(d.sent) + '</p>' : '') +
+      (d.cancelledBy ? '<p class="warn">Storniert durch <a href="#/beleg/' + encodeURIComponent(d.cancelledBy) + '">' + esc(d.cancelledBy) + '</a></p>' : '') + '</div>';
+    if ((d.payments || []).length) h += '<div class="side-card"><h3>Zahlungen</h3><ul class="log">' + d.payments.map(function (p) { return '<li>' + dDe(p.date) + ' · ' + eur2(p.amount) + ' · ' + esc(p.method) + '</li>'; }).join('') + '</ul></div>';
+    if ((d.log || []).length) h += '<div class="side-card"><h3>Verlauf</h3><ul class="log">' + d.log.slice().reverse().map(function (x) { return '<li>' + U.dt(x.at) + ' · ' + esc(x.what) + '<br><span>' + esc(x.by) + '</span></li>'; }).join('') + '</ul></div>';
+    document.getElementById('side').innerHTML = h;
+    if (draft) recalc(), D.dirty = false;
+    bindSide();
+  }
+
+  function busy(b, p) { b.disabled = true; return p.then(function (x) { b.disabled = false; return x; }, function (e) { b.disabled = false; U.fail(e); throw e; }); }
+  function bindSide() {
+    var d = D.cur.doc, on = function (id, fn) { var b = document.getElementById(id); if (b) b.addEventListener('click', function () { fn(b); }); };
+    on('b-save', function (b) { busy(b, run('api_docSave', readForm())).then(function (r) { D.cur = r; U.toast('Entwurf gespeichert.'); drawForm(); }); });
+    on('b-prev', function (b) { busy(b, run('api_docPreview', d.status === 'Entwurf' ? readForm() : d)).then(preview); });
+    on('b-issue', function (b) {
+      var f = readForm(), miss = checks(f).filter(function (x) { return !x[0] && x[1].indexOf('E-Mail') < 0; });
+      if (miss.length) { U.toast('Bitte ergänzen: ' + miss.map(function (x) { return x[1]; }).join(', '), true); return; }
+      if (!confirm((f.type === 'offer' ? 'Angebot' : 'Rechnung') + ' jetzt ausstellen?\n\nDer Beleg bekommt die nächste Nummer, wird als PDF in Google Drive gespeichert und kann danach nicht mehr geändert werden.')) return;
+      busy(b, run('api_docIssue', f)).then(function (r) { D.cur = r; U.toast('Ausgestellt: ' + r.doc.nr); location.replace('#/beleg/' + encodeURIComponent(r.doc.nr)); });
+    });
+    on('b-del', function (b) { if (confirm('Entwurf löschen?')) busy(b, run('api_docDelete', d.nr)).then(function () { U.toast('Entwurf gelöscht.'); location.hash = '#/belege'; }); });
+    on('b-dl', function (b) { busy(b, run('api_docPdf', d.nr)).then(function (f) { var a = document.createElement('a'); a.href = 'data:application/pdf;base64,' + f.data; a.download = f.name; document.body.appendChild(a); a.click(); a.remove(); }); });
+    on('b-mail', mailBox);
+    on('b-wa', function () {
+      var t = D.cur.doc.totals, offer = d.type === 'offer';
+      var text = 'Guten Tag ' + (d.to.name || '') + ',\n\n' + (offer ? 'wir haben Ihnen unser Angebot ' + d.nr + ' über ' + eur2(t.toPay) + ' per E-Mail geschickt (PDF im Anhang).' :
+        'wir haben Ihnen die Rechnung ' + d.nr + ' über ' + eur2(t.toPay) + ' per E-Mail geschickt (PDF im Anhang). Zahlbar bis ' + dDe(d.due) + '.') + '\n\nViele Grüße\n' + D.company.owner + '\n' + D.company.name;
+      window.open('https://wa.me/' + U.waNum(d.to.phone) + '?text=' + encodeURIComponent(text), '_blank');
+    });
+    on('b-acc', function (b) { busy(b, run('api_docOffer', d.nr, true)).then(function (r) { D.cur = r; U.toast('Angebot angenommen – Anfrage ist „Gebucht“.'); drawForm(); }); });
+    on('b-rej', function (b) { if (confirm('Angebot als abgelehnt markieren? Die Anfrage wird „Verloren“.')) busy(b, run('api_docOffer', d.nr, false)).then(function (r) { D.cur = r; drawForm(); }); });
+    on('b-pay', payBox);
+    on('b-cancel', function (b) {
+      var why = prompt('Rechnung ' + d.nr + ' stornieren?\n\nEs wird eine Stornorechnung mit negativen Beträgen erstellt; die Rechnung selbst bleibt unverändert erhalten.\n\nGrund (optional):', '');
+      if (why === null) return;
+      busy(b, run('api_docCancel', d.nr, why)).then(function (nr) { U.toast('Stornorechnung ' + nr + ' erstellt.'); location.hash = '#/beleg/' + encodeURIComponent(nr); });
+    });
+    document.querySelectorAll('[data-copy]').forEach(function (b) {
+      b.addEventListener('click', function () { busy(b, run('api_docCopy', d.nr, b.getAttribute('data-copy'))).then(function (nr) { U.toast('Neuer Entwurf angelegt.'); location.hash = '#/beleg/' + encodeURIComponent(nr); }); });
+    });
+  }
+
+  function modal(inner, small) {
+    var m = document.createElement('div'); m.className = 'modal'; m.innerHTML = '<div class="box' + (small ? ' small' : '') + '" role="dialog" aria-modal="true">' + inner + '</div>';
+    document.body.appendChild(m);
+    var close = function () { m.remove(); document.removeEventListener('keydown', key); };
+    var key = function (e) { if (e.key === 'Escape') close(); };
+    document.addEventListener('keydown', key);
+    m.addEventListener('click', function (e) { if (e.target === m || e.target.hasAttribute('data-close')) close(); });
+    return {el: m, close: close};
+  }
+  function preview(html) {
+    var m = modal('<div class="bar"><b>Vorschau – so sieht der Kunde den Beleg</b><span class="actions"><button class="btn small" id="pv-print">Drucken</button><button class="btn small" data-close>Schließen</button></span></div><iframe title="Vorschau"></iframe>');
+    var f = m.el.querySelector('iframe'); f.srcdoc = html;
+    m.el.querySelector('#pv-print').addEventListener('click', function () { f.contentWindow.print(); });
+  }
+  function mailBox() {
+    var d = D.cur.doc, c = D.company, t = d.totals, offer = d.type === 'offer', name = TYPES[d.type];
+    var body = 'Guten Tag ' + (d.to.name || '') + ',\n\n' + (offer
+      ? 'vielen Dank für Ihre Anfrage. Im Anhang finden Sie unser Angebot ' + d.nr + ' über ' + eur2(t.toPay) + ', gültig bis ' + dDe(d.validUntil) + '.\n\nWenn Ihnen das Angebot zusagt, antworten Sie einfach auf diese E-Mail oder per WhatsApp – dann reservieren wir Ihren Termin.'
+      : 'vielen Dank für Ihren Auftrag. Im Anhang finden Sie die ' + name + ' ' + d.nr + ' über ' + eur2(t.toPay) + '.\n\nBitte überweisen Sie den Betrag bis zum ' + dDe(d.due) + (c.iban ? ' auf ' + c.iban : '') + ' mit dem Verwendungszweck ' + d.nr + '.') +
+      '\n\nBei Fragen erreichen Sie uns unter ' + c.phone + '.\n\nMit freundlichen Grüßen\n' + c.owner + '\n' + c.name + ' · ' + c.street + ' · ' + c.city;
+    var m = modal('<div class="bar"><b>' + esc(name) + ' per E-Mail senden</b><button class="btn small" data-close>Schließen</button></div>' +
+      fld('An', inp('m-to', d.to.email, 'email')) + fld('Betreff', inp('m-subj', name + ' ' + d.nr + ' – ' + c.name)) +
+      fld('Nachricht', '<textarea class="input" id="m-body" style="min-height:240px">' + esc(body) + '</textarea>') +
+      '<p class="muted">Das PDF wird angehängt. Gesendet wird von Ihrem angemeldeten Google-Konto; Antworten gehen an ' + esc(c.email) + '.</p>' +
+      '<div class="actions"><button class="btn primary" id="m-send">Jetzt senden</button></div>', true);
+    m.el.querySelector('#m-send').addEventListener('click', function (e) {
+      busy(e.target, run('api_docSend', d.nr, {to: m.el.querySelector('#m-to').value, subject: m.el.querySelector('#m-subj').value, body: m.el.querySelector('#m-body').value}))
+        .then(function (r) { m.close(); D.cur = r; U.toast('Gesendet an ' + r.doc.to.email + '.'); drawForm(); });
+    });
+  }
+  function payBox() {
+    var d = D.cur.doc, paid = (d.payments || []).reduce(function (a, p) { return a + p.amount; }, 0), rest = cents(d.totals.toPay - paid);
+    var m = modal('<div class="bar"><b>Zahlung erfassen · ' + esc(d.nr) + '</b><button class="btn small" data-close>Schließen</button></div>' +
+      '<div class="f2">' + fld('Betrag (€)', inp('p-amt', rest, 'number', ' step="0.01" min="0"')) + fld('Datum', inp('p-date', new Date().toISOString().slice(0, 10), 'date')) +
+      fld('Zahlungsart', '<select class="input" id="p-m">' + D.cur.payMethods.map(function (x) { return '<option' + (x === d.payMethod ? ' selected' : '') + '>' + esc(x) + '</option>'; }).join('') + '</select>', 'span2') + '</div>' +
+      '<p class="muted">Offen: ' + eur2(rest) + '. Teilzahlungen sind möglich; bei vollständiger Zahlung wird die Rechnung „Bezahlt“.</p>' +
+      '<div class="actions"><button class="btn primary" id="p-save">Zahlung speichern</button></div>', true);
+    m.el.querySelector('#p-save').addEventListener('click', function (e) {
+      busy(e.target, run('api_docPay', d.nr, {amount: Number(m.el.querySelector('#p-amt').value), date: m.el.querySelector('#p-date').value, method: m.el.querySelector('#p-m').value}))
+        .then(function (r) { m.close(); D.cur = r; U.toast('Zahlung gespeichert – ' + r.doc.status + '.'); drawForm(); });
+    });
+  }
+
+  /* ---------- company data ---------- */
+  function company() {
+    U.setNav('docs');
+    U.app.innerHTML = '<p class="loading">Firmendaten werden geladen …</p>';
+    run('api_company').then(function (r) {
+      U.app.innerHTML = '<a href="#/belege" class="muted">← Belege</a><span class="kicker" style="display:block;margin-top:8px">Einstellungen</span><div class="h"><h1>Firmendaten für Angebote und Rechnungen</h1></div>' +
+        '<p class="muted" style="max-width:70ch">Diese Angaben stehen im Kopf und in der Fußzeile jedes Belegs. Für Rechnungen Pflicht: Name und Anschrift, USt-IdNr. oder Steuernummer. Für Überweisungen: IBAN.</p>' +
+        '<div class="f3" style="max-width:980px">' + r.fields.map(function (f) { return fld(f.label, inp('c_' + f.key, r.values[f.key])); }).join('') + '</div>' +
+        '<div class="actions" style="margin-top:16px"><button class="btn primary" id="c-save">Speichern</button></div>';
+      document.getElementById('c-save').addEventListener('click', function (e) {
+        var v = {}; r.fields.forEach(function (f) { v[f.key] = document.getElementById('c_' + f.key).value; });
+        busy(e.target, run('api_companySave', v)).then(function () { U.toast('Firmendaten gespeichert.'); });
+      });
+    }).catch(U.fail);
+  }
+
+  /* ---------- card on the request page ---------- */
+  function leadCard(l, el) {
+    if (!el) return;
+    el.innerHTML = '<h2>Angebote und Rechnungen</h2><p class="muted">Wird geladen …</p>';
+    run('api_docs').then(function (r) {
+      D.today = r.today;
+      var mine = r.docs.filter(function (x) { return x.lead === l.id; });
+      el.innerHTML = '<h2>Angebote und Rechnungen</h2>' + (mine.length ? '<div class="list">' + mine.map(function (x) {
+        return '<a class="row" href="#/beleg/' + encodeURIComponent(x.nr) + '"><span class="id">' + esc(x.status === 'Entwurf' ? 'Entwurf' : x.nr) + '</span><span>' + esc(x.typeLabel) + '<small>' + dDe(x.date) + ' · ' + eur2(x.gross) + '</small></span>' + stat(x) + '</a>';
+      }).join('') + '</div>' : '<p class="muted" style="margin:0 0 8px">Noch keine Belege zu dieser Anfrage.</p>') +
+        '<div class="actions" style="margin-top:10px"><a class="btn small" href="#/neu/offer/' + encodeURIComponent(l.id) + '">+ Angebot (PDF)</a><a class="btn small" href="#/neu/invoice/' + encodeURIComponent(l.id) + '">+ Rechnung</a><a class="btn small" href="#/neu/deposit/' + encodeURIComponent(l.id) + '">+ Abschlag</a></div>';
+    }).catch(function (e) { el.innerHTML = '<h2>Angebote und Rechnungen</h2><p class="muted">' + esc(e.message || e) + '</p>'; });
+  }
+
+  // a dialog never outlives the page it was opened on
+  window.addEventListener('hashchange', function () { document.querySelectorAll('.modal').forEach(function (m) { m.remove(); }); });
+
+  window.SUDocs = {route: route, leadCard: leadCard};
+})();
+</script>

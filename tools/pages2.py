@@ -166,7 +166,8 @@ def privacy(lang):
             "und speichern sie in einer Google-Tabelle, um Ihnen ein Angebot zu erstellen (Art. 6 Abs. 1 lit. b DSGVO, Ihre Einwilligung nach Art. 6 Abs. 1 lit. a DSGVO). "
             "Anbieter ist Google Ireland Limited, Gordon House, Barrow Street, Dublin 4, Irland; eine Übermittlung in die USA ist nicht auszuschließen. "
             "Wir löschen Anfragen, aus denen kein Auftrag wird, nach 6 Monaten.</p>"
-            "<p>Mit „Entfernung berechnen“ werden die beiden Adressen an Google Maps übermittelt, um die Fahrstrecke zu berechnen. "
+            "<p>Mit „Entfernung berechnen“ und „Strecke und Karte anzeigen“ werden die beiden eingegebenen Orte über unseren Server an Google Maps übermittelt, um Fahrstrecke, Fahrzeit und eine Karte zu berechnen; Ihr Browser verbindet sich dabei nicht mit Google. "
+            "Für unsere Statistik speichern wir je Berechnung nur Zeitpunkt, Postleitzahl und Ort von Start und Ziel, Entfernung, die aufgerufene Seite und die Kampagne – keine Straße, keine Kontaktdaten – und löschen diese Einträge nach 6 Monaten (Art. 6 Abs. 1 lit. f DSGVO, berechtigtes Interesse an der Planung unseres Angebots). "
             "Mit „Auf einem anderen Gerät weitermachen“ speichern wir Ihren Entwurf nach Ihrer Einwilligung 30 Tage und löschen ihn danach automatisch. "
             "Sie können Ihre Einwilligung jederzeit per E-Mail an uns widerrufen.</p>",
             "<h2>Requests sent through the moving planner</h2><p>When you click “Send request” in the planner, we transfer your details "
@@ -174,7 +175,8 @@ def privacy(lang):
             "to prepare a quote for you (Art. 6(1)(b) GDPR, your consent under Art. 6(1)(a) GDPR). "
             "The provider is Google Ireland Limited, Gordon House, Barrow Street, Dublin 4, Ireland; a transfer to the USA cannot be ruled out. "
             "We delete requests that do not lead to an order after 6 months.</p>"
-            "<p>“Calculate distance” sends both addresses to Google Maps to calculate the driving distance. "
+            "<p>“Calculate distance” and “Show route and map” send the two places you entered to Google Maps via our server to calculate distance, drive time and a map; your browser does not connect to Google. "
+            "For our statistics we store, for each calculation, only the time, postcode and town of start and destination, the distance, the page and the campaign – no street, no contact details – and delete these entries after 6 months (Art. 6(1)(f) GDPR, legitimate interest in planning our service). "
             "“Continue on another device” stores your draft for 30 days with your consent and deletes it automatically afterwards. "
             "You can withdraw your consent at any time by emailing us.</p>", lang)
     body += sec(flag + inner)

@@ -91,9 +91,11 @@
     if (from) S.f1.from = from;
     if (to) S.f1.to = to;
     if (hh >= 0 && hh <= 3) S.f1.hh = hh;
+    var km = parseInt(p.get('km'), 10);   // measured by the route check on the website
+    if (km > 0 && km < 3000) S.f1.km = String(km);
     if (!S.started) S.started = Date.now();
     S.step = 1;
-    ['start', 'from', 'to', 'hh'].forEach(function (k) { p.delete(k); });
+    ['start', 'from', 'to', 'hh', 'km'].forEach(function (k) { p.delete(k); });
     var q = p.toString();
     try { history.replaceState(null, '', location.pathname + (q ? '?' + q : '')); } catch (e) {}
     save();

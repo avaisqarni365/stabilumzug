@@ -67,7 +67,25 @@ function allLeads_() {
 function api_bootstrap() {
   var email = guard_();
   ensureLeadHeader_();
-  return {me: email, statuses: STATUS, leads: allLeads_(), sheetUrl: ss_().getUrl(), portal: typeof PORTAL_URL !== 'undefined' && !!PORTAL_URL};
+  return {me: email, statuses: STATUS, leads: allLeads_(), sheetUrl: ss_().getUrl(), portal: typeof PORTAL_URL !== 'undefined' && !!PORTAL_URL, routes: routeStats_()};
+}
+
+/* Route checks on the website (Strecken tab): how many people calculated their move, and from/to where. */
+function routeStats_() {
+  var sh = ss_().getSheetByName(TAB.routes), out = {today: 0, week: 0, month: 0, towns: [], last: []};
+  if (!sh || sh.getLastRow() < 2) return out;
+  var now = Date.now(), day = Utilities.formatDate(new Date(), 'Europe/Berlin', 'yyyy-MM-dd'), count = {};
+  var rows = sh.getRange(2, 1, sh.getLastRow() - 1, ROUTE_COLS.length).getValues();
+  rows.forEach(function (r) {
+    if (!(r[0] instanceof Date)) return;
+    var age = (now - r[0].getTime()) / 864e5;
+    if (Utilities.formatDate(r[0], 'Europe/Berlin', 'yyyy-MM-dd') === day) out.today++;
+    if (age <= 7) out.week++;
+    if (age <= 30) { out.month++; [r[1], r[2]].forEach(function (p) { var t = String(p).replace(/^\d{5}\s+/, ''); if (t && t !== '–') count[t] = (count[t] || 0) + 1; }); }
+  });
+  out.towns = Object.keys(count).sort(function (a, b) { return count[b] - count[a]; }).slice(0, 8).map(function (k) { return [k, count[k]]; });
+  out.last = rows.slice(-6).reverse().map(function (r) { return {at: iso_(r[0]), from: String(r[1]), to: String(r[2]), km: Number(r[3]) || 0, page: String(r[5])}; });
+  return out;
 }
 
 function api_lead(id) {
