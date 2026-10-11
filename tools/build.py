@@ -47,7 +47,9 @@ def main():
     body = pages2.not_found()
     html = ('<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">'
             '<title>404 | Stabil Umzug</title><meta name="robots" content="noindex"><link rel="icon" href="/assets/img/favicon.svg">'
-            '<link rel="stylesheet" href="/assets/css/site.css"></head><body><main id="main">%s</main></body></html>' % body)
+            '<link rel="stylesheet" href="/assets/css/site.css"></head><body><header class="site-header"><div class="container bar-row">'
+            '<a class="brand" href="/"><img src="/assets/img/favicon.svg" alt="" width="32" height="32"><span>Stabil <b>Umzug</b></span></a></div></header>'
+            '<main id="main">%s</main></body></html>' % body)
     write("404.html", html)
 
     cfg = {k: SITE[k] for k in ("company", "email", "whatsapp", "phone", "phone_href", "hours", "street", "zip", "city", "api")}

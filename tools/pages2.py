@@ -12,27 +12,38 @@ def lis(items):
 NOTE_DE = '<p class="note">Allgemeine Orientierung, keine Rechts- oder Behördenauskunft. Fristen und Regeln können sich ändern; prüfen Sie sie bei der zuständigen Stelle.</p>'
 NOTE_EN = '<p class="note">General guidance, not legal or official advice. Rules and deadlines can change; check with the responsible authority.</p>'
 
+PLACES = ["Essen", "Mülheim an der Ruhr", "Oberhausen", "Bottrop", "Gelsenkirchen", "Bochum", "Duisburg", "Dortmund", "Velbert", "Hattingen", "Düsseldorf", "Ganz Deutschland"]
+
 def essen(lang):
+    import guides
     key = "essen"
     title = t("Umzug in Essen", "Moving in Essen", lang)
-    body = page_head(key, lang, title, t("Wir sitzen in Essen und kennen die Wege im Ruhrgebiet.", "We are based in Essen and know the routes across the Ruhr area.", lang), title)
-    if lang == "de":
-        inner = ("<p>Ob Altbau in Rüttenscheid, Hochhaus im Norden oder Haus im Süden: Der Zugang entscheidet über Zeit und Team. Wir fragen deshalb nach Etage, Aufzug, Treppen und Parkmöglichkeit.</p>"
-                 "<h2>Was in Essen oft hilft</h2>" + lis([
-                 "Frühzeitig eine <a href='%s'>Halteverbotszone</a> beantragen, besonders in dicht bebauten Straßen." % link(key, "parking", lang),
-                 "Enge Treppenhäuser im Altbau im Planer angeben, damit das Team passend plant.",
-                 "Nach dem Einzug innerhalb der Frist <a href='%s'>anmelden</a>." % link(key, "register", lang)]) +
-                 "<p>Planen Sie Ihren Umzug mit dem <a href='%s'>Umzugsplaner</a> und senden Sie uns die Zusammenfassung.</p>" % link(key, "planner", lang))
-    else:
-        inner = ("<p>Whether an old building in Rüttenscheid, a tower block in the north or a house in the south: access decides time and crew. So we ask about floor, lift, stairs and parking.</p>"
-                 "<h2>What often helps in Essen</h2>" + lis([
-                 "Apply early for a <a href='%s'>parking permit zone</a>, especially in dense streets." % link(key, "parking", lang),
-                 "State narrow stairwells in old buildings in the planner so the crew plans accordingly.",
-                 "<a href='%s'>Register</a> within the deadline after moving in." % link(key, "register", lang)]) +
-                 "<p>Plan your move with the <a href='%s'>moving planner</a> and send us the summary.</p>" % link(key, "planner", lang))
-    body += sec(inner) + cta(key, lang)
-    return dict(key=key, lang=lang, title=t("Umzug in Essen | Stabil Umzug", "Moving in Essen | Stabil Umzug", lang),
-                desc=t("Umzugsunternehmen in Essen: Planung, Halteverbotszone, Montage und Transport im Ruhrgebiet und deutschlandweit.", "Moving company in Essen: planning, parking permit, assembly and transport across the Ruhr area and Germany.", lang), body=body)
+    body = page_head(key, lang, title, t("Wir sitzen in Essen – Karlstraße 32 – und ziehen im ganzen Ruhrgebiet und deutschlandweit um.",
+                                         "We are based in Essen – Karlstraße 32 – and move people across the Ruhr area and all of Germany.", lang), title,
+                     kicker=t("Stabil Umzug · Essen", "Stabil Umzug · Essen", lang))
+    tips = [
+        (t("Frühzeitig eine Halteverbotszone beantragen – besonders in dicht bebauten Straßen.", "Apply early for a no-parking zone – especially in dense streets.", lang), "parking"),
+        (t("Enge Treppenhäuser im Altbau im Planer angeben, damit das Team passend plant.", "State narrow stairwells in old buildings in the planner so the crew plans accordingly.", lang), "access"),
+        (t("Sperrmüll rechtzeitig bei der Stadt anmelden, bevor die alte Wohnung leer sein muss.", "Book the city's bulky-waste pickup before the old flat must be empty.", lang), "waste"),
+        (t("Nach dem Einzug innerhalb von zwei Wochen beim Bürgeramt anmelden.", "Register at the citizens' office within two weeks of moving in.", lang), "register"),
+    ]
+    tips_html = "".join('<li>%s <a class="link-arrow" href="%s">%s</a></li>' % (esc(a), link(key, k, lang), t("mehr", "more", lang)) for a, k in tips)
+    places = "".join("<li>%s</li>" % esc(p if p != "Ganz Deutschland" else t("Ganz Deutschland", "All of Germany", lang)) for p in PLACES)
+    body += ('<section class="section"><div class="container split"><div><span class="kicker red">%s</span>'
+             '<h2 style="font-size:clamp(1.9rem,3.8vw,3rem)">%s</h2><p class="lead-text">%s</p><ul class="checks">%s</ul></div>'
+             '<div><span class="kicker">%s</span><ul class="places">%s</ul></div></div></section>') % (
+        t("Altbau, Hochhaus, Haus", "Old building, tower block, house", lang),
+        t("Der Zugang entscheidet über Zeit und Team.", "Access decides time and crew.", lang),
+        esc(t("Ob Altbau in Rüttenscheid, Hochhaus im Norden oder Haus im Süden: Wir fragen nach Etage, Aufzug, Treppenhaus und Parkmöglichkeit – an beiden Adressen.",
+              "Whether an old building in Rüttenscheid, a tower block in the north or a house in the south: we ask about floor, lift, stairwell and parking – at both addresses.", lang)),
+        tips_html, t("Von Essen aus", "From Essen to", lang), places)
+    body += ('<section class="section alt"><div class="container"><div class="head"><div><span class="kicker red">%s</span><h2>%s</h2></div><p>%s</p></div>%s</div></section>'
+             % (t("Ihr Umzug in 10 Schritten", "Your move in 10 steps", lang), t("Schritt für Schritt erklärt.", "Explained step by step.", lang),
+                t("Vom Ausmessen der neuen Wohnung bis zur Anmeldung.", "From measuring the new home to registering.", lang), guides.journey_html(key, lang, teasers=False)))
+    body += cta(key, lang)
+    return dict(key=key, lang=lang, title=t("Umzug in Essen und im Ruhrgebiet | Stabil Umzug", "Moving in Essen and the Ruhr area | Stabil Umzug", lang),
+                desc=t("Umzugsunternehmen in Essen, Karlstraße 32: Umzüge im Ruhrgebiet und deutschlandweit, Halteverbotszone, Montage, Entsorgung. Angebot in 24 Std.",
+                       "Moving company in Essen, Karlstraße 32: moves across the Ruhr area and Germany, no-parking zones, assembly, disposal. Quote within 24 h.", lang), body=body)
 
 PRINCIPLES = [
     (("Eine Schätzung ist eine gültige Antwort.", "A guess is a valid answer."),
@@ -129,6 +140,9 @@ def privacy(lang):
     return dict(key=key, lang=lang, title=t("Datenschutz | Stabil Umzug", "Privacy | Stabil Umzug", lang), desc=t("Datenschutzerklärung von Stabil Umzug.", "Privacy policy of Stabil Umzug.", lang), body=body, noindex=True)
 
 def not_found():
-    body = ('<section class="section"><div class="container narrow prose"><h1>Seite nicht gefunden / Page not found</h1>'
-            '<p>Die Seite gibt es nicht (mehr). <a href="/">Zur Startseite</a> · This page does not exist. <a href="/en/">Back to home</a></p></div></section>')
+    body = ('<section class="hero on-dark"><div class="container" style="padding-bottom:clamp(48px,7vw,96px)"><div>'
+            '<span class="kicker">404</span><h1>Seite nicht gefunden.<span>Page not found.</span></h1>'
+            '<p class="lead">Die Seite gibt es nicht (mehr). This page does not exist (any more).</p>'
+            '<div class="actions"><a class="button primary" href="/">Zur Startseite</a><a class="button arrow" href="/en/">English home</a>'
+            '<a class="button arrow" href="/umzugsplaner/">Umzugsplaner</a></div></div></div></section>')
     return body

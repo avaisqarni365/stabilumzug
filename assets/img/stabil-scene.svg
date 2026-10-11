@@ -20,10 +20,10 @@
   <rect x="262" y="222" width="80" height="4" fill="#201e1d"></rect>
   <rect x="252" y="286" width="684" height="16" fill="#2d2b2b"></rect>
   <rect x="258" y="248" width="672" height="34" fill="#ec3013"></rect>
-  <text x="600" y="272" text-anchor="middle" font-size="17" font-weight="800" fill="#f3f2f2" letter-spacing="2">WWW.STABILUMZUG.DE · TEL / WHATSAPP 0163 9688190</text>
+  <text x="590" y="271" text-anchor="middle" font-size="15" font-weight="800" fill="#f3f2f2" letter-spacing="1.5" textLength="300" lengthAdjust="spacingAndGlyphs">STABILUMZUG.DE · 0163 9688190</text>
   <text x="600" y="146" font-size="50" font-weight="800" fill="#201e1d" letter-spacing="-1.5" textLength="318" lengthAdjust="spacingAndGlyphs">STABIL</text>
   <text x="600" y="206" font-size="50" font-weight="800" fill="#ec3013" letter-spacing="-1.5" textLength="318" lengthAdjust="spacingAndGlyphs">UMZUG</text>
-  <text x="600" y="234" font-size="12.5" font-weight="600" fill="#201e1d" letter-spacing="2.4">UMZÜGE · KLAVIERTRANSPORTE · ENTRÜMPELUNG · ESSEN</text>
+  <text x="600" y="234" font-size="12.5" font-weight="600" fill="#201e1d" letter-spacing="2" textLength="318" lengthAdjust="spacingAndGlyphs">UMZÜGE · KLAVIERTRANSPORTE · ENTRÜMPELUNG · ESSEN</text>
   <g>
     <circle cx="360" cy="300" r="46" fill="#201e1d"></circle><circle cx="360" cy="300" r="26" fill="#9b9797"></circle><circle cx="360" cy="300" r="9" fill="#201e1d"></circle>
     <circle cx="820" cy="300" r="46" fill="#201e1d"></circle><circle cx="820" cy="300" r="26" fill="#9b9797"></circle><circle cx="820" cy="300" r="9" fill="#201e1d"></circle>
