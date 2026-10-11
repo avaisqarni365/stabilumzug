@@ -588,3 +588,6 @@ main h1, main h2, main h3, .kicker, .crumbs, .msg, .facts li, .pfacts dd, .pstep
   :root:not([data-theme="light"]) .cta h2 span{color:var(--dark-red)}
   :root:not([data-theme="light"]) .cta p{color:var(--dark-ink2)}
 }
+.gear{align-items:center}
+.gear-img{margin:0;background:#fff;border:2px solid var(--line-soft)}
+.gear-img img{display:block;width:100%;height:auto}

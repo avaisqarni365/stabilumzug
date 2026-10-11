@@ -220,6 +220,19 @@ def home(lang):
                          t("Sie wählen, was wir übernehmen. Der Rest bleibt bei Ihnen – und günstiger.", "You choose what we handle. The rest stays with you – and costs less.", lang))
                 + services_mod.service_tiles(key, lang) + '<p style="margin:28px 0 0"><a class="link-arrow" href="%s">%s</a></p>' % (L("services"), t("Alle Leistungen", "All services", lang)))
 
+    gear = [("Sackkarren und Möbelroller für schwere Stücke", "Hand trucks and furniture dollies for heavy pieces"),
+            ("Treppensteiger für Waschmaschine, Schrank und Klavier", "Stair climber for washing machine, wardrobe and piano"),
+            ("Möbeldecken, die jedes Stück einzeln schützen", "Moving blankets that protect every piece"),
+            ("Spanngurte, damit im Transporter nichts verrutscht", "Ratchet straps so nothing shifts in the van"),
+            ("Arbeitshandschuhe mit Griff – sicher für Team und Möbel", "Grip gloves – safe for crew and furniture")]
+    body += sec(" alt", '<div class="split gear"><figure class="gear-img"><img src="%sassets/img/photos/equipment.webp" alt="%s" loading="lazy" width="1536" height="1024"></figure>'
+                '<div><span class="kicker red">%s</span><h2>%s</h2><p class="lead" style="margin:14px 0 18px">%s</p><ul class="checks" style="margin-top:0">%s</ul></div></div>' % (
+        pre, esc(t("Ausrüstung von Stabil Umzug: Sackkarre, Treppensteiger, Möbelroller, Möbeldecken, Spanngurte und Handschuhe",
+                   "Stabil Umzug equipment: hand truck, stair climber, dolly, moving blankets, straps and gloves", lang)),
+        t("Ausrüstung", "Equipment", lang), t("Das richtige Werkzeug dabei.", "The right tools on board.", lang),
+        esc(t("Damit Möbel heil ankommen und Treppenhäuser ohne Kratzer bleiben.", "So furniture arrives intact and stairwells stay free of scratches.", lang)),
+        "".join("<li>%s</li>" % esc(t(*x, lang)) for x in gear)))
+
     cover = [(("Gesetzliche Haftung", "Statutory carrier liability"), ("Inklusive. Deckt Verlust und Schäden während des Umzugs, begrenzt je Kubikmeter. Nicht gedeckt: selbst gepackte Kartons, Wertsachen, Bargeld.", "Included. Covers loss and damage during the move, limited per cubic metre. Not covered: self-packed boxes, valuables, cash.")),
              (("Transportversicherung", "Goods-in-transit cover"), ("Auf Anfrage. Deckt bis zu Ihrem angegebenen Wert, auch Kratzer und Glasbruch.", "On request. Covers up to your declared value, including scratches and glass breakage.")),
              (("Eigene Hausratversicherung", "Own household insurance"), ("Deckt oft alte und neue Wohnung während des Umzugs. Neue Adresse melden.", "Often covers old and new home during the move. Report the new address.")),
