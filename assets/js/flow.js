@@ -190,7 +190,7 @@
     return '<div class="uf-hero">' +
       '<h1 tabindex="-1" id="uf-h">' + esc(t.f0.title1) + ' <span>' + esc(t.f0.title2) + '</span></h1>' +
       '<p>' + esc(t.f0.lead) + '</p>' +
-      '<div class="uf-scene"><img src="' + BASE + 'assets/img/van-branded.png" alt="' + esc(lang === 'de' ? 'Transporter von Stabil Umzug' : 'Stabil Umzug van') + '" width="1108" height="1108"></div>' +
+      '<div class="uf-scene"><img src="' + BASE + 'assets/img/van-branded.jpg" alt="' + esc(lang === 'de' ? 'Transporter von Stabil Umzug' : 'Stabil Umzug van') + '" width="1108" height="1108"></div>' +
       '<div class="uf-caption"><span>' + esc(t.f0.fleet) + '</span><span>' + esc(t.f0.kicker) + '</span></div></div>' +
       '<div><h3 class="uf-h6">' + esc(t.f0.how) + '</h3><ol class="uf-how">' + t.f0.steps.map(function (x, i) {
         return '<li><span class="uf-n" aria-hidden="true">0' + (i + 1) + '</span><div><div class="uf-strong">' + esc(x[0]) + '</div><div class="uf-small">' + esc(x[1]) + '</div></div></li>';

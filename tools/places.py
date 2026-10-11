@@ -37,7 +37,7 @@ def place_page(p):
         trip = (t("%s km · ca. %s Min. von unserem Standort in Essen-Altenessen", "%s km · approx. %s min from our depot in Essen-Altenessen", lang) % (km, mins)) if km is not None else ""
         head = ('<div class="page-head ph-photo"><div class="container"><div class="ph-text">%s<span class="kicker red">%s</span><h1>%s</h1><p class="lead">%s</p>'
                 '<div class="actions" style="margin-top:24px"><a class="button primary" href="%s">%s</a><a class="button arrow" href="tel:%s">%s</a></div></div>'
-                '<figure class="ph-img"><img src="%sassets/img/photos/%s" alt="%s" loading="eager" width="1600" height="1067"></figure></div></div>') % (
+                '<figure class="ph-img"><img src="%sassets/img/photos/%s" alt="%s" fetchpriority="high" width="1600" height="1067"></figure></div></div>') % (
             crumbs(key, lang, full, parent="essen" if group == "essen" else None),
             esc(trip), esc(t("Umzug %s", "Moving in %s", lang) % full),
             esc(t("Umzüge, Entrümpelungen, Wohnungsauflösungen und Transporte in %s – mit festem Team, eigenem Transporter und kostenlosem Angebot innerhalb von 24 Stunden.",

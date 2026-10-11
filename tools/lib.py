@@ -1,5 +1,6 @@
 """Layout helpers for the Stabil Umzug static site generator."""
-import html, json
+import html, json, os, re
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 from config import SITE
 from guides_content import GUIDES
 from services_content import SERVICES
@@ -175,7 +176,7 @@ def head(page):
         '<meta property="og:image" content="%s">' % og,
         '<meta property="og:locale" content="%s">' % ("de_DE" if lang == "de" else "en_GB"),
         '<meta name="twitter:card" content="summary_large_image">',
-        '<meta name="theme-color" content="#201e1d">',
+        '<meta name="theme-color" content="#ffffff">',
         '<link rel="icon" href="%sassets/img/favicon.svg" type="image/svg+xml">' % pre,
         '<link rel="preload" href="%sassets/fonts/archivo-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>' % pre,
         '<link rel="preload" href="%sassets/fonts/archivo-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin>' % pre,
@@ -192,7 +193,7 @@ def head(page):
 def render(page):
     key, lang = page["key"], page["lang"]
     pre = prefix_for(key, lang)
-    scripts = ['<script src="%sassets/js/site-config.js"></script>' % pre]
+    scripts = ['<script src="%sassets/js/site-config.js" defer></script>' % pre]
     if page.get("planner"):
         for f in ("flow-i18n", "flow-data", "estimator", "flow"):
             scripts.append('<script src="%sassets/js/%s.js" defer></script>' % (pre, f))
@@ -202,11 +203,28 @@ def render(page):
         scripts.append('<script src="%sassets/js/portal.js" defer></script>' % pre)
     scripts.append('<script src="%sassets/js/site.js" defer></script>' % pre)
     no_bar = page.get("planner") or key in ("quote", "portal")   # the planner has its own footer; the quote page is the bar's target
-    return (
+    return responsive_images((
         '<!doctype html>\n<html lang="%s">\n<head>\n%s\n</head>\n<body%s>\n'
         '<a class="skip" href="#main">%s</a>\n%s\n<main id="main">\n%s\n</main>\n%s\n%s%s\n</body>\n</html>\n'
     ) % (lang, head(page), "" if no_bar else ' class="has-actionbar"', t("Zum Inhalt springen", "Skip to content", lang),
-         header(key, lang), page["body"], footer(key, lang), "" if no_bar else actionbar(key, lang), "\n".join(scripts))
+         header(key, lang), page["body"], footer(key, lang), "" if no_bar else actionbar(key, lang), "\n".join(scripts)))
+
+PHOTO_SIZES = "(max-width:860px) 100vw, 50vw"
+_PHOTO = re.compile(r'<img src="([^"]*assets/img/photos/)([a-z0-9-]+)\.jpg"([^>]*)>')
+
+def responsive_images(html):
+    """Every photo gets 640/1024/1536 px versions (made by tools/images.ps1), so phones load ~50 KB instead of ~250 KB.
+    A data-sizes attribute on the img overrides the default layout hint."""
+    def rep(m):
+        path, name, rest = m.groups()
+        sm = re.search(r'\sdata-sizes="([^"]*)"', rest)
+        sizes = sm.group(1) if sm else PHOTO_SIZES
+        rest = re.sub(r'\sdata-sizes="[^"]*"', "", rest)
+        if not os.path.exists(os.path.join(ROOT, "assets", "img", "photos", name + "-640.jpg")):
+            return m.group(0)
+        return '<img src="%s%s.jpg" srcset="%s%s-640.jpg 640w, %s%s-1024.jpg 1024w, %s%s.jpg 1536w" sizes="%s"%s>' % (
+            path, name, path, name, path, name, path, name, sizes, rest)
+    return _PHOTO.sub(rep, html)
 
 def actionbar(key, lang):
     """Sticky bar on phones: plan the move, or call / WhatsApp right away."""
