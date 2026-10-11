@@ -21,9 +21,9 @@ SITE = {
     "zip": "45329",
     "hours": "Mo–Fr 9–19 Uhr · Sa/So 9–17 Uhr",
     # Legal details for the imprint (Impressum). Have them checked by a lawyer.
-    "owner": "[Inhaber oder Geschäftsführer]",
+    "owner": "Ibrahim Abdelaal",
     "legal_form": "[Rechtsform]",
-    "vat_id": "[USt-IdNr., falls vorhanden]",
+    "vat_id": "DE458214531",
     "register": "[Handelsregister und Nummer, falls vorhanden]",
     "hosting": "GitHub Pages (GitHub, Inc., 88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, USA)",
 }

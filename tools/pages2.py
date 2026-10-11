@@ -124,7 +124,7 @@ def privacy(lang):
             "(Kontaktdaten, Adressen, Zugang, Gegenstände und die Angabe, über welche Seite oder Kampagne Sie gekommen sind) an unser Google-Konto "
             "und speichern sie in einer Google-Tabelle, um Ihnen ein Angebot zu erstellen (Art. 6 Abs. 1 lit. b DSGVO, Ihre Einwilligung nach Art. 6 Abs. 1 lit. a DSGVO). "
             "Anbieter ist Google Ireland Limited, Gordon House, Barrow Street, Dublin 4, Irland; eine Übermittlung in die USA ist nicht auszuschließen. "
-            "Wir löschen Anfragen, aus denen kein Auftrag wird, nach <span class=\"ph\">[Speicherdauer festlegen, z. B. 6 Monaten]</span>.</p>"
+            "Wir löschen Anfragen, aus denen kein Auftrag wird, nach 6 Monaten.</p>"
             "<p>Mit „Entfernung berechnen“ werden die beiden Adressen an Google Maps übermittelt, um die Fahrstrecke zu berechnen. "
             "Mit „Auf einem anderen Gerät weitermachen“ speichern wir Ihren Entwurf nach Ihrer Einwilligung 30 Tage und löschen ihn danach automatisch. "
             "Sie können Ihre Einwilligung jederzeit per E-Mail an uns widerrufen.</p>",
@@ -132,7 +132,7 @@ def privacy(lang):
             "(contact details, addresses, access, items and which page or campaign brought you to us) to our Google account and store them in a Google spreadsheet "
             "to prepare a quote for you (Art. 6(1)(b) GDPR, your consent under Art. 6(1)(a) GDPR). "
             "The provider is Google Ireland Limited, Gordon House, Barrow Street, Dublin 4, Ireland; a transfer to the USA cannot be ruled out. "
-            "We delete requests that do not lead to an order after <span class=\"ph\">[set retention period, e.g. 6 months]</span>.</p>"
+            "We delete requests that do not lead to an order after 6 months.</p>"
             "<p>“Calculate distance” sends both addresses to Google Maps to calculate the driving distance. "
             "“Continue on another device” stores your draft for 30 days with your consent and deletes it automatically afterwards. "
             "You can withdraw your consent at any time by emailing us.</p>", lang)
