@@ -840,3 +840,26 @@ main h1, main h2, main h3, .kicker, .crumbs, .msg, .facts li, .pfacts dd, .pstep
 }
 @media (min-width:861px){.bk-c{height:44px}.bk-step{padding:10px 0 14px}.bk-desc{margin-top:6px}}
 @media (max-width:860px) and (max-height:760px){.bk-desc{display:none}.bk-c{aspect-ratio:1/0.62}.bk-cal-head{margin-bottom:2px}.bk-nav{width:32px;height:32px}}
+
+/* ---------- city pages: route card, photos, viewing band ---------- */
+.place-route .split{align-items:center}
+.place-route .facts.light{grid-template-columns:repeat(2,minmax(0,1fr))}
+.place-route .facts.light li:nth-child(3){border-left:0;padding-left:0}
+.place-route .facts.light li:nth-child(n+3){border-top:1px solid var(--line)}
+.place-route .quick-plan{max-width:none}
+.places li small{display:block;font-weight:500;font-size:12.5px;color:var(--ink2)}
+.shots{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(14px,2vw,24px)}
+.shot{margin:0;background:#fff;overflow:hidden;border-top:4px solid var(--red)}
+.shot img{display:block;width:100%;aspect-ratio:3/2;object-fit:cover}
+.shot figcaption{padding:12px 0 0;color:var(--ink2);font-size:14.5px;text-align:left}
+.shot figcaption b{display:block;color:var(--ink);font-size:1.05rem}
+.tiles.svc-four{grid-template-columns:repeat(4,minmax(0,1fr))}
+.tiles.svc-four .svc-tile h3{font-size:1.05rem}
+.book-band .bb{display:grid;grid-template-columns:minmax(0,1.3fr) auto;gap:20px 40px;align-items:center;background:linear-gradient(100deg,#fff1e6,#ffe3cf);border-left:6px solid var(--red);padding:clamp(20px,3vw,34px)}
+.book-band h2{margin:6px 0 8px}
+.book-band p{margin:0;color:var(--ink2);max-width:60ch}
+.book-band .actions{flex-direction:column;align-items:stretch;min-width:240px}
+@media (prefers-reduced-motion:no-preference){@supports (animation-timeline:view()){.shot img{animation:drift linear both;animation-timeline:view();animation-range:entry 0% exit 100%}}}
+@media (max-width:1000px){.tiles.svc-four{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:760px){.shots,.tiles.svc-four{grid-template-columns:minmax(0,1fr)}.book-band .bb{grid-template-columns:minmax(0,1fr)}.book-band .actions{min-width:0}}
+@media (max-width:760px){.tiles.svc-four{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.tiles.svc-four .svc-tile h3{font-size:.95rem}.tiles.svc-four .svc-tile{padding-bottom:12px}}
