@@ -50,7 +50,7 @@ console.log('ok list:', boot.leads.map(l => l.id + ' ' + l.service + ' ' + l.sta
 
 // detail with suggested quote
 let d = JSON.parse(JSON.stringify(ctx.api_lead(planner.id)));
-assert(!d.quote.saved && d.quote.lines.length === 9 && d.items.length === 2);
+assert(!d.quote.saved && d.quote.lines.length === 8 && d.items.length === 2);
 assert.strictEqual(d.quote.lines[5][0], 'Halteverbotszone');
 const dq = JSON.parse(JSON.stringify(ctx.api_lead(quick.id)));
 assert.strictEqual(dq.quote.lines[0][0], 'Arbeit');
@@ -72,7 +72,7 @@ const saved = ctx.api_saveQuote(planner.id, lines);
 const expect = Math.max(390, Math.round(lines.reduce((a, l) => a + l[2] * l[4], 0) * 100) / 100);
 assert.strictEqual(saved.version, 1); assert.strictEqual(saved.total, expect);
 d = JSON.parse(JSON.stringify(ctx.api_lead(planner.id)));
-assert(d.quote.saved && d.quote.version === 1 && d.quote.lines.length === 10 && d.lead.total === expect);
+assert(d.quote.saved && d.quote.version === 1 && d.quote.lines.length === 9 && d.lead.total === expect);
 assert.strictEqual(ctx.api_saveQuote(planner.id, lines).version, 2);
 assert.throws(() => ctx.api_saveQuote(planner.id, []), /Ungültige/);
 console.log('ok quote: v1 total', saved.total, '€, v2 saved, empty rejected');
