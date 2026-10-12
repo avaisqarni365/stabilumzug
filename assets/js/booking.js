@@ -51,16 +51,25 @@
     return o;
   }
 
+  var MONTHS = en ? ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+    : ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
+  var WD2 = en ? ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'] : ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
+  var small = function () { return window.matchMedia && matchMedia('(max-width:860px)').matches; };
+
+  /* Order on the page: 1 kind → 2 day (month calendar) → 3 time → 4 details and booking. Steps 1–3 fit the first screen. */
   function draw() {
     var types = Object.keys(T.types).map(function (k) {
       var mins = k === 'visit' ? 60 : 30;
-      return '<label class="bk-type"><input type="radio" name="bk-type" value="' + k + '"' + (S.type === k ? ' checked' : '') + '><span><span class="bk-ico bk-' + k + '" aria-hidden="true"></span><b>' + esc(T.types[k][0]) + '</b><small>' + mins + ' ' + T.min + ' · ' + esc(T.types[k][1]) + '</small></span></label>';
+      var short = {visit: en ? 'On site' : 'Vor Ort', video: 'Video', call: en ? 'Call-back' : 'Rückruf'}[k];
+      return '<label class="bk-type"><input type="radio" name="bk-type" value="' + k + '"' + (S.type === k ? ' checked' : '') + ' aria-label="' + esc(T.types[k][0]) + '"><span><span class="bk-ico bk-' + k + '" aria-hidden="true"></span><b class="bk-l">' + esc(T.types[k][0]) + '</b><b class="bk-sh">' + esc(short) + '</b><small>' + mins + ' ' + T.min + '</small></span></label>';
     }).join('');
-    root.innerHTML = '<div class="bk"><div class="bk-main">' +
-      '<section class="bk-step"><h2 data-no="1">' + esc(T.s1) + '</h2><div class="bk-types" role="radiogroup">' + types + '</div></section>' +
-      '<section class="bk-step"><h2 data-no="2">' + esc(T.s2) + '</h2><div class="bk-days" id="bk-days" role="radiogroup"><p class="bk-msg">' + esc(T.loading) + '</p></div></section>' +
-      '<section class="bk-step"><h2 data-no="3">' + esc(T.s3) + '</h2><div class="bk-times" id="bk-times" role="radiogroup"><p class="bk-muted">' + esc(T.pick) + '</p></div></section>' +
-      '<section class="bk-step"><h2 data-no="4">' + esc(T.s4) + '</h2><form id="bk-form" class="bk-form" novalidate>' +
+    root.innerHTML = '<div class="bk">' +
+      '<section class="bk-step bk-s1"><h2 data-no="1">' + esc(T.s1) + '</h2><div class="bk-types" role="radiogroup" aria-label="' + esc(T.s1) + '">' + types + '</div><p class="bk-desc" id="bk-desc"></p></section>' +
+      '<div class="bk-pick">' +
+        '<section class="bk-step bk-s2"><h2 data-no="2">' + esc(T.s2) + '</h2><div class="bk-cal" id="bk-cal"><p class="bk-msg">' + esc(T.loading) + '</p></div></section>' +
+        '<section class="bk-step bk-s3"><h2 data-no="3">' + esc(T.s3) + '</h2><div class="bk-times" id="bk-times" role="radiogroup" aria-label="' + esc(T.s3) + '"><p class="bk-muted">' + esc(T.pick) + '</p></div></section>' +
+      '</div>' +
+      '<section class="bk-step bk-s4" id="bk-s4"><h2 data-no="4">' + esc(T.s4) + '</h2><div class="bk-chosen" id="bk-sum"></div><form id="bk-form" class="bk-form" novalidate>' +
         '<label class="field"><span>' + esc(T.name) + ' *</span><input class="input" name="name" required autocomplete="name"></label>' +
         '<label class="field"><span>' + esc(T.phone) + ' *</span><input class="input" name="phone" type="tel" required autocomplete="tel"></label>' +
         '<label class="field bk-wide"><span>' + esc(T.email) + ' *</span><input class="input" name="email" type="email" required autocomplete="email"></label>' +
@@ -70,51 +79,81 @@
         '<input class="hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">' +
         '<label class="bk-consent bk-wide"><input type="checkbox" name="consent" required><span>' + esc(T.consent) + ' <a href="' + esc(privacy) + '">' + esc(T.privacy) + '</a></span></label>' +
         '<p class="bk-msg bk-wide" id="bk-err" hidden role="alert"></p>' +
-        '<button class="button primary bk-wide" type="submit" id="bk-go">' + esc(T.book) + '</button></form></section></div>' +
-      '<aside class="bk-side"><div class="bk-card"><span class="kicker red">' + esc(T.sel) + '</span><div id="bk-sum"></div></div></aside></div>';
+        '<button class="button primary bk-wide" type="submit" id="bk-go">' + esc(T.book) + '</button></form>' +
+        (phone ? '<p class="bk-muted" style="margin-top:12px">' + esc(T.change) + ' <a href="tel:' + esc(SITE.phone_href || phone) + '">' + esc(phone) + '</a></p>' : '') + '</section>' +
+      '</div>';
     root.querySelectorAll('input[name="bk-type"]').forEach(function (r) { r.addEventListener('change', function () { S.type = r.value; S.date = ''; S.time = ''; load(); }); });
     root.querySelector('#bk-form').addEventListener('submit', submit);
     load();
   }
 
+  /* The chosen appointment, shown at the top of step 4. */
   function summary() {
     var el = root.querySelector('#bk-sum'); if (!el) return;
     var addr = root.querySelector('#bk-addr-l'), visit = S.type === 'visit';
     if (addr) { addr.textContent = visit ? T.addrVisit + ' *' : T.addr; root.querySelector('input[name="address"]').required = visit; }
-    el.innerHTML = '<p class="bk-sum-t">' + esc(T.types[S.type][0]) + '</p><p class="bk-sum-w">' + (S.date ? esc(dLong(S.date)) + (S.time ? '<b>' + esc(S.time) + (en ? '' : ' Uhr') + '</b>' : '') : '<span class="bk-muted">' + esc(T.pick) + '</span>') + '</p>' +
-      (phone ? '<p class="bk-muted">' + esc(T.change) + ' <a href="tel:' + esc(SITE.phone_href || phone) + '">' + esc(phone) + '</a></p>' : '');
+    var desc = root.querySelector('#bk-desc'); if (desc) desc.textContent = T.types[S.type][1];
+    el.innerHTML = '<span class="bk-ico bk-' + S.type + '" aria-hidden="true"></span><div><b>' + esc(T.types[S.type][0]) + '</b>' +
+      (S.date && S.time ? '<span>' + esc(dLong(S.date)) + ', ' + esc(S.time) + (en ? '' : ' Uhr') + '</span>' : '<span class="bk-muted">' + esc(T.pick) + '</span>') + '</div>';
+    el.classList.toggle('is-set', !!(S.date && S.time));
   }
 
   function load() {
-    var box = root.querySelector('#bk-days');
+    var box = root.querySelector('#bk-cal');
     box.innerHTML = '<p class="bk-msg">' + esc(T.loading) + '</p>';
     root.querySelector('#bk-times').innerHTML = '<p class="bk-muted">' + esc(T.pick) + '</p>';
     summary();
     fetch(API + '?action=slots&type=' + encodeURIComponent(S.type)).then(function (r) { return r.json(); }).then(function (r) {
       if (!r || !r.ok) throw new Error('slots');
-      S.days = r.days; days();
+      S.days = r.days; S.month = ''; days();
     }).catch(function () { box.innerHTML = '<p class="bk-msg">' + esc(T.errLoad) + '</p>'; });
   }
+
+  /* Month calendar (Mo–Su). Bookable days are buttons with the number of free times; the others are greyed out. */
   function days() {
-    var box = root.querySelector('#bk-days');
-    if (!S.date) { var first = S.days.filter(function (d) { return d.slots.length; })[0]; S.date = first ? first.date : ''; }
-    box.innerHTML = S.days.map(function (d) {
-      var dt = new Date(d.date + 'T12:00:00'), n = d.slots.length;
-      return '<label class="bk-day' + (n ? '' : ' off') + '"><input type="radio" name="bk-day" value="' + d.date + '"' + (S.date === d.date ? ' checked' : '') + (n ? '' : ' disabled') + '>' +
-        '<span><small>' + WD[dt.getDay()] + '</small><b>' + d.date.slice(8, 10) + '.' + d.date.slice(5, 7) + '.</b><em>' + (n ? n + ' ' + T.free : (dt.getDay() === 0 ? T.none : T.full)) + '</em></span></label>';
-    }).join('');
-    box.querySelectorAll('input').forEach(function (r) { r.addEventListener('change', function () { S.date = r.value; S.time = ''; times(); summary(); }); });
-    var sel = box.querySelector('input:checked'); if (sel) sel.closest('label').scrollIntoView({block: 'nearest', inline: 'center'});
+    var box = root.querySelector('#bk-cal'), byDate = {};
+    S.days.forEach(function (d) { byDate[d.date] = d.slots.length; });
+    if (!S.date || !byDate[S.date]) { var first = S.days.filter(function (d) { return d.slots.length; })[0]; S.date = first ? first.date : ''; }
+    var months = []; S.days.forEach(function (d) { var m = d.date.slice(0, 7); if (months.indexOf(m) < 0) months.push(m); });
+    if (!S.month || months.indexOf(S.month) < 0) S.month = (S.date || S.days[0].date).slice(0, 7);
+    var mi = months.indexOf(S.month), y = Number(S.month.slice(0, 4)), m = Number(S.month.slice(5, 7)) - 1;
+    var first = new Date(y, m, 1), lead = (first.getDay() + 6) % 7, count = new Date(y, m + 1, 0).getDate(), cells = '';
+    for (var i = 0; i < lead; i++) cells += '<span class="bk-c empty" aria-hidden="true"></span>';
+    for (var dd = 1; dd <= count; dd++) {
+      var iso = S.month + '-' + ('0' + dd).slice(-2), n = byDate[iso];
+      if (n) cells += '<button type="button" class="bk-c free' + (iso === S.date ? ' on' : '') + '" data-d="' + iso + '" aria-pressed="' + (iso === S.date) + '" aria-label="' + esc(dLong(iso)) + ': ' + n + ' ' + T.free + '"><b>' + dd + '</b><i>' + n + '</i></button>';
+      else cells += '<span class="bk-c off' + (n === 0 ? ' full' : '') + '"><b>' + dd + '</b></span>';
+    }
+    box.innerHTML = '<div class="bk-cal-head"><button type="button" class="bk-nav" data-m="-1"' + (mi <= 0 ? ' disabled' : '') + ' aria-label="' + (en ? 'Previous month' : 'Voriger Monat') + '">‹</button>' +
+      '<b>' + MONTHS[m] + ' ' + y + '</b><button type="button" class="bk-nav" data-m="1"' + (mi >= months.length - 1 ? ' disabled' : '') + ' aria-label="' + (en ? 'Next month' : 'Nächster Monat') + '">›</button></div>' +
+      '<div class="bk-grid">' + WD2.map(function (w) { return '<span class="bk-wd">' + w + '</span>'; }).join('') + cells + '</div>' +
+      '<p class="bk-legend"><i></i>' + (en ? 'free times' : 'freie Zeiten') + '</p>';
+    box.querySelectorAll('[data-d]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        S.date = b.getAttribute('data-d'); S.time = ''; days();
+        if (small()) root.querySelector('.bk-s3').scrollIntoView({block: 'start', behavior: 'smooth'});
+      });
+    });
+    box.querySelectorAll('[data-m]').forEach(function (b) {
+      b.addEventListener('click', function () { S.month = months[mi + Number(b.getAttribute('data-m'))]; days(); });
+    });
     times(); summary();
   }
   function times() {
     var box = root.querySelector('#bk-times'), d = S.days && S.days.filter(function (x) { return x.date === S.date; })[0];
     if (!d) { box.innerHTML = '<p class="bk-muted">' + esc(T.pick) + '</p>'; return; }
     if (!d.slots.length) { box.innerHTML = '<p class="bk-muted">' + esc(T.noTimes) + '</p>'; return; }
-    box.innerHTML = '<p class="bk-day-l">' + esc(dLong(d.date)) + '</p>' + d.slots.map(function (t) {
+    box.innerHTML = '<p class="bk-day-l">' + esc(dLong(d.date)) + '</p><div class="bk-tgrid">' + d.slots.map(function (t) {
       return '<label class="bk-time"><input type="radio" name="bk-time" value="' + t + '"' + (S.time === t ? ' checked' : '') + '><span>' + t + '</span></label>';
-    }).join('');
-    box.querySelectorAll('input').forEach(function (r) { r.addEventListener('change', function () { S.time = r.value; summary(); }); });
+    }).join('') + '</div>';
+    box.querySelectorAll('input').forEach(function (r) {
+      r.addEventListener('change', function () {
+        S.time = r.value; summary();
+        var s4 = root.querySelector('#bk-s4');   // on to step 4
+        s4.scrollIntoView({block: 'start', behavior: 'smooth'});
+        setTimeout(function () { var n = root.querySelector('input[name="name"]'); if (n && !n.value) n.focus({preventScroll: true}); }, 400);
+      });
+    });
   }
 
   function err(t) { var e = root.querySelector('#bk-err'); e.textContent = t; e.hidden = !t; if (t) e.scrollIntoView({block: 'center', behavior: 'smooth'}); }

@@ -765,3 +765,101 @@ main h1, main h2, main h3, .kicker, .crumbs, .msg, .facts li, .pfacts dd, .pstep
   .bar-row>.button{padding-left:14px;padding-right:14px;gap:10px}
   .brand .bw{font-size:17px}.brand .mark{width:60px;height:25px}
 }
+
+/* ---------- booking page: calendar on the first screen ---------- */
+.bk-head .container{padding-top:clamp(14px,2.4vw,28px);padding-bottom:clamp(10px,1.6vw,18px)}
+.bk-head h1{margin:6px 0 4px}
+.bk-head .lead{margin:0;font-size:1rem}
+.bk-section{padding-top:clamp(8px,1.6vw,18px)}
+.bk{display:block}
+.bk-step{padding:12px 0 18px}
+.bk-step h2{font-size:1.1rem;margin-bottom:10px}
+.bk-types{display:flex;flex-wrap:wrap;gap:8px}
+.bk-type > span{display:flex;align-items:center;gap:10px;padding:8px 14px 8px 8px;height:auto}
+.bk-type b{margin:0;font-size:15px}
+.bk-type small{display:inline;font-size:13px;color:var(--ink2)}
+.bk-type input:checked + span{transform:none}
+.bk-ico{width:32px;height:32px;flex:none}
+.bk-ico::after{inset:8px}
+.bk-desc{margin:8px 0 0;color:var(--ink2);font-size:14px;text-align:left}
+.bk-pick{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:0 clamp(20px,3vw,40px);border-top:2px solid var(--ink)}
+.bk-pick .bk-step{border-top:0}
+.bk-cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.bk-cal-head b{font-size:1.05rem}
+.bk-nav{width:36px;height:36px;border:1px solid var(--line);background:#fff;font-size:20px;line-height:1;cursor:pointer;color:var(--ink)}
+.bk-nav:disabled{opacity:.3;cursor:default}
+.bk-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.bk-wd{font-size:11.5px;font-weight:700;color:var(--ink2);text-align:center;padding:4px 0;text-transform:uppercase}
+.bk-c{aspect-ratio:1/0.82;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;border:0;font:inherit;padding:0}
+.bk-c b{font-size:15px;line-height:1}
+.bk-c i{font-style:normal;font-size:10.5px;font-weight:700;color:#1f6b3a}
+.bk-c.free{background:#fff;border:2px solid var(--line-soft);cursor:pointer;color:var(--ink)}
+.bk-c.free:hover{border-color:var(--red)}
+.bk-c.on{background:var(--red);border-color:var(--red);color:#fff}
+.bk-c.on i{color:#fff}
+.bk-c.off{color:color-mix(in srgb,var(--ink2) 45%,transparent)}
+.bk-c.empty{visibility:hidden}
+.bk-c:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+.bk-legend{margin:8px 0 0;font-size:12.5px;color:var(--ink2);display:flex;align-items:center;gap:6px;text-align:left}
+.bk-legend i{width:12px;height:12px;border:2px solid var(--line-soft);background:#fff}
+.bk-tgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:8px}
+.bk-time > span{min-width:0}
+.bk-s4{border-top:2px solid var(--ink)}
+.bk-chosen{display:flex;align-items:center;gap:12px;background:var(--surface);border-left:4px solid var(--line);padding:10px 14px;margin:0 0 14px}
+.bk-chosen.is-set{background:var(--tint);border-left-color:var(--red)}
+.bk-chosen b{display:block}
+.bk-chosen span{display:block;font-weight:700;color:var(--red-text)}
+.bk-chosen .bk-muted{color:var(--ink2);font-weight:500}
+.bk-s4 .bk-form{max-width:760px}
+@media (max-width:860px){
+  .bk-pick{grid-template-columns:minmax(0,1fr)}
+  .bk-type > span{padding:6px 10px 6px 6px}
+  .bk-type small{display:none}
+  .bk-type b{font-size:14px}
+}
+@media (max-width:420px){.bk-types{gap:6px}.bk-type b{font-size:13px}.bk-ico{width:26px;height:26px}.bk-ico::after{inset:6px}}
+.bk-type .bk-sh{display:none}
+@media (max-width:860px){
+  .bk-head .lead{display:none}
+  .bk-head h1{margin-bottom:0}
+  .bk-types{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+  .bk-type > span{flex-direction:column;justify-content:center;gap:4px;padding:8px 4px;text-align:center}
+  .bk-type .bk-l{display:none}
+  .bk-type .bk-sh{display:block;font-size:13.5px}
+  .bk-type small{display:block;font-size:11.5px}
+  .bk-desc{font-size:13px;margin-top:6px}
+  .bk-step{padding:10px 0 14px}
+  .bk-step h2{margin-bottom:8px}
+  .bk-c{aspect-ratio:1/0.7}
+}
+.bk-times{display:block}
+@media (min-width:861px){
+  .bk-c{aspect-ratio:auto;height:50px}
+  .bk-pick{grid-template-columns:minmax(0,520px) minmax(0,1fr)}
+  .bk-tgrid{grid-template-columns:repeat(auto-fill,minmax(84px,1fr))}
+}
+@media (min-width:861px){.bk-c{height:44px}.bk-step{padding:10px 0 14px}.bk-desc{margin-top:6px}}
+@media (max-width:860px) and (max-height:760px){.bk-desc{display:none}.bk-c{aspect-ratio:1/0.62}.bk-cal-head{margin-bottom:2px}.bk-nav{width:32px;height:32px}}
+
+/* ---------- city pages: route card, photos, viewing band ---------- */
+.place-route .split{align-items:center}
+.place-route .facts.light{grid-template-columns:repeat(2,minmax(0,1fr))}
+.place-route .facts.light li:nth-child(3){border-left:0;padding-left:0}
+.place-route .facts.light li:nth-child(n+3){border-top:1px solid var(--line)}
+.place-route .quick-plan{max-width:none}
+.places li small{display:block;font-weight:500;font-size:12.5px;color:var(--ink2)}
+.shots{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(14px,2vw,24px)}
+.shot{margin:0;background:#fff;overflow:hidden;border-top:4px solid var(--red)}
+.shot img{display:block;width:100%;aspect-ratio:3/2;object-fit:cover}
+.shot figcaption{padding:12px 0 0;color:var(--ink2);font-size:14.5px;text-align:left}
+.shot figcaption b{display:block;color:var(--ink);font-size:1.05rem}
+.tiles.svc-four{grid-template-columns:repeat(2,minmax(0,1fr))}
+.tiles.svc-four .svc-tile h3{font-size:1.05rem}
+.book-band .bb{display:grid;grid-template-columns:minmax(0,1.3fr) auto;gap:20px 40px;align-items:center;background:linear-gradient(100deg,#fff1e6,#ffe3cf);border-left:6px solid var(--red);padding:clamp(20px,3vw,34px)}
+.book-band h2{margin:6px 0 8px}
+.book-band p{margin:0;color:var(--ink2);max-width:60ch}
+.book-band .actions{flex-direction:column;align-items:stretch;min-width:240px}
+@media (prefers-reduced-motion:no-preference){@supports (animation-timeline:view()){.shot img{animation:drift linear both;animation-timeline:view();animation-range:entry 0% exit 100%}}}
+@media (max-width:1000px){.tiles.svc-four{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:760px){.shots,.tiles.svc-four{grid-template-columns:minmax(0,1fr)}.book-band .bb{grid-template-columns:minmax(0,1fr)}.book-band .actions{min-width:0}}
+@media (max-width:760px){.tiles.svc-four{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.tiles.svc-four .svc-tile h3{font-size:.95rem}.tiles.svc-four .svc-tile{padding-bottom:12px}}

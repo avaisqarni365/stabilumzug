@@ -57,13 +57,16 @@ def place_page(p):
         for n in neighbours:
             if n in BY_NAME:
                 q = BY_NAME[n]
-                nb.append('<li><a href="%s">%s</a></li>' % (link(key, page_key(q[0]), lang), esc(display(n, q[2], lang))))
+                nkm, nmin = route(n)
+                nb.append('<li><a href="%s">%s</a>%s</li>' % (link(key, page_key(q[0]), lang), esc(display(n, q[2], lang)),
+                          ('<small>%s</small>' % esc(t("%s Min. von uns", "%s min from us", lang) % nmin)) if nmin is not None else ""))
             else:
                 nb.append('<li>%s</li>' % esc(n))
         svc = [("moves", t("Umzug %s", "Moving in %s", lang)), ("clearance", t("Entrümpelung %s", "Clear-out in %s", lang)),
                ("dissolution", t("Wohnungsauflösung %s", "Household clearance in %s", lang)), ("transport", t("Möbeltransport %s", "Furniture transport in %s", lang))]
-        svc_html = "".join('<a class="tile" href="%s"><h3>%s</h3><span class="link-arrow">%s</span></a>' % (
-            link(key, SVC[k], lang), esc(lbl % name), t("Mehr erfahren", "Learn more", lang)) for k, lbl in svc)
+        from services import PHOTO as SVC_PHOTO
+        svc_html = "".join('<a class="tile svc-tile" href="%s"><div class="ti"><img src="%sassets/img/photos/%s" data-sizes="(max-width:760px) 100vw, 300px" alt="" loading="lazy" width="1600" height="1067"></div><h3>%s</h3><span class="link-arrow">%s</span></a>' % (
+            link(key, SVC[k], lang), pre, SVC_PHOTO[k], esc(lbl % name), t("Mehr erfahren", "Learn more", lang)) for k, lbl in svc)
         faq = [
             (t("Was kostet ein Umzug in %s?", "What does a move in %s cost?", lang) % full,
              t("Der Preis hängt von Menge, Etage, Aufzug, Tragewegen und Entfernung ab. Wir rechnen jede Position persönlich und senden Ihnen das kostenlose Angebot innerhalb von 24 Stunden.",
@@ -74,16 +77,55 @@ def place_page(p):
             (t("Übernehmen Sie auch Entrümpelungen und Transporte in %s?", "Do you also do clear-outs and transport in %s?", lang) % full,
              t("Ja. Neben Umzügen räumen wir Keller, Dachböden und ganze Wohnungen und transportieren einzelne Möbel – in %s und im ganzen Ruhrgebiet.",
                "Yes. Besides moves we clear cellars, attics and whole flats and transport single pieces of furniture – in %s and across the Ruhr area.", lang) % full),
+            (t("Kommen Sie zur Besichtigung nach %s?", "Do you come to %s for a viewing?", lang) % full,
+             t("Ja, kostenlos und unverbindlich. Buchen Sie online eine freie Zeit – vor Ort in %s oder per Video. Die Bestätigung kommt sofort per E-Mail.",
+               "Yes, free and non-binding. Book a free time online – on site in %s or by video. The confirmation arrives by email right away.", lang) % full),
+            (t("Brauche ich in %s eine Halteverbotszone?", "Do I need a no-parking zone in %s?", lang) % full,
+             t("Das hängt von der Straße ab: Ist vor dem Haus kein Platz für den Transporter, lohnt sie sich fast immer. Zuständig ist die Stadt %s – wir beraten Sie und beantragen sie auf Wunsch.",
+               "It depends on the street: if there is no room for the van in front of the house, it almost always pays off. The City of %s is responsible – we advise you and apply for it on request.", lang) % city),
         ]
         faq_html = "".join('<details><summary>%s</summary><div class="a"><p>%s</p></div></details>' % (esc(q), esc(a)) for q, a in faq if a)
-        body = head + '<section class="section"><div class="container">%s</div></section>' % strip
+        from pages import quick_plan
+        if SITE.get("api"):
+            body = head + ('<section class="section place-route"><div class="container"><div class="split"><div>'
+                           '<span class="kicker red">%s</span><h2>%s</h2><p class="lead" style="margin:12px 0 18px">%s</p>%s<p class="small" style="margin-top:14px">%s</p></div>'
+                           '<div>%s</div></div></div></section>') % (
+                esc(t("Strecke ab %s", "Route from %s", lang) % full), esc(t("Strecke und Fahrzeit sofort.", "Route and drive time at once.", lang)),
+                esc(t("Ihr Startort ist schon eingetragen – geben Sie das Ziel ein und sehen Sie Strecke, Fahrzeit und Karte.",
+                      "Your starting point is already filled in – enter the destination and see distance, drive time and map.", lang)),
+                strip, esc(t("Für die Berechnung übermitteln wir die Orte über unseren Server an Google Maps. Wir speichern nur PLZ und Ort, anonym.",
+                             "To calculate, we send the places to Google Maps via our server. We store postcode and town only, anonymously.", lang)),
+                quick_plan(key, lang, kicker=t("Strecke · Karte · Planer", "Route · map · planner", lang), from_value=full))
+        else:
+            body = head + '<section class="section"><div class="container">%s</div></section>' % strip
         body += ('<section class="section"><div class="container"><div class="head"><div><span class="kicker red">%s</span><h2>%s</h2></div></div>'
                  '<div class="split"><div><ul class="checks" style="margin-top:0">%s</ul></div>'
                  '<div><span class="kicker">%s</span><ul class="places">%s</ul></div></div></div></section>') % (
             t("Vor Ort", "Local", lang), esc(t("Ihr Umzug in %s.", "Your move in %s.", lang) % full),
             "".join("<li>%s</li>" % esc(x) for x in tips), esc(t("Auch in der Nähe", "Also nearby", lang)), "".join(nb))
-        body += '<section class="section alt"><div class="container"><div class="head"><div><span class="kicker red">%s</span><h2>%s</h2></div></div><div class="tiles two">%s</div></div></section>' % (
+        steps = [(t("Planen", "Plan", lang), t("Räume und Möbel im Umzugsplaner erfassen – Volumen, Fahrzeug und Team sehen Sie sofort.", "Enter rooms and furniture in the moving planner – you see volume, vehicle and crew right away.", lang), link(key, "planner", lang), t("Zum Planer", "Open the planner", lang)),
+                 (t("Besichtigen", "View", lang), t("Auf Wunsch kostenlose Besichtigung in %s – vor Ort oder per Video.", "On request a free viewing in %s – on site or by video.", lang) % full, link(key, "booking", lang), t("Termin buchen", "Book a time", lang)),
+                 (t("Umziehen", "Move", lang), t("Unser Team kommt pünktlich, schützt Ihre Möbel mit Decken und sichert alles im Transporter.", "Our crew arrives on time, protects your furniture with blankets and secures everything in the van.", lang), "", ""),
+                 (t("Ankommen", "Arrive", lang), t("Wir tragen alles in die richtigen Räume und bauen Möbel auf Wunsch wieder auf.", "We carry everything into the right rooms and reassemble furniture on request.", lang), link(key, "svc_extras", lang), t("Möbelmontage", "Furniture assembly", lang))]
+        body += ('<section class="section alt"><div class="container"><div class="head"><div><span class="kicker red">%s</span><h2>%s</h2></div></div><ol class="steps-list">%s</ol></div></section>') % (
+            t("Ablauf", "How it works", lang), esc(t("So läuft Ihr Umzug ab.", "How your move works.", lang)),
+            "".join('<li><span class="n">%02d</span><h3>%s</h3><p>%s</p>%s</li>' % (i + 1, esc(a), esc(b), ('<a class="link-arrow" href="%s">%s</a>' % (u, esc(l))) if u else "") for i, (a, b, u, l) in enumerate(steps)))
+        # different photos from the service tiles below, so nothing repeats on the page
+        shots = [("equipment.jpg", t("Richtig ausgerüstet", "Properly equipped", lang), t("Sackkarre, Möbelroller, Decken und Spanngurte sind dabei.", "Hand truck, dollies, blankets and straps on board.", lang)),
+                 ("sofa-assembly.jpg", t("Zerlegt und wieder aufgebaut", "Taken apart and rebuilt", lang), t("Sofas und Schränke sicher durch Treppenhaus und Tür.", "Sofas and wardrobes safely through stairwell and door.", lang)),
+                 ("bed-assembly.jpg", t("Fertig im neuen Zuhause", "Ready in the new home", lang), t("Betten und Möbel auf Wunsch montiert.", "Beds and furniture assembled on request.", lang))]
+        body += ('<section class="section"><div class="container"><div class="head"><div><span class="kicker red">%s</span><h2>%s</h2></div></div><div class="shots">%s</div></div></section>') % (
+            esc(t("Unser Team in %s", "Our crew in %s", lang) % city), esc(t("Sorgfältig vom ersten Karton an.", "Careful from the first box on.", lang)),
+            "".join('<figure class="shot"><img src="%sassets/img/photos/%s" data-sizes="(max-width:760px) 100vw, 33vw" alt="%s" loading="lazy" width="1536" height="1024"><figcaption><b>%s</b>%s</figcaption></figure>' % (
+                pre, f, esc(a + " – " + full), esc(a), esc(b)) for f, a, b in shots))
+        body += '<section class="section alt"><div class="container"><div class="head"><div><span class="kicker red">%s</span><h2>%s</h2></div></div><div class="tiles svc-four">%s</div></div></section>' % (
             t("Leistungen", "Services", lang), esc(t("Was wir in %s übernehmen.", "What we handle in %s.", lang) % name), svc_html)
+        body += ('<section class="section book-band"><div class="container"><div class="bb"><div><span class="kicker red">%s</span><h2>%s</h2><p>%s</p></div>'
+                 '<div class="actions"><a class="button primary" href="%s?art=visit">%s</a><a class="button arrow" href="%s?art=video">%s</a></div></div></div></section>') % (
+            t("Kostenlos und unverbindlich", "Free and non-binding", lang), esc(t("Besichtigung in %s buchen.", "Book a viewing in %s.", lang) % city),
+            esc(t("Wählen Sie online eine freie Zeit – wir kommen zu Ihnen oder sehen uns die Räume per Video an. Bestätigung sofort per E-Mail.",
+                  "Pick a free time online – we come to you or look at the rooms by video. Confirmation by email right away.", lang)),
+            link(key, "booking", lang), t("Besichtigung vor Ort", "On-site viewing", lang), link(key, "booking", lang), t("Per Video", "By video", lang))
         body += '<section class="section"><div class="container"><div class="head"><div><span class="kicker red">%s</span><h2>%s</h2></div></div><div class="faq">%s</div></div></section>' % (
             t("Häufige Fragen", "Common questions", lang), esc(t("Umzug %s: kurz beantwortet.", "Moving in %s: briefly answered.", lang) % full), faq_html)
         body += cta(key, lang)
@@ -93,7 +135,7 @@ def place_page(p):
                             "address": {"@type": "PostalAddress", "streetAddress": SITE["street"], "postalCode": SITE["zip"], "addressLocality": SITE["city"], "addressCountry": "DE"}}},
               {"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [
                   {"@type": "Question", "name": q, "acceptedAnswer": {"@type": "Answer", "text": a}} for q, a in faq if a]}]
-        return dict(key=key, lang=lang, schema=ld,
+        return dict(key=key, lang=lang, schema=ld, route=bool(SITE.get("api")),
                     title=t("Umzug %s – Umzugsunternehmen | Stabil Umzug", "Moving in %s – removal company | Stabil Umzug", lang) % full,
                     desc=(t("Umzugsunternehmen für %s: Umzug, Entrümpelung, Wohnungsauflösung, Transport. %s km von unserem Standort Essen-Altenessen. Kostenloses Angebot in 24 Std.",
                             "Removal company for %s: moves, clear-outs, household clearance, transport. %s km from our depot in Essen-Altenessen. Free quote within 24 h.", lang) % (full, km)),

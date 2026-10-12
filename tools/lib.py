@@ -208,12 +208,30 @@ def render(page):
     if page.get("portal"):
         scripts.append('<script src="%sassets/js/portal.js" defer></script>' % pre)
     scripts.append('<script src="%sassets/js/site.js" defer></script>' % pre)
-    no_bar = page.get("planner") or key in ("quote", "portal")   # the planner has its own footer; the quote page is the bar's target
-    return responsive_images((
+    no_bar = page.get("planner") or key in ("quote", "portal", "booking")   # the planner has its own footer; the quote page is the bar's target
+    return hyphenate(responsive_images((
         '<!doctype html>\n<html lang="%s">\n<head>\n%s\n</head>\n<body%s>\n'
         '<a class="skip" href="#main">%s</a>\n%s\n<main id="main">\n%s\n</main>\n%s\n%s%s\n</body>\n</html>\n'
     ) % (lang, head(page), "" if no_bar else ' class="has-actionbar"', t("Zum Inhalt springen", "Skip to content", lang),
-         header(key, lang), page["body"], footer(key, lang), "" if no_bar else actionbar(key, lang), "\n".join(scripts)))
+         header(key, lang), page["body"], footer(key, lang), "" if no_bar else actionbar(key, lang), "\n".join(scripts))))
+
+# Justified text needs hyphenation; not every browser hyphenates German, so the longest common words get soft
+# hyphens (invisible unless the line breaks there). Only text inside <main>, never in tags, titles or meta.
+SOFT = {w.replace("|", ""): w.replace("|", "­") for w in [
+    "Wohnungs|auf|lösungen", "Wohnungs|auf|lösung", "Entrümpe|lungen", "Entrümpe|lung", "Umzugs|unter|nehmen", "Umzugs|planer",
+    "Möbel|transporte", "Möbel|transport", "Halte|verbots|zonen", "Halte|verbots|zone", "Umzugs|kartons", "Besichti|gungen", "Besichti|gung",
+    "Haushalts|auflösung", "Keller|entrümpelung", "Zusatz|leistungen", "Möbel|montage", "Küchen|montage", "Klavier|transport",
+    "Umzugs|kosten", "Fahr|strecke", "Trans|porter", "Straßen|verkehrs|behörde", "Berufs|verkehr", "Tages|plan"]}
+_SOFT_RE = re.compile("|".join(sorted(map(re.escape, SOFT), key=len, reverse=True)))
+
+def hyphenate(html):
+    a, b = html.find("<main"), html.find("</main>")
+    if a < 0 or b < 0:
+        return html
+    mid = re.sub(r">([^<]+)<", lambda m: ">" + _SOFT_RE.sub(lambda w: SOFT[w.group(0)], m.group(1)) + "<", html[a:b])
+    # headings stay on one line: never split a word there
+    mid = re.sub(r"(<h[1-3][^>]*>)(.*?)(</h[1-3]>)", lambda m: m.group(1) + m.group(2).replace("­", "") + m.group(3), mid, flags=re.S)
+    return html[:a] + mid + html[b:]
 
 PHOTO_SIZES = "(max-width:860px) 100vw, 50vw"
 _PHOTO = re.compile(r'<img src="([^"]*assets/img/photos/)([a-z0-9-]+)\.jpg"([^>]*)>')
