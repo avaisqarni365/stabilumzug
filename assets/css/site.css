@@ -903,3 +903,27 @@ main h1, main h2, main h3, .kicker, .crumbs, .msg, .facts li, .pfacts dd, .pstep
 }
 .footer-top p{text-align:left;hyphens:manual}
 @media (min-width:1101px){.site-footer .footer-top{grid-template-columns:minmax(0,1.1fr) minmax(0,1.4fr) minmax(0,1fr) minmax(0,1fr)}}
+
+/* ---------- home page on phones: shorter, pictures visible ---------- */
+@media (max-width:600px){
+  .hero .facts b{white-space:nowrap;font-size:.98rem}
+  .hero .facts li{font-size:11px}
+}
+@media (max-width:760px){
+  /* photo band: the photo above the text instead of hidden under the overlay */
+  .photo-band{display:block;min-height:0;background:var(--dark)}
+  .photo-band img{position:relative;inset:auto;height:auto;aspect-ratio:3/2;display:block}
+  .photo-band::before{display:none}
+  .photo-band .container{padding-block:24px 32px}
+  /* services: swipe sideways */
+  .svc-home .tiles{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;margin-right:calc(var(--gutter) * -1);padding:0 var(--gutter) 10px 0;border-top:0}
+  .svc-home .tiles > .tile{flex:0 0 80%;scroll-snap-align:start;border:1px solid var(--line-soft);padding:0 14px 16px;background:#fff}
+  .svc-home .tiles > .tile .ti{margin:0 -14px 10px}
+  /* price factors: two per row */
+  .costs{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .costs div{padding:14px 10px 16px 0}
+  .costs div:not(:nth-child(4n+1)){padding-left:0;border-left:0}
+  .costs div:nth-child(2n){padding-left:12px;border-left:1px solid var(--line)}
+  .costs h3{font-size:1rem}
+  .costs p{font-size:14px;text-align:left}
+}

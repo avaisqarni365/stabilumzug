@@ -139,7 +139,7 @@ var DOC_TEXT = {
   offer: {
     subject: 'Angebot für Ihren Umzug',
     intro: 'Sehr geehrte Damen und Herren,\n\nvielen Dank für Ihre Anfrage. Gern bieten wir Ihnen die folgenden Leistungen an:',
-    outro: 'Das Angebot ist freibleibend und gilt bis zum genannten Datum. Grundlage sind Ihre Angaben zu Umfang, Etagen und Zugang; weicht der tatsächliche Aufwand deutlich ab, sprechen wir das vor Beginn mit Ihnen ab.\n\nWir haften im Rahmen der gesetzlichen Haftung nach §§ 451e HGB. Eine weitergehende Transportversicherung ist auf Wunsch möglich.\n\nWenn Ihnen das Angebot zusagt, genügt eine kurze Antwort per E-Mail oder WhatsApp. Wir freuen uns auf Ihren Auftrag.'
+    outro: 'Das Angebot ist freibleibend und gilt bis zum genannten Datum. Grundlage sind Ihre Angaben zu Umfang, Etagen und Zugang; weicht der tatsächliche Aufwand deutlich ab, sprechen wir das vor Beginn mit Ihnen ab.\n\nWenn Ihnen das Angebot zusagt, genügt eine kurze Antwort per E-Mail oder WhatsApp. Wir freuen uns auf Ihren Auftrag.'
   },
   invoice: {
     subject: 'Rechnung',

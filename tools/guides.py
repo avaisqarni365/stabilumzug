@@ -96,11 +96,11 @@ def hub(lang):
     body += '<section class="section"><div class="container">%s</div></section>' % journey_html(key, lang)
     body += ('<section class="section alt"><div class="container"><div class="head"><h2>%s</h2><p>%s</p></div>%s</div></section>'
              % (t("Themen rund um den Umzug", "Topics around the move", lang),
-                t("Was ein Umzug kostet, wie lange der Möbelaufbau dauert, welche Versicherung greift – und was wann zu erledigen ist.",
-                  "What a move costs, how long furniture assembly takes, which insurance applies – and what to do when.", lang),
+                t("Was ein Umzug kostet, wie lange der Möbelaufbau dauert – und was wann zu erledigen ist.",
+                  "What a move costs, how long furniture assembly takes – and what to do when.", lang),
                 topic_tiles(key, lang)))
     body += cta(key, lang)
     return dict(key=key, lang=lang, title=t("Umzug in 10 Schritten: Ratgeber | Stabil Umzug", "Moving in 10 steps: guides | Stabil Umzug", lang),
-                desc=t("Vom Ausmessen der neuen Wohnung bis zur Ummeldung: zehn Schritte eines Umzugs in Deutschland, dazu Kosten, Möbelmontage, Versicherung und Checkliste.",
-                       "From measuring the new home to registering: the ten steps of a move in Germany, plus costs, furniture assembly, insurance and a checklist.", lang),
+                desc=t("Vom Ausmessen der neuen Wohnung bis zur Ummeldung: zehn Schritte eines Umzugs in Deutschland, dazu Kosten, Möbelmontage und Checkliste.",
+                       "From measuring the new home to registering: the ten steps of a move in Germany, plus costs, furniture assembly and a checklist.", lang),
                 body=body)
