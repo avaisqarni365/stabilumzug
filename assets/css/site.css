@@ -975,3 +975,11 @@ main h1, main h2, main h3, .kicker, .crumbs, .msg, .facts li, .pfacts dd, .pstep
 .ph-actions .button.tel{justify-content:flex-start;gap:10px}
 @media (max-width:600px){.ph-actions .button{padding:12px 10px;font-size:13px;gap:6px;flex:1 1 0;min-width:0;white-space:normal;line-height:1.25}.ph-actions .button::after{display:none}}
 .fs-dl dd,.em-plz,.em-trip{overflow-wrap:anywhere;min-width:0}
+/* fact sheet on phones: label and value side by side, half the height */
+@media (max-width:760px){
+  .fs-dl div{grid-template-columns:minmax(96px,38%) minmax(0,1fr);gap:2px 10px;padding:7px 0}
+  .fs-dl dt{font-size:10.5px;letter-spacing:.04em}
+  .fs-dl dd{font-size:14.5px}
+  .fs-card{padding:16px}
+  .fs-card h2{margin-bottom:6px}
+}
