@@ -1,0 +1,380 @@
+{
+  "altenessen": {
+    "type": "essen district",
+    "population": 44071,
+    "population_date": "30. Sep. 2022",
+    "area_km2": 11.4,
+    "postcodes": [
+      "45326",
+      "45329"
+    ],
+    "lat": 51.496389,
+    "lng": 7.009167,
+    "stadtbezirk": "Stadtbezirk V Altenessen/Karnap/Vogelheim",
+    "plate": "E",
+    "source": "https://de.wikipedia.org/wiki/Altenessen"
+  },
+  "ruettenscheid": {
+    "type": "essen district",
+    "population": 30099,
+    "population_date": "30. Sep. 2022",
+    "area_km2": 4.53,
+    "postcodes": [
+      "45130",
+      "45131",
+      "45133",
+      "45136",
+      "45147"
+    ],
+    "lat": 51.435556,
+    "lng": 7.005278,
+    "stadtbezirk": "Stadtbezirk II Rüttenscheid/Bergerhausen/Rellinghausen/Stadtwald",
+    "plate": "E",
+    "source": "https://de.wikipedia.org/wiki/R%C3%BCttenscheid"
+  },
+  "borbeck": {
+    "type": "essen district",
+    "population": 13770,
+    "population_date": "30. Sep. 2022",
+    "area_km2": 3.19,
+    "postcodes": [
+      "45355",
+      "45356",
+      "45357"
+    ],
+    "lat": 51.475,
+    "lng": 6.951111,
+    "stadtbezirk": "Stadtbezirk IV Borbeck",
+    "plate": "E",
+    "source": "https://de.wikipedia.org/wiki/Borbeck-Mitte",
+    "note": "Data is for the Stadtteil Borbeck-Mitte; de.wikipedia \"Borbeck\" is a disambiguation page and Borbeck is otherwise the name of Stadtbezirk IV."
+  },
+  "steele": {
+    "type": "essen district",
+    "population": 16809,
+    "population_date": "30. Sep. 2022",
+    "area_km2": 3.03,
+    "postcodes": [
+      "45276"
+    ],
+    "lat": 51.449444,
+    "lng": 7.076389,
+    "stadtbezirk": "Stadtbezirk VII Steele/Kray",
+    "plate": "E",
+    "source": "https://de.wikipedia.org/wiki/Steele_%28Essen%29"
+  },
+  "werden": {
+    "type": "essen district",
+    "population": 9813,
+    "population_date": "30. Sep. 2022",
+    "area_km2": 4.04,
+    "postcodes": [
+      "45239"
+    ],
+    "lat": 51.386389,
+    "lng": 6.996389,
+    "stadtbezirk": "Stadtbezirk IX Werden/Kettwig/Bredeney",
+    "plate": "E",
+    "source": "https://de.wikipedia.org/wiki/Werden"
+  },
+  "kettwig": {
+    "type": "essen district",
+    "population": 18290,
+    "population_date": "30. Sep. 2022",
+    "area_km2": 15,
+    "postcodes": [
+      "45219"
+    ],
+    "lat": 51.368333,
+    "lng": 6.94,
+    "stadtbezirk": "Stadtbezirk IX Werden/Kettwig/Bredeney",
+    "plate": "E",
+    "source": "https://de.wikipedia.org/wiki/Kettwig",
+    "note": "Area given as rounded \"15 km²\" in the infobox."
+  },
+  "frohnhausen": {
+    "type": "essen district",
+    "population": 32612,
+    "population_date": "30. Sep. 2022",
+    "area_km2": 3.62,
+    "postcodes": [
+      "45143",
+      "45144",
+      "45145",
+      "45147"
+    ],
+    "lat": 51.450833,
+    "lng": 6.974167,
+    "stadtbezirk": "Stadtbezirk III Essen-West",
+    "plate": "E",
+    "source": "https://de.wikipedia.org/wiki/Frohnhausen_%28Essen%29"
+  },
+  "holsterhausen": {
+    "type": "essen district",
+    "population": 26210,
+    "population_date": "30. Sep. 2022",
+    "area_km2": 2.98,
+    "postcodes": [
+      "45145",
+      "45147"
+    ],
+    "lat": 51.440833,
+    "lng": 6.995278,
+    "stadtbezirk": "Stadtbezirk III Essen-West",
+    "plate": "E",
+    "source": "https://de.wikipedia.org/wiki/Holsterhausen_%28Essen%29"
+  },
+  "kray": {
+    "type": "essen district",
+    "population": 19922,
+    "population_date": "30. Sep. 2022",
+    "area_km2": 6.01,
+    "postcodes": [
+      "45307",
+      "45309"
+    ],
+    "lat": 51.466111,
+    "lng": 7.080833,
+    "stadtbezirk": "Stadtbezirk VII Steele/Kray",
+    "plate": "E",
+    "source": "https://de.wikipedia.org/wiki/Kray_%28Essen%29"
+  },
+  "bredeney": {
+    "type": "essen district",
+    "population": 11040,
+    "population_date": "30. Sep. 2022",
+    "area_km2": 8.76,
+    "postcodes": [
+      "45133",
+      "45134",
+      "45239"
+    ],
+    "lat": 51.414444,
+    "lng": 6.993889,
+    "stadtbezirk": "Stadtbezirk IX Werden/Kettwig/Bredeney",
+    "plate": "E",
+    "source": "https://de.wikipedia.org/wiki/Bredeney"
+  },
+  "katernberg": {
+    "type": "essen district",
+    "population": 24061,
+    "population_date": "30. Sep. 2022",
+    "area_km2": 4.82,
+    "postcodes": [
+      "45327"
+    ],
+    "lat": 51.496944,
+    "lng": 7.048889,
+    "stadtbezirk": "Stadtbezirk VI Katernberg/Schonnebeck/Stoppenberg",
+    "plate": "E",
+    "source": "https://de.wikipedia.org/wiki/Katernberg_%28Essen%29"
+  },
+  "stadtkern": {
+    "type": "essen district",
+    "population": 4270,
+    "population_date": "30. Sep. 2022",
+    "area_km2": 0.94,
+    "postcodes": [
+      "45127"
+    ],
+    "lat": 51.458333,
+    "lng": 7.013056,
+    "stadtbezirk": "Stadtbezirk I Stadtmitte/Frillendorf/Huttrop",
+    "plate": "E",
+    "source": "https://de.wikipedia.org/wiki/Stadtkern_%28Essen%29"
+  },
+  "bochum": {
+    "type": "city",
+    "population": 358880,
+    "population_date": "31. Dez. 2025",
+    "area_km2": 145.66,
+    "postcodes": [
+      "44787–44894"
+    ],
+    "lat": 51.48012,
+    "lng": 7.21662,
+    "plate": "BO",
+    "county": "kreisfreie Stadt",
+    "source": "https://de.wikipedia.org/wiki/Bochum",
+    "note": "Infobox plates: BO, WAT."
+  },
+  "gelsenkirchen": {
+    "type": "city",
+    "population": 266199,
+    "population_date": "31. Dez. 2025",
+    "area_km2": 104.94,
+    "postcodes": [
+      "45879–45899"
+    ],
+    "lat": 51.511111,
+    "lng": 7.100556,
+    "plate": "GE",
+    "county": "kreisfreie Stadt",
+    "source": "https://de.wikipedia.org/wiki/Gelsenkirchen"
+  },
+  "muelheim": {
+    "type": "city",
+    "population": 171674,
+    "population_date": "31. Dez. 2025",
+    "area_km2": 91.28,
+    "postcodes": [
+      "45468–45481"
+    ],
+    "lat": 51.433056,
+    "lng": 6.883056,
+    "plate": "MH",
+    "county": "kreisfreie Stadt",
+    "source": "https://de.wikipedia.org/wiki/M%C3%BClheim_an_der_Ruhr"
+  },
+  "oberhausen": {
+    "type": "city",
+    "population": 213178,
+    "population_date": "31. Dez. 2025",
+    "area_km2": 77.09,
+    "postcodes": [
+      "46045",
+      "46047",
+      "46049",
+      "46117",
+      "46119",
+      "46145",
+      "46147",
+      "46149"
+    ],
+    "lat": 51.470278,
+    "lng": 6.852222,
+    "plate": "OB",
+    "county": "kreisfreie Stadt",
+    "source": "https://de.wikipedia.org/wiki/Oberhausen"
+  },
+  "duisburg": {
+    "type": "city",
+    "population": 500810,
+    "population_date": "31. Dez. 2025",
+    "area_km2": 232.8,
+    "postcodes": [
+      "47051–47279"
+    ],
+    "lat": 51.433438,
+    "lng": 6.766144,
+    "plate": "DU",
+    "county": "kreisfreie Stadt",
+    "source": "https://de.wikipedia.org/wiki/Duisburg"
+  },
+  "dortmund": {
+    "type": "city",
+    "population": 600880,
+    "population_date": "31. Dez. 2025",
+    "area_km2": 280.71,
+    "postcodes": [
+      "44135–44388"
+    ],
+    "lat": 51.514167,
+    "lng": 7.463889,
+    "plate": "DO",
+    "county": "kreisfreie Stadt",
+    "source": "https://de.wikipedia.org/wiki/Dortmund"
+  },
+  "bottrop": {
+    "type": "city",
+    "population": 118482,
+    "population_date": "31. Dez. 2025",
+    "area_km2": 100.62,
+    "postcodes": [
+      "46236–46244"
+    ],
+    "lat": 51.520881,
+    "lng": 6.925517,
+    "plate": "BOT",
+    "county": "kreisfreie Stadt",
+    "source": "https://de.wikipedia.org/wiki/Bottrop"
+  },
+  "gladbeck": {
+    "type": "city",
+    "population": 75647,
+    "population_date": "31. Dez. 2025",
+    "area_km2": 35.97,
+    "postcodes": [
+      "45964",
+      "45966",
+      "45968"
+    ],
+    "lat": 51.573333,
+    "lng": 6.9925,
+    "plate": "RE",
+    "county": "Kreis Recklinghausen",
+    "source": "https://de.wikipedia.org/wiki/Gladbeck",
+    "note": "Infobox plates: RE, CAS, GLA (GLA is the local legacy plate)."
+  },
+  "herne": {
+    "type": "city",
+    "population": 156266,
+    "population_date": "31. Dez. 2025",
+    "area_km2": 51.42,
+    "postcodes": [
+      "44623–44629",
+      "44649–44653"
+    ],
+    "lat": 51.541944,
+    "lng": 7.223889,
+    "plate": "HER",
+    "county": "kreisfreie Stadt",
+    "source": "https://de.wikipedia.org/wiki/Herne",
+    "note": "Infobox plates: HER, WAN."
+  },
+  "velbert": {
+    "type": "city",
+    "population": 82166,
+    "population_date": "31. Dez. 2025",
+    "area_km2": 74.9,
+    "postcodes": [
+      "42549",
+      "42551",
+      "42553",
+      "42555"
+    ],
+    "lat": 51.333333,
+    "lng": 7.05,
+    "plate": "ME",
+    "county": "Kreis Mettmann",
+    "source": "https://de.wikipedia.org/wiki/Velbert"
+  },
+  "hattingen": {
+    "type": "city",
+    "population": 52969,
+    "population_date": "31. Dez. 2025",
+    "area_km2": 71.66,
+    "postcodes": [
+      "45525",
+      "45527",
+      "45529"
+    ],
+    "lat": 51.401056,
+    "lng": 7.184833,
+    "plate": "EN",
+    "county": "Ennepe-Ruhr-Kreis",
+    "source": "https://de.wikipedia.org/wiki/Hattingen",
+    "note": "Infobox plates: EN, WIT."
+  },
+  "duesseldorf": {
+    "type": "city",
+    "population": 619444,
+    "population_date": "31. Dez. 2025",
+    "area_km2": 217.41,
+    "postcodes": [
+      "40210–40629"
+    ],
+    "lat": 51.225556,
+    "lng": 6.782778,
+    "plate": "D",
+    "county": "kreisfreie Stadt",
+    "source": "https://de.wikipedia.org/wiki/D%C3%BCsseldorf",
+    "note": "Landeshauptstadt of NRW."
+  },
+  "depot": {
+    "lat": 51.5007184,
+    "lng": 7.0106076,
+    "source": "https://nominatim.openstreetmap.org/search?format=json&q=Karlstra%C3%9Fe+32,+45329+Essen",
+    "note": "Nominatim building match: 32, Karlstraße, Altenessen-Nord, Essen 45329 (OSM way 276246106)."
+  }
+}

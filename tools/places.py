@@ -2,6 +2,10 @@
 from config import SITE
 from lib import esc, t, link, crumbs, prefix_for, SVC
 from places_content import PLACES, route, page_key, display
+import places_emblem as EM
+for _k, _n, _g, _nb, _note in PLACES:   # the mini map draws cities a little larger than Essen districts
+    if isinstance(EM.FACTS.get(_k), dict):
+        EM.FACTS[_k]["type"] = _g
 
 BY_NAME = {p[1]: p for p in PLACES}
 
@@ -32,19 +36,18 @@ def place_page(p):
         km, mins = route(name)
         full = display(name, group, lang)
         city = "Essen" if group == "essen" else name
-        photo = "essen-zollverein.jpg" if group == "essen" else "loading-boxes.jpg"
         pre = prefix_for(key, lang)
         trip = (t("%s km · ca. %s Min. von unserem Standort in Essen-Altenessen", "%s km · approx. %s min from our depot in Essen-Altenessen", lang) % (km, mins)) if km is not None else ""
         head = ('<div class="page-head ph-photo"><div class="container"><div class="ph-text">%s<span class="kicker red">%s</span><h1>%s</h1><p class="lead">%s</p>'
-                '<div class="actions" style="margin-top:24px"><a class="button primary" href="%s">%s</a><a class="button arrow" href="tel:%s">%s</a></div></div>'
-                '<figure class="ph-img"><img src="%sassets/img/photos/%s" alt="%s" fetchpriority="high" width="1600" height="1067"></figure></div></div>') % (
+                '<div class="actions ph-actions" style="margin-top:24px"><a class="button primary" href="%s">%s</a><a class="button arrow tel" href="tel:%s" aria-label="%s">%s</a></div></div>'
+                '%s</div></div>') % (
             crumbs(key, lang, full, parent="essen" if group == "essen" else None),
             esc(trip), esc(t("Umzug %s", "Moving in %s", lang) % full),
             esc(t("Umzüge, Entrümpelungen, Wohnungsauflösungen und Transporte in %s – mit festem Team, eigenem Transporter und kostenlosem Angebot innerhalb von 24 Stunden.",
                   "Moves, clear-outs, household clearances and transport in %s – with a fixed crew, our own van and a free quote within 24 hours.", lang) % full),
-            link(key, "quote", lang), t("Jetzt kostenloses Angebot anfordern", "Request your free quote now", lang),
-            esc(SITE["phone_href"]), esc(t("Anrufen: ", "Call: ", lang) + SITE["phone"]),
-            pre, photo, esc(t("Umzug in %s", "Moving in %s", lang) % full))
+            link(key, "quote", lang), t("Kostenloses Angebot", "Free quote", lang),
+            esc(SITE["phone_href"]), esc(t("Anrufen: ", "Call: ", lang) + SITE["phone"]), esc(SITE["phone"]),
+            EM.emblem(key_, full, group, lang, km, mins))
         facts = [(t("Entfernung", "Distance", lang), ("%s km" % km) if km is not None else "–"),
                  (t("Fahrzeit", "Drive time", lang), (t("ca. %s Min.", "approx. %s min", lang) % mins) if mins is not None else "–"),
                  (t("Angebot", "Quote", lang), t("in 24 Std.", "within 24 h", lang)),
@@ -86,18 +89,19 @@ def place_page(p):
         ]
         faq_html = "".join('<details><summary>%s</summary><div class="a"><p>%s</p></div></details>' % (esc(q), esc(a)) for q, a in faq if a)
         from pages import quick_plan
+        sheet = EM.fact_sheet(key_, full, full, group, city, lang, km, mins)
         if SITE.get("api"):
-            body = head + ('<section class="section place-route"><div class="container"><div class="split"><div>'
+            body = head + sheet + ('<section class="section place-route"><div class="container"><div class="split"><div>'
                            '<span class="kicker red">%s</span><h2>%s</h2><p class="lead" style="margin:12px 0 18px">%s</p>%s<p class="small" style="margin-top:14px">%s</p></div>'
                            '<div>%s</div></div></div></section>') % (
                 esc(t("Strecke ab %s", "Route from %s", lang) % full), esc(t("Strecke und Fahrzeit sofort.", "Route and drive time at once.", lang)),
                 esc(t("Ihr Startort ist schon eingetragen – geben Sie das Ziel ein und sehen Sie Strecke, Fahrzeit und Karte.",
                       "Your starting point is already filled in – enter the destination and see distance, drive time and map.", lang)),
-                strip, esc(t("Für die Berechnung übermitteln wir die Orte über unseren Server an Google Maps. Wir speichern nur PLZ und Ort, anonym.",
+                "", esc(t("Für die Berechnung übermitteln wir die Orte über unseren Server an Google Maps. Wir speichern nur PLZ und Ort, anonym.",
                              "To calculate, we send the places to Google Maps via our server. We store postcode and town only, anonymously.", lang)),
                 quick_plan(key, lang, kicker=t("Strecke · Karte · Planer", "Route · map · planner", lang), from_value=full))
         else:
-            body = head + '<section class="section"><div class="container">%s</div></section>' % strip
+            body = head + sheet
         body += ('<section class="section"><div class="container"><div class="head"><div><span class="kicker red">%s</span><h2>%s</h2></div></div>'
                  '<div class="split"><div><ul class="checks" style="margin-top:0">%s</ul></div>'
                  '<div><span class="kicker">%s</span><ul class="places">%s</ul></div></div></div></section>') % (
