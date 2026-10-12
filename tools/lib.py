@@ -71,6 +71,7 @@ NAV_LABEL = {
     "about": ("Über uns", "About us"),
     "contact": ("Kontakt", "Contact"),
     "booking": ("Termin", "Booking"),
+    "essen": ("Umzug Essen", "Moving in Essen"),   # breadcrumb parent of the Essen district pages
 }
 
 def is_ph(v):

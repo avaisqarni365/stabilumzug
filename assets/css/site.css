@@ -927,3 +927,51 @@ main h1, main h2, main h3, .kicker, .crumbs, .msg, .facts li, .pfacts dd, .pstep
   .costs h3{font-size:1rem}
   .costs p{font-size:14px;text-align:left}
 }
+
+/* ---------- city pages: our own emblem with mini map, fact sheet, timing ---------- */
+.ph-img.emblem{aspect-ratio:auto;background:#fff;border:2px solid var(--line-soft);border-top:6px solid var(--red);display:flex;flex-direction:column;overflow:hidden}
+.em-top{padding:18px 20px 6px;display:grid;gap:6px}
+.em-k{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--red-text)}
+.em-name{font-size:clamp(1.6rem,2.6vw,2.2rem);line-height:1;letter-spacing:-.03em;color:var(--ink)}
+.em-tags{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:4px}
+.plate{display:inline-flex;align-items:stretch;border:2px solid #17304f;border-radius:4px;background:#fff;font-weight:700;font-size:15px;letter-spacing:.06em;line-height:1;overflow:hidden}
+.plate i{font-style:normal;background:#1d4ed8;color:#fff;font-size:10px;padding:6px 4px 3px;display:flex;align-items:flex-end}
+.plate{padding-right:10px}
+.plate i + *{padding-left:8px}
+.plate{gap:8px}
+.em-plz{font-size:13px;font-weight:700;color:var(--ink2);border:1px solid var(--line-soft);padding:4px 8px}
+.em-map{display:block;width:100%;height:auto;background:linear-gradient(180deg,#fff,#fff4ec);margin-top:6px}
+.em-dot{fill:#9ea8b6}
+.em-dot.d{fill:#c9cfd8}
+.em-route{stroke:var(--red);stroke-width:2.5;stroke-dasharray:6 4;fill:none}
+.em-a{fill:var(--ink)}.em-b{fill:var(--red)}
+.em-ab{fill:#fff;font-size:9px;font-weight:700;text-anchor:middle;font-family:var(--font)}
+.em-lbl{fill:var(--ink);font-size:12px;font-weight:700;font-family:var(--font)}
+.em-trip{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 20px 14px;font-size:13.5px;font-weight:600;color:var(--ink2);border-top:1px solid var(--line-soft)}
+.em-trip b{margin-left:auto;color:var(--ink);font-size:15px}
+.em-a-s,.em-b-s{display:inline-grid;place-items:center;width:18px;height:18px;border-radius:50%;color:#fff;font-size:10px;font-weight:700;background:var(--ink)}
+.em-b-s{background:var(--red)}
+.em-dash{width:22px;border-top:2px dashed var(--red)}
+@media (prefers-reduced-motion:no-preference){.js .em-route{stroke-dashoffset:200;animation:em-draw 1.6s cubic-bezier(.2,.7,.2,1) .3s forwards}}
+@keyframes em-draw{to{stroke-dashoffset:0}}
+.factsheet{padding-top:clamp(28px,4vw,48px)}
+.fs-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(16px,2.4vw,28px)}
+.fs-card{background:#fff;border-top:4px solid var(--red);box-shadow:0 14px 32px -24px rgba(23,48,79,.55);padding:clamp(16px,2vw,24px)}
+.fs-card h2{font-size:clamp(1.3rem,2vw,1.6rem);margin:6px 0 12px}
+.fs-dl{margin:0;display:grid}
+.fs-dl div{display:grid;grid-template-columns:minmax(120px,40%) minmax(0,1fr);gap:4px 12px;padding:8px 0;border-bottom:1px solid var(--line-soft)}
+.fs-dl dt{font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink2);font-weight:700;align-self:center}
+.fs-dl dd{margin:0;font-weight:700;color:var(--ink);text-align:left}
+.fs-dl dd small{font-weight:500;color:var(--ink2)}
+.fs-time .fs-dl dd{color:var(--ink)}
+.fs-src{margin:10px 0 0;font-size:12.5px;color:var(--ink2);text-align:left}
+@media (max-width:760px){.fs-grid{grid-template-columns:minmax(0,1fr)}.fs-dl div{grid-template-columns:minmax(0,1fr)}.fs-dl dt{font-size:11.5px}}
+.ph-img.emblem::after,.ph-img.emblem::before{display:none}
+.em-ref{fill:#8a95a5;font-size:10px;font-weight:600;font-family:var(--font)}
+.em-ref-a{fill:var(--ink);font-weight:700}
+@media (max-width:860px){.ph-photo .ph-img.emblem{margin:8px 0 0;aspect-ratio:auto}}
+.ph-actions{flex-wrap:nowrap;gap:10px}
+.ph-actions .button{white-space:nowrap}
+.ph-actions .button.tel{justify-content:flex-start;gap:10px}
+@media (max-width:600px){.ph-actions .button{padding:12px 10px;font-size:13px;gap:6px;flex:1 1 0;min-width:0;white-space:normal;line-height:1.25}.ph-actions .button::after{display:none}}
+.fs-dl dd,.em-plz,.em-trip{overflow-wrap:anywhere;min-width:0}
