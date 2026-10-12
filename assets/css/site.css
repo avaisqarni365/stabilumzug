@@ -853,7 +853,7 @@ main h1, main h2, main h3, .kicker, .crumbs, .msg, .facts li, .pfacts dd, .pstep
 .shot img{display:block;width:100%;aspect-ratio:3/2;object-fit:cover}
 .shot figcaption{padding:12px 0 0;color:var(--ink2);font-size:14.5px;text-align:left}
 .shot figcaption b{display:block;color:var(--ink);font-size:1.05rem}
-.tiles.svc-four{grid-template-columns:repeat(4,minmax(0,1fr))}
+.tiles.svc-four{grid-template-columns:repeat(2,minmax(0,1fr))}
 .tiles.svc-four .svc-tile h3{font-size:1.05rem}
 .book-band .bb{display:grid;grid-template-columns:minmax(0,1.3fr) auto;gap:20px 40px;align-items:center;background:linear-gradient(100deg,#fff1e6,#ffe3cf);border-left:6px solid var(--red);padding:clamp(20px,3vw,34px)}
 .book-band h2{margin:6px 0 8px}

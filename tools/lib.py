@@ -229,6 +229,8 @@ def hyphenate(html):
     if a < 0 or b < 0:
         return html
     mid = re.sub(r">([^<]+)<", lambda m: ">" + _SOFT_RE.sub(lambda w: SOFT[w.group(0)], m.group(1)) + "<", html[a:b])
+    # headings stay on one line: never split a word there
+    mid = re.sub(r"(<h[1-3][^>]*>)(.*?)(</h[1-3]>)", lambda m: m.group(1) + m.group(2).replace("­", "") + m.group(3), mid, flags=re.S)
     return html[:a] + mid + html[b:]
 
 PHOTO_SIZES = "(max-width:860px) 100vw, 50vw"

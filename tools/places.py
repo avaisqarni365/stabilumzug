@@ -95,7 +95,7 @@ def place_page(p):
                       "Your starting point is already filled in – enter the destination and see distance, drive time and map.", lang)),
                 strip, esc(t("Für die Berechnung übermitteln wir die Orte über unseren Server an Google Maps. Wir speichern nur PLZ und Ort, anonym.",
                              "To calculate, we send the places to Google Maps via our server. We store postcode and town only, anonymously.", lang)),
-                quick_plan(key, lang, title=t("Umzug ab %s planen", "Plan your move from %s", lang) % full, kicker=t("Strecke · Karte · Planer", "Route · map · planner", lang), from_value=full))
+                quick_plan(key, lang, kicker=t("Strecke · Karte · Planer", "Route · map · planner", lang), from_value=full))
         else:
             body = head + '<section class="section"><div class="container">%s</div></section>' % strip
         body += ('<section class="section"><div class="container"><div class="head"><div><span class="kicker red">%s</span><h2>%s</h2></div></div>'
