@@ -200,7 +200,7 @@ def home(lang):
              (("Umzugstag mit festem Team", "Moving day with a fixed crew"), ("Eigener Transporter und ein Ansprechpartner vor Ort.", "Our own transporter and a contact person on site.")),
              (("Ankommen & abhaken", "Arrive & tick off"), ("Möbelmontage, Übergabeprotokoll, Rechnung.", "Furniture assembly, handover record, invoice."))]
     steps_html = "".join('<li><span class="n">%02d</span><h3>%s</h3><p>%s</p></li>' % (i + 1, esc(t(*s[0], lang)), esc(t(*s[1], lang))) for i, s in enumerate(steps))
-    body += sec(" alt", head(t("So arbeiten wir", "How we work", lang), t("Von der Planung bis zum Abhaken.", "From planning to ticking off.", lang),
+    body += sec(" alt place-steps", head(t("So arbeiten wir", "How we work", lang), t("Von der Planung bis zum Abhaken.", "From planning to ticking off.", lang),
                              t("Vier Schritte mit Ihnen – ohne Besichtigungstermin, wenn Ihre Angaben reichen.", "Four steps with you – without a site visit when your details are enough.", lang))
                 + '<ol class="steps-list">%s</ol>' % steps_html)
 
@@ -227,7 +227,7 @@ def home(lang):
         t("Team", "Crew", lang), t("3 Personen · ca. 9 Std.", "3 people · approx. 9 h", lang),
         t("Vertrauen", "Confidence", lang), t("Mittel", "Medium", lang),
         t("Beispiel für eine 3-Zimmer-Wohnung, kein Angebot.", "Example for a three-room flat, not a quote.", lang))
-    body += sec(" alt", '<div class="head"><div><span class="kicker red">%s</span><h2>%s</h2></div></div><div class="split"><div><ul class="checks" style="margin-top:0">%s</ul><a class="button primary" href="%s">%s</a></div>%s</div>' % (
+    body += sec(" alt home-planner", '<div class="head"><div><span class="kicker red">%s</span><h2>%s</h2></div></div><div class="split"><div><ul class="checks" style="margin-top:0">%s</ul><a class="button primary" href="%s">%s</a></div>%s</div>' % (
         t("Der Umzugsplaner", "The moving planner", lang),
         t("Grob reicht. Ehrlich bleibt es trotzdem.", "Rough is fine. It stays honest anyway.", lang),
         "".join("<li>%s</li>" % esc(t(*x, lang)) for x in [

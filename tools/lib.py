@@ -220,9 +220,9 @@ def render(page):
 # hyphens (invisible unless the line breaks there). Only text inside <main>, never in tags, titles or meta.
 SOFT = {w.replace("|", ""): w.replace("|", "­") for w in [
     "Wohnungs|auf|lösungen", "Wohnungs|auf|lösung", "Entrümpe|lungen", "Entrümpe|lung", "Umzugs|unter|nehmen", "Umzugs|planer",
-    "Möbel|transporte", "Möbel|transport", "Halte|verbots|zonen", "Halte|verbots|zone", "Umzugs|kartons", "Besichti|gungen", "Besichti|gung",
+    "Möbel|transporte", "Möbel|transport", "Halte|verbots|zonen", "Umzugs|kartons", "Besichti|gungen", "Besichti|gung",
     "Haushalts|auflösung", "Keller|entrümpelung", "Zusatz|leistungen", "Möbel|montage", "Küchen|montage", "Klavier|transport",
-    "Umzugs|kosten", "Fahr|strecke", "Trans|porter", "Straßen|verkehrs|behörde", "Berufs|verkehr", "Tages|plan"]}
+    "Umzugs|kosten", "Umzugs|volumen", "Halte|verbots|zone", "Fahr|strecke", "Trans|porter", "Straßen|verkehrs|behörde", "Berufs|verkehr", "Tages|plan"]}
 _SOFT_RE = re.compile("|".join(sorted(map(re.escape, SOFT), key=len, reverse=True)))
 
 def hyphenate(html):
