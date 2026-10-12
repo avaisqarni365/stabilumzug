@@ -1006,3 +1006,32 @@ details.fs-card > summary:focus-visible{outline:2px solid var(--red);outline-off
   .place-steps .steps-list h3{font-size:1rem}
   .place-steps .steps-list p{font-size:13.5px;text-align:left}
 }
+
+/* ---------- home page shorter on phones ---------- */
+@media (max-width:600px){
+  /* 10 steps: two per row, number and title only (the guides hold the details) */
+  .journey{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .journey li:nth-child(odd) a{padding-left:0}
+  .journey li:nth-child(even){border-left:1px solid var(--line)}
+  .journey li:nth-child(even) a{padding-left:12px}
+  .journey a{padding:12px 10px 12px 0;gap:4px}
+  .journey .n{font-size:1.5rem}
+  .journey .label{font-size:15px}
+  .journey .teaser{display:none}
+  .journey .key{font-size:10px;margin-top:4px}
+  /* planner teaser: the sample result is shown in the planner itself */
+  .home-planner .mock{display:none}
+  .home-planner .split{gap:0}
+  /* service area band: two places per row */
+  .areas-list{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .areas-list a{flex-direction:column;align-items:flex-start;gap:0;padding:9px 8px 9px 0}
+  .areas-list li:nth-child(even) a{padding-left:10px}
+  .areas-list li:nth-child(even){border-left:1px solid rgba(243,242,242,.15)}
+  .areas-list a span{font-size:14.5px}
+  .areas-list a small{font-size:12px}
+}
+@media (max-width:600px){
+  .journey a{flex-direction:column;align-items:flex-start;display:flex}
+  .journey .label{overflow-wrap:anywhere;hyphens:auto;min-width:0;max-width:100%}
+}
+@media (max-width:600px){.journey li a{display:flex;flex-direction:column;gap:4px}.journey .n{grid-row:auto;font-size:1.5rem}.journey .label{hyphens:manual}}
