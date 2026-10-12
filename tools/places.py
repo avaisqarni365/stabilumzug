@@ -111,15 +111,16 @@ def place_page(p):
                  (t("Besichtigen", "View", lang), t("Auf Wunsch kostenlose Besichtigung in %s – vor Ort oder per Video.", "On request a free viewing in %s – on site or by video.", lang) % full, link(key, "booking", lang), t("Termin buchen", "Book a time", lang)),
                  (t("Umziehen", "Move", lang), t("Unser Team kommt pünktlich, schützt Ihre Möbel mit Decken und sichert alles im Transporter.", "Our crew arrives on time, protects your furniture with blankets and secures everything in the van.", lang), "", ""),
                  (t("Ankommen", "Arrive", lang), t("Wir tragen alles in die richtigen Räume und bauen Möbel auf Wunsch wieder auf.", "We carry everything into the right rooms and reassemble furniture on request.", lang), link(key, "svc_extras", lang), t("Möbelmontage", "Furniture assembly", lang))]
-        body += ('<section class="section alt"><div class="container"><div class="head"><div><span class="kicker red">%s</span><h2>%s</h2></div></div><ol class="steps-list">%s</ol></div></section>') % (
+        body += ('<section class="section alt place-steps"><div class="container"><div class="head"><div><span class="kicker red">%s</span><h2>%s</h2></div></div><ol class="steps-list">%s</ol></div></section>') % (
             t("Ablauf", "How it works", lang), esc(t("So läuft Ihr Umzug ab.", "How your move works.", lang)),
             "".join('<li><span class="n">%02d</span><h3>%s</h3><p>%s</p>%s</li>' % (i + 1, esc(a), esc(b), ('<a class="link-arrow" href="%s">%s</a>' % (u, esc(l))) if u else "") for i, (a, b, u, l) in enumerate(steps)))
         # different photos from the service tiles below, so nothing repeats on the page
         shots = [("equipment.jpg", t("Richtig ausgerüstet", "Properly equipped", lang), t("Sackkarre, Möbelroller, Decken und Spanngurte sind dabei.", "Hand truck, dollies, blankets and straps on board.", lang)),
                  ("sofa-assembly.jpg", t("Zerlegt und wieder aufgebaut", "Taken apart and rebuilt", lang), t("Sofas und Schränke sicher durch Treppenhaus und Tür.", "Sofas and wardrobes safely through stairwell and door.", lang)),
                  ("bed-assembly.jpg", t("Fertig im neuen Zuhause", "Ready in the new home", lang), t("Betten und Möbel auf Wunsch montiert.", "Beds and furniture assembled on request.", lang))]
-        body += ('<section class="section"><div class="container"><div class="head"><div><span class="kicker red">%s</span><h2>%s</h2></div></div><div class="shots">%s</div></div></section>') % (
+        body += ('<section class="section"><div class="container"><div class="head"><div><span class="kicker red">%s</span><h2>%s</h2></div></div><div class="shots" tabindex="0" aria-label="%s">%s</div></div></section>') % (
             esc(t("Unser Team in %s", "Our crew in %s", lang) % city), esc(t("Sorgfältig vom ersten Karton an.", "Careful from the first box on.", lang)),
+            esc(t("Fotos, zum Blättern wischen", "Photos, swipe to browse", lang)),
             "".join('<figure class="shot"><img src="%sassets/img/photos/%s" data-sizes="(max-width:760px) 100vw, 33vw" alt="%s" loading="lazy" width="1536" height="1024"><figcaption><b>%s</b>%s</figcaption></figure>' % (
                 pre, f, esc(a + " – " + full), esc(a), esc(b)) for f, a, b in shots))
         body += '<section class="section alt"><div class="container"><div class="head"><div><span class="kicker red">%s</span><h2>%s</h2></div></div><div class="tiles svc-four">%s</div></div></section>' % (

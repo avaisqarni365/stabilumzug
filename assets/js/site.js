@@ -123,3 +123,9 @@
   var body = JSON.stringify({action: 'hit', p: location.pathname, s: src, d: dev, l: document.documentElement.lang === 'en' ? 'en' : 'de', e: same ? 0 : 1});
   try { navigator.sendBeacon(api, new Blob([body], {type: 'text/plain;charset=utf-8'})); } catch (e) {}
 })();
+
+/* Sections marked data-fold are open on wide screens and start folded on phones (tap the heading to open). */
+(function () {
+  if (!window.matchMedia || !matchMedia('(max-width:760px)').matches) return;
+  Array.prototype.forEach.call(document.querySelectorAll('details[data-fold]'), function (d) { d.removeAttribute('open'); });
+})();

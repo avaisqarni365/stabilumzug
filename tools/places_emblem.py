@@ -140,7 +140,7 @@ def fact_sheet(key_, name, full, group, city, lang, km, mins):
     dl = lambda items: "".join('<div><dt>%s</dt><dd>%s</dd></div>' % (esc(a), b) for a, b in items)   # values are already escaped
     return ('<section class="section factsheet"><div class="container"><div class="fs-grid">'
             '<div class="fs-card"><span class="kicker red">%s</span><h2>%s</h2><dl class="fs-dl">%s</dl>%s</div>'
-            '<div class="fs-card fs-time"><span class="kicker red">%s</span><h2>%s</h2><dl class="fs-dl">%s</dl><p class="fs-src">%s</p></div>'
+            '<details class="fs-card fs-time" data-fold open><summary><span class="kicker red">%s</span><h2>%s</h2></summary><dl class="fs-dl">%s</dl><p class="fs-src">%s</p></details>'
             '</div></div></section>') % (
         esc(t("Steckbrief", "Fact sheet", lang)), esc(name), dl(rows), src,
         esc(t("Entfernung und Zeiten", "Distance and timing", lang)), esc(t("Gut geplant.", "Well timed.", lang)),
