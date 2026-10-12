@@ -158,7 +158,7 @@ def home(lang):
     key = "home"
     L = lambda k: link(key, k, lang)
     pre = prefix_for(key, lang)
-    call = ('<a class="button arrow" href="%s">%s</a>' % (phone_link(), esc(t("Anrufen: ", "Call: ", lang) + SITE["phone"]))) if phone_link() else ""
+    call = ('<a class="button arrow tel" href="%s" aria-label="%s">%s</a>' % (phone_link(), esc(t("Anrufen: ", "Call: ", lang) + SITE["phone"]), esc(SITE["phone"]))) if phone_link() else ""
     facts = [(t("10 Min.", "10 min", lang), t("Planer ohne Konto", "planner, no account", lang)),
              (t("24 Std.", "24 h", lang), t("bis zu Ihrem Angebot", "to your quote", lang)),
              (t("7 Tage", "7 days", lang), t("die Woche erreichbar", "a week reachable", lang)),
@@ -175,7 +175,7 @@ def home(lang):
         t("Umzug, Entrümpelung und Transport in Essen.", "Moves, clear-outs and transport in Essen.", lang), t("Stabil geplant.", "Solidly planned.", lang), quick_plan(key, lang),
         esc(t("Umzüge, Entrümpelungen, Wohnungsauflösungen und Transporte – im Ruhrgebiet und in ganz Deutschland. Kostenloses, persönliches Angebot innerhalb von 24 Stunden.",
               "Moves, clear-outs, household clearances and transport – across the Ruhr area and all of Germany. Free personal quote within 24 hours.", lang)),
-        L("quote"), t("Jetzt kostenloses Angebot anfordern", "Request your free quote now", lang), call,
+        L("quote"), t("Kostenloses Angebot", "Free quote", lang), call,
         pre, pre, pre, esc(t("Weißer Transporter mit Stabil-Umzug-Logo in Orange und Navy", "White van with the Stabil Umzug logo in orange and navy", lang)),
         t("Unser Transporter · Essen", "Our van · Essen", lang),
         "".join('<li><b>%s</b>%s</li>' % (esc(a), esc(b)) for a, b in facts))

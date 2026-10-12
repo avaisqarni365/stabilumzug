@@ -128,7 +128,7 @@ def footer(key, lang):
     steps = "".join('<li><a href="%s">%s</a></li>' % (L("svc_" + k), esc(s[lang]["nav"])) for k, s in SERVICES.items())
     import places
     return places.area_band(key, lang) + (
-        '<footer class="site-footer"><div class="container">'
+        '<footer class="site-footer"><div class="foot-van" aria-hidden="true"><img src="' + prefix_for(key, lang) + 'assets/img/van-branded-640.jpg" alt="" loading="lazy" width="640" height="640"></div><div class="container">'
         '<div class="footer-top">'
         '<div><div class="logo-lockup" role="img" aria-label="Stabil Umzug Essen">' + logo_mark("f") + '<span class="s">Stabil</span><span class="u">Umzug</span><span class="e">Essen</span></div><p>%s</p></div>'
         '<div><h3>%s</h3><ul><li>%s</li><li>%s</li>%s<li>%s</li><li>%s %s</li></ul></div>'
