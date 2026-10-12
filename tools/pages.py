@@ -41,7 +41,6 @@ COSTS = [
     (("Verpackung", "Packing"), ("Kartons, Material und Packstunden.", "Boxes, material and packing hours."), ("aus der Kartonzahl", "from the box count")),
     (("Zugang", "Access"), ("Etage, Aufzug, Tragweg, Möbellift.", "Floor, lift, carry distance, furniture lift."), ("aus beiden Gebäuden", "from both buildings")),
     (("Extras", "Extras"), ("Halteverbot, Entsorgung, Küche, Lager.", "Parking permit, disposal, kitchen, storage."), ("aus Ihrer Auswahl", "from your choices")),
-    (("Versicherung", "Insurance"), ("Angegebener Wert Ihres Hausrats.", "Declared value of your belongings."), ("aus Ihrer Angabe", "from your declaration")),
 ]
 
 def cost_section(key, lang, alt=False):
@@ -50,8 +49,8 @@ def cost_section(key, lang, alt=False):
             '<div class="costs">%s</div><p style="margin:28px 0 0"><a class="link-arrow" href="%s">%s</a></p></div></section>'
             % (" alt" if alt else "", t("Transparent kalkuliert", "Transparent pricing", lang),
                t("Was Ihren Preis bestimmt", "What decides your price", lang),
-               t("Kein Pauschalpreis aus dem Nichts: Ihr Angebot besteht aus acht Teilen, jedes mit einer klaren Grundlage. Online zeigen wir keine Preise – wir rechnen persönlich.",
-                 "No flat price out of thin air: your quote has eight parts, each with a clear basis. We show no prices online – we calculate personally.", lang),
+               t("Kein Pauschalpreis aus dem Nichts: Ihr Angebot besteht aus sieben Teilen, jedes mit einer klaren Grundlage. Online zeigen wir keine Preise – wir rechnen persönlich.",
+                 "No flat price out of thin air: your quote has seven parts, each with a clear basis. We show no prices online – we calculate personally.", lang),
                cells, link(key, "costs", lang), t("Wie sich Umzugskosten zusammensetzen", "How moving costs add up", lang)))
 
 # ---------------------------------------------------------------- planner
@@ -101,8 +100,8 @@ OPENING = [
 # ---------------------------------------------------------------- home
 FAQ = [
     (("Was kostet ein Umzug?", "What does a move cost?"),
-     ("Der Preis setzt sich aus acht Teilen zusammen: Arbeit, Fahrzeug, Strecke, Montage, Verpackung, Zugang, Extras und Versicherung. Online zeigen wir keine Preise. Sie beschreiben Ihren Umzug im Planer, wir rechnen jede Position persönlich und senden Ihnen das Angebot innerhalb von 24 Stunden.",
-      "The price has eight parts: labour, vehicle, distance, assembly, packing, access, extras and insurance. We show no prices online. You describe your move in the planner, we calculate every line personally and send you the quote within 24 hours.")),
+     ("Der Preis setzt sich aus sieben Teilen zusammen: Arbeit, Fahrzeug, Strecke, Montage, Verpackung, Zugang und Extras. Online zeigen wir keine Preise. Sie beschreiben Ihren Umzug im Planer, wir rechnen jede Position persönlich und senden Ihnen das Angebot innerhalb von 24 Stunden.",
+      "The price has seven parts: labour, vehicle, distance, assembly, packing, access and extras. We show no prices online. You describe your move in the planner, we calculate every line personally and send you the quote within 24 hours.")),
     (("Wie genau ist die Schätzung im Planer?", "How accurate is the planner estimate?"),
      ("Der Planer rechnet mit typischen Planungswerten je Möbelstück und einem Puffer von 10 Prozent. Er zeigt das Volumen als Spanne: Je mehr Gegenstände Sie im Katalog bestätigen, desto enger wird sie. Bei großer Unsicherheit prüfen wir Ihre Liste in einem kurzen Video-Check.",
       "The planner uses typical planning values per piece of furniture plus a 10 percent buffer. It shows the volume as a range: the more items you confirm in the catalogue, the narrower it gets. If much is uncertain, we check your list in a short video call.")),
@@ -112,16 +111,13 @@ FAQ = [
     (("Brauche ich eine Halteverbotszone?", "Do I need a no-parking zone?"),
      ("Wenn der LKW nicht legal direkt vor dem Haus halten kann, ist sie meist sinnvoll. Sie wird bei der Stadt beantragt, die Vorlaufzeit unterscheidet sich je nach Stadt. Auf Wunsch übernehmen wir den Antrag.",
       "If the truck cannot legally stop right at the building, it is usually worth it. It is applied for at the city, and lead times differ by city. On request we handle the application.")),
-    (("Sind meine Möbel versichert?", "Is my furniture insured?"),
-     ("Während des Umzugs haftet das Umzugsunternehmen gesetzlich für Verlust und Schäden, begrenzt je Kubikmeter. Für höheren Schutz gibt es eine zusätzliche Transportversicherung bis zu Ihrem angegebenen Wert. Den genauen Umfang nennt Ihr Vertrag.",
-      "During the move the moving company is liable by law for loss and damage, limited per cubic metre. For higher cover there is extra goods-in-transit insurance up to your declared value. Your contract states the exact cover.")),
     (("Wie früh sollte ich buchen?", "How early should I book?"),
      ("So früh wie möglich, besonders zum Monatsende und in den Ferien. Kurzfristig klappt es oft auch – das hängt von unserer Auslastung ab.",
       "As early as you can, especially at month end and in holidays. Short notice often works too – it depends on our schedule.")),
 ]
 
 def faq_html(lang, key):
-    links = {3: "parking", 4: "insurance", 0: "costs"}
+    links = {3: "parking", 0: "costs"}
     items = []
     for i, (q, a) in enumerate(FAQ):
         more = (' <a class="link-arrow" href="%s">%s</a>' % (link(key, links[i], lang), esc(GUIDES[links[i]][lang]["nav"]))) if i in links else ""
@@ -241,7 +237,7 @@ def home(lang):
             ("Kein Preis online – Ihr Angebot rechnen wir persönlich", "No price online – we calculate your quote personally")]),
         L("planner"), t("Planer öffnen", "Open the planner", lang), mock))
 
-    body += sec("", head(t("Leistungen", "Services", lang), t("Alles aus einer Hand.", "Everything from one team.", lang),
+    body += sec(" svc-home", head(t("Leistungen", "Services", lang), t("Alles aus einer Hand.", "Everything from one team.", lang),
                          t("Sie wählen, was wir übernehmen. Der Rest bleibt bei Ihnen – und günstiger.", "You choose what we handle. The rest stays with you – and costs less.", lang))
                 + services_mod.service_tiles(key, lang) + '<p style="margin:28px 0 0"><a class="link-arrow" href="%s">%s</a></p>' % (L("services"), t("Alle Leistungen", "All services", lang)))
 
@@ -257,19 +253,6 @@ def home(lang):
         t("Ausrüstung", "Equipment", lang), t("Das richtige Werkzeug dabei.", "The right tools on board.", lang),
         esc(t("Damit Möbel heil ankommen und Treppenhäuser ohne Kratzer bleiben.", "So furniture arrives intact and stairwells stay free of scratches.", lang)),
         "".join("<li>%s</li>" % esc(t(*x, lang)) for x in gear)))
-
-    cover = [(("Gesetzliche Haftung", "Statutory carrier liability"), ("Inklusive. Deckt Verlust und Schäden während des Umzugs, begrenzt je Kubikmeter. Nicht gedeckt: selbst gepackte Kartons, Wertsachen, Bargeld.", "Included. Covers loss and damage during the move, limited per cubic metre. Not covered: self-packed boxes, valuables, cash.")),
-             (("Transportversicherung", "Goods-in-transit cover"), ("Auf Anfrage. Deckt bis zu Ihrem angegebenen Wert, auch Kratzer und Glasbruch.", "On request. Covers up to your declared value, including scratches and glass breakage.")),
-             (("Eigene Hausratversicherung", "Own household insurance"), ("Deckt oft alte und neue Wohnung während des Umzugs. Neue Adresse melden.", "Often covers old and new home during the move. Report the new address.")),
-             (("Private Haftpflicht", "Private liability"), ("Schäden am Gebäude, bei Nachbarn oder Dritten. Ergänzt die Haftung, ersetzt sie nicht.", "Damage to the building, neighbours or third parties. Complements liability, does not replace it."))]
-    body += sec(" alt", head(t("Versicherung", "Insurance", lang), t("Klar gesagt: Was ist abgesichert?", "Plainly put: what is covered?", lang),
-                             t("Unklare Deckung ist der häufigste Streitpunkt nach einem Umzug. Deshalb nennen wir Ausschlüsse und Fristen vorher – in einfachen Worten.",
-                               "Unclear cover is the most common dispute after a move. So we state exclusions and deadlines up front – in plain words.", lang))
-                + '<ul class="cover">%s</ul><p class="note" style="max-width:none">%s</p><p><a class="link-arrow" href="%s">%s</a></p>' % (
-                    "".join('<li><b>%s</b><span>%s</span></li>' % (esc(t(*a, lang)), esc(t(*b, lang))) for a, b in cover),
-                    esc(t("Sichtbare Schäden bei der Übergabe melden, verdeckte Schäden schriftlich innerhalb der Frist im Vertrag. Allgemeine Orientierung – den genauen Schutz nennt Ihr Vertrag.",
-                          "Report visible damage at handover, hidden damage in writing within the deadline in the contract. General guidance – your contract states the exact cover.", lang)),
-                    L("insurance"), esc(GUIDES["insurance"][lang]["nav"])))
 
     if TESTIMONIALS:
         quotes = "".join('<article class="tile"><p style="font-size:1.15rem;color:var(--ink);font-weight:700">“%s”</p><p>%s</p></article>' % (esc(q["text"]), esc(q["name"])) for q in TESTIMONIALS)

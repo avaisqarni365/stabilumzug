@@ -253,8 +253,7 @@ function quoteLines_(s, values, master, R) {
     ['Zugang', 'Zugangsfaktor ' + de_(acc) + ' × ' + de_(est.vol) + ' m³', round_(acc * est.vol), 'Pkt.', R.access],
     ['Halteverbotszone', s.hvz ? 'gewünscht' : 'nicht gewünscht', s.hvz ? 1 : 0, 'Adr.', R.hvz],
     ['Verpacken', 'nach Absprache', 0, '', 0],
-    ['Extras (Küche, Entsorgung, Lager)', 'nach Absprache', 0, '', 0],
-    ['Versicherung', 'Gesetzliche Haftung inklusive', 0, '', 0]
+    ['Extras (Küche, Entsorgung, Lager)', 'nach Absprache', 0, '', 0]
   ]};
 }
 
