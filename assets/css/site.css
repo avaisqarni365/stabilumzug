@@ -983,3 +983,26 @@ main h1, main h2, main h3, .kicker, .crumbs, .msg, .facts li, .pfacts dd, .pstep
   .fs-card{padding:16px}
   .fs-card h2{margin-bottom:6px}
 }
+
+/* ---------- city pages shorter on phones ---------- */
+details.fs-card > summary{list-style:none;cursor:pointer;position:relative}
+details.fs-card > summary::-webkit-details-marker{display:none}
+details.fs-card > summary:focus-visible{outline:2px solid var(--red);outline-offset:4px}
+@media (max-width:760px){
+  details.fs-card > summary{padding-right:40px}
+  details.fs-card > summary::after{content:"";position:absolute;right:4px;top:50%;width:12px;height:12px;border-right:2.5px solid var(--red);border-bottom:2.5px solid var(--red);transform:translateY(-70%) rotate(45deg);transition:transform .2s}
+  details.fs-card[open] > summary::after{transform:translateY(-20%) rotate(-135deg)}
+  details.fs-card:not([open]) h2{margin-bottom:0}
+  .place-route .split > div:first-child .lead,.place-route .split > div:first-child .small{display:none}
+  .place-route .split{gap:14px}
+  .shots{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;margin-right:calc(var(--gutter) * -1);padding:0 var(--gutter) 8px 0}
+  .shot{flex:0 0 78%;scroll-snap-align:start}
+  .shot figcaption{font-size:13.5px}
+  .place-steps .steps-list{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .place-steps .steps-list li{padding:12px 10px 10px 0;border-left:0}
+  .place-steps .steps-list li:nth-child(2n){padding-left:12px;border-left:1px solid var(--line)}
+  .place-steps .steps-list li:nth-child(n+3){border-top:1px solid var(--line)}
+  .place-steps .steps-list .n{font-size:1.2rem;margin-bottom:6px}
+  .place-steps .steps-list h3{font-size:1rem}
+  .place-steps .steps-list p{font-size:13.5px;text-align:left}
+}
