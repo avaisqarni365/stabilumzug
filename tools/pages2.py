@@ -99,15 +99,28 @@ def about(lang):
 def booking(lang):
     """Appointment booking: the steps are drawn by assets/js/booking.js from the free times in the company sheet."""
     key = "booking"
-    body = page_head(key, lang, t("Termin buchen", "Book an appointment", lang),
-        t("Kostenlose Besichtigung vor Ort, per Video oder ein Rückruf: Wählen Sie eine freie Zeit – Sie bekommen sofort eine Bestätigung per E-Mail mit Kalendereintrag.",
-          "Free on-site viewing, video viewing or a call-back: pick a free time – you get a confirmation by email with a calendar entry right away.", lang),
-        kicker=t("Kostenlos und unverbindlich", "Free and non-binding", lang), photo="uniform.jpg",
-        alt=t("Arbeitskleidung von Stabil Umzug in Orange und Navy", "Stabil Umzug workwear in orange and navy", lang))
+    # compact head: the calendar has to be on the first screen
+    title = t("Termin buchen", "Book an appointment", lang)
+    body = ('<div class="page-head bk-head"><div class="container">%s<h1>%s</h1><p class="lead">%s</p></div></div>') % (
+        crumbs(key, lang, title), esc(title),
+        esc(t("Kostenlos und unverbindlich: Besichtigung vor Ort, per Video oder Rückruf. Bestätigung sofort per E-Mail.",
+              "Free and non-binding: on-site viewing, video viewing or call-back. Confirmation by email right away.", lang)))
     phone = ('<a href="tel:%s">%s</a>' % (esc(SITE["phone_href"]), esc(SITE["phone"]))) if SITE.get("phone_href") else ""
-    body += ('<section class="section"><div class="container"><div id="booking" data-privacy="%s" aria-live="polite">'
+    body += ('<section class="section bk-section"><div class="container"><div id="booking" data-privacy="%s" aria-live="polite">'
              '<noscript><p>%s %s</p></noscript></div></div></section>') % (
         link(key, "privacy", lang), t("Für die Terminbuchung wird JavaScript benötigt. Rufen Sie uns gern an:", "Booking needs JavaScript. Feel free to call us:", lang), phone)
+    # below the booking: the photo and what the appointment is about
+    points = [t("Besichtigung vor Ort: Wir sehen alles an und schicken ein verbindliches Angebot.", "On-site viewing: we look at everything and send a fixed quote.", lang),
+              t("Video-Besichtigung: Sie zeigen uns die Räume per WhatsApp-Video – von überall.", "Video viewing: you show us the rooms by WhatsApp video – from anywhere.", lang),
+              t("Rückruf: Wir beantworten Ihre Fragen rund um Umzug, Entrümpelung und Transport.", "Call-back: we answer your questions about moves, clear-outs and transport.", lang),
+              t("Alle Termine kostenlos und unverbindlich, Bestätigung sofort per E-Mail mit Kalendereintrag.", "All appointments free and non-binding, confirmation by email with a calendar entry right away.", lang)]
+    body += ('<section class="section alt"><div class="container"><div class="split gear"><figure class="gear-img"><img src="%sassets/img/photos/uniform.jpg" alt="%s" loading="lazy" width="1536" height="1024"></figure>'
+             '<div><span class="kicker red">%s</span><h2>%s</h2><p class="lead" style="margin:14px 0 18px">%s</p><ul class="checks" style="margin-top:0">%s</ul></div></div></div></section>') % (
+        prefix_for(key, lang), esc(t("Arbeitskleidung von Stabil Umzug in Orange und Navy", "Stabil Umzug workwear in orange and navy", lang)),
+        t("Kostenlos und unverbindlich", "Free and non-binding", lang), esc(t("So läuft Ihr Termin ab.", "How your appointment works.", lang)),
+        esc(t("Kostenlose Besichtigung vor Ort, per Video oder ein Rückruf: Wählen Sie oben eine freie Zeit – Sie bekommen sofort eine Bestätigung per E-Mail mit Kalendereintrag.",
+              "Free on-site viewing, video viewing or a call-back: pick a free time above – you get a confirmation by email with a calendar entry right away.", lang)),
+        "".join("<li>%s</li>" % esc(x) for x in points))
     return dict(key=key, lang=lang, booking=True,
                 title=t("Termin buchen: kostenlose Umzugsbesichtigung in Essen | Stabil Umzug", "Book a free moving viewing in Essen | Stabil Umzug", lang),
                 desc=t("Kostenlose Besichtigung vor Ort, Video-Besichtigung oder Rückruf online buchen – freie Zeiten sofort sehen, Bestätigung per E-Mail.",
