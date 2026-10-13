@@ -83,6 +83,19 @@ window.FLOW_T = {
    accOld: 'Zugang Auszug', accNew: 'Zugang Einzug', floor: 'Etage', lift: 'Aufzug', park: 'Parken',
    rooms: 'Räume', est: 'Schätzung', items: 'Gegenstände', open: 'Nicht erkannt', source: 'Quelle', hvzYes: 'Halteverbotszone gewünscht'
   },
+  pre: {
+    payer: 'Wer bezahlt den Umzug?', payers: ['Ich selbst', 'Arbeitgeber', 'Jobcenter', 'Sozialamt', 'Andere'],
+    payerHint: 'Wir schicken das Angebot mit Preis dann direkt an diese Stelle. Sie erhalten eine Kopie.',
+    payerName: 'Name der Stelle oder Firma', payerNamePh: ['', 'z. B. Firma Muster GmbH', 'z. B. Jobcenter Essen, Standort Mitte', 'z. B. Sozialamt Essen', 'Name'],
+    payerRef: 'Aktenzeichen / BG-Nummer (falls vorhanden)', payerMail: 'E-Mail der Stelle (optional)',
+    title: 'Vorvereinbarung ohne Preis erstellen',
+    lead: 'Ein Dokument mit allen Angaben und allen geplanten Gegenständen – ohne Preis. Zum Beispiel für das Jobcenter oder Ihren Arbeitgeber.',
+    items: 'Ihre geplanten Gegenstände ({n}) mit Anzahl und Volumen', person: 'Ihre Kontaktdaten, Adressen, Zugang und Wunschtermin',
+    toPayer: 'Unser Angebot mit Preis geht an: {p}', toSelf: 'Unser Angebot mit Preis geht an Sie',
+    terms: 'Mit dem Senden bestätigen Sie, dass die Angaben stimmen, und stimmen der Vorvereinbarung zu. Sie ist kostenlos und unverbindlich – verbindlich wird erst das Angebot mit Preis, wenn es angenommen wird. Sie erhalten die Vorvereinbarung als PDF per E-Mail.',
+    needMail: 'Für die Vorvereinbarung brauchen wir Ihre E-Mail-Adresse – dorthin schicken wir das PDF.',
+    sent: 'Ihre Vorvereinbarung V-{id} ist als PDF an {mail} unterwegs.'
+  },
   api: {
    route: 'Entfernung berechnen', routeBusy: 'Wird berechnet …', routeOk: 'Google Maps: {km} km, ca. {min} Min. Fahrt',
    routeNote: 'Berechnet die Fahrstrecke über Google Maps. Dafür werden beide Adressen an unser Google-Konto gesendet.',
@@ -188,6 +201,19 @@ window.FLOW_T = {
    title: 'Stabil Umzug – moving request', route: 'Route', km: 'Distance', date: 'Date', hh: 'Household',
    accOld: 'Access move-out', accNew: 'Access move-in', floor: 'floor', lift: 'lift', park: 'parking',
    rooms: 'Rooms', est: 'Estimate', items: 'Items', open: 'Not recognised', source: 'Source', hvzYes: 'No-parking zone requested'
+  },
+  pre: {
+    payer: 'Who pays for the move?', payers: ['Me', 'Employer', 'Jobcenter', 'Social office', 'Other'],
+    payerHint: 'We then send the offer with the price straight to them. You receive a copy.',
+    payerName: 'Name of the office or company', payerNamePh: ['', 'e.g. Example GmbH', 'e.g. Jobcenter Essen, Mitte', 'e.g. Sozialamt Essen', 'Name'],
+    payerRef: 'File number / BG number (if any)', payerMail: 'Email of the office (optional)',
+    title: 'Create a pre-agreement without a price',
+    lead: 'One document with all details and every planned item – without a price. For example for the Jobcenter or your employer.',
+    items: 'Your planned items ({n}) with quantity and volume', person: 'Your contact details, addresses, access and preferred date',
+    toPayer: 'Our offer with the price goes to: {p}', toSelf: 'Our offer with the price goes to you',
+    terms: 'By sending you confirm that the details are correct and agree to the pre-agreement. It is free and non-binding – only the offer with the price becomes binding once it is accepted. You receive the pre-agreement as a PDF by email (in German, for German offices).',
+    needMail: 'For the pre-agreement we need your email address – that is where we send the PDF.',
+    sent: 'Your pre-agreement V-{id} is on its way to {mail} as a PDF.'
   },
   api: {
    route: 'Calculate distance', routeBusy: 'Calculating …', routeOk: 'Google Maps: {km} km, approx. {min} min drive',

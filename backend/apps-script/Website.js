@@ -70,6 +70,91 @@ function photos_(b) {
   return {ok: true, n: tok.n};
 }
 
+/* ------------------------------------------------------------------ pre-agreement without a price (Vorvereinbarung)
+   At the end of the planner the customer may agree to a pre-agreement: all details and every planned item, but no
+   price. It goes to the customer as a PDF (for the Jobcenter, the employer or their own files) and to the office.
+   Stabil Umzug then sends an offer with a price – to the payer when someone else pays. Binding only once that
+   offer is accepted. Always in German: it is meant for German offices. */
+function payer_(p) {
+  p = p || {};
+  var kind = Math.max(0, Math.min(PAYERS.length - 1, Number(p.kind) || 0));
+  var o = {kind: kind, label: PAYERS[kind], name: kind ? clip_(p.name, 120) : '', ref: kind ? clip_(p.ref, 60) : '', email: kind ? clip_(p.email, 120) : ''};
+  if (o.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(o.email)) o.email = '';
+  o.text = kind ? [o.label + (o.name ? ': ' + o.name : ''), o.ref ? 'Az. ' + o.ref : '', o.email].filter(String).join(' · ') : 'Selbstzahler';
+  return o;
+}
+
+function preAgreementHtml_(d) {
+  var c = company_(), s = d.s, e = d.est, x = function (v) { return String(v == null ? '' : v).replace(/[&<>"]/g, function (ch) { return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[ch]; }); };
+  var dz = function (n, k) { return String(round_(n, k)).replace('.', ','); };   // German decimal comma
+  var when = Utilities.formatDate(d.at, 'Europe/Berlin', 'dd.MM.yyyy'), at = Utilities.formatDate(d.at, 'Europe/Berlin', 'dd.MM.yyyy, HH:mm');
+  var acc = function (a) { return a ? FLOORS[a.floor] + ', ' + LIFTS[a.lift] + ', ' + PARKS[a.park] : '–'; };
+  var date = s.f1.dateMode === 'fixed' && s.f1.date ? s.f1.date.split('-').reverse().join('.') : 'flexibel, nach Absprache';
+  var rooms = (s.rooms || []).map(function (r) { return (ROOM_DE[r.r] || clip_(r.r, 20)) + (String(r.sqm || '').trim() ? ' (' + clip_(r.sqm, 6) + ' m²)' : ''); }).join(', ');
+  var row = function (k, v) { return v ? '<tr><th>' + x(k) + '</th><td>' + x(v) + '</td></tr>' : ''; };
+  // the same item from several sources (catalogue, list, preset) shows once
+  var items = {}, order = [];
+  (d.items || []).forEach(function (r) {
+    var k = r[1] + '|' + r[3];
+    if (!items[k]) { items[k] = {name: r[2], size: r[3], n: 0, vol: 0}; order.push(k); }
+    items[k].n += Number(r[4]) || 0; items[k].vol += Number(r[7]) || 0;
+  });
+  var list = order.map(function (k, i) {
+    var it = items[k];
+    return '<tr><td class="n">' + (i + 1) + '</td><td>' + x(it.name) + (it.size ? ' <span class="m">' + x(it.size) + '</span>' : '') + '</td><td class="n">' + it.n + '</td><td class="n">' + dz(it.vol, 2) + '</td></tr>';
+  }).join('');
+  var p = d.payer;
+  return '<html><head><meta charset="utf-8"><style>' +
+    '@page{size:A4;margin:16mm 16mm 18mm}body{font-family:Arial,Helvetica,sans-serif;font-size:10pt;color:#17304f;line-height:1.4}' +
+    '.top{display:table;width:100%;border-bottom:2px solid #e85a0a;padding-bottom:8px;margin-bottom:14px}.top>div{display:table-cell;vertical-align:top}.top .r{text-align:right;font-size:9pt;color:#55606f}' +
+    '.brand{font-size:17pt;font-weight:bold}.brand b{color:#e85a0a}h1{font-size:15pt;margin:0 0 2px}.sub{color:#55606f;margin:0 0 14px}' +
+    'h2{font-size:10.5pt;text-transform:uppercase;letter-spacing:.06em;color:#b4420e;margin:16px 0 6px;border-bottom:1px solid #d5d9df;padding-bottom:3px}' +
+    'table{width:100%;border-collapse:collapse}th,td{text-align:left;vertical-align:top;padding:3px 6px 3px 0}.kv th{width:34%;font-weight:normal;color:#55606f}' +
+    '.items th{font-size:8.5pt;color:#55606f;border-bottom:1px solid #17304f}.items td{border-bottom:1px solid #e3e6ea}.n{text-align:right;white-space:nowrap}.m{color:#55606f}' +
+    '.cols{display:table;width:100%}.cols>div{display:table-cell;width:50%;vertical-align:top;padding-right:12px}' +
+    'ol{margin:4px 0 0;padding-left:18px}li{margin:0 0 4px}.ok{margin-top:14px;padding:10px 12px;background:#fff1e8;border:1px solid #f3c4a6}' +
+    '.foot{margin-top:18px;font-size:8.5pt;color:#55606f;border-top:1px solid #d5d9df;padding-top:6px}</style></head><body>' +
+    '<div class="top"><div><div class="brand">Stabil <b>Umzug</b></div></div><div class="r">' + x(c.name) + ' · Inh. ' + x(c.owner) + '<br>' + x(c.street) + ', ' + x(c.city) +
+      '<br>' + x(c.phone) + ' · ' + x(c.email) + '<br>' + x(c.web) + '</div></div>' +
+    '<h1>Vorvereinbarung zum Umzug – ohne Preis</h1><p class="sub">Nr. V-' + x(d.id) + ' · vom ' + when + ' · Anfrage ' + x(d.id) + ' · Referenz ' + x(s.ref) + '</p>' +
+    '<div class="cols"><div><h2>Kunde</h2><table class="kv">' + row('Name', d.name) + row('Telefon', d.phone) + row('E-Mail', d.email) +
+      row('Bisherige Adresse', s.f1.from) + row('Neue Adresse', s.f1.to) + '</table></div>' +
+    '<div><h2>Kostenträger</h2><table class="kv">' + (p.kind ? row('Art', p.label) + row('Name / Stelle', p.name) + row('Aktenzeichen / BG-Nr.', p.ref) + row('E-Mail', p.email) +
+      row('Leistungsempfänger', d.name) : row('Art', 'Selbstzahler')) + '</table></div></div>' +
+    '<h2>Umzug</h2><table class="kv">' + row('Wunschtermin', date) +
+      row('Entfernung', d.route && d.route.ok ? d.route.km + ' km, ca. ' + d.route.min + ' min Fahrzeit' : (s.f1.km ? s.f1.km + ' km (Angabe)' : '')) +
+      row('Haushalt', HH[s.f1.hh] || '') + row('Zugang Auszug', acc(s.acc.old)) + row('Zugang Einzug', acc(s.acc['new'])) + row('Halteverbotszone', s.hvz ? 'gewünscht' : 'nicht nötig') +
+      row('Räume', rooms) + row('Geschätztes Volumen', dz(e.volLow) + '–' + dz(e.volHigh) + ' m³ (Umzugsgut, ohne Gewähr)') +
+      row('Planung', VEH_DE[e.vehicle] + (e.trips > 1 ? ', ' + e.trips + ' Fahrten' : '') + ', ' + e.crew + ' Personen, ca. ' + dz(e.hours) + ' Std. (Schätzung)') + '</table>' +
+    '<h2>Gegenstände (' + order.length + ' Positionen)</h2>' + (list ? '<table class="items"><thead><tr><th class="n">#</th><th>Gegenstand</th><th class="n">Anzahl</th><th class="n">m³</th></tr></thead><tbody>' + list + '</tbody></table>' : '<p>Keine Gegenstände angegeben.</p>') +
+    (d.note ? '<h2>Hinweise des Kunden</h2><p>' + x(d.note) + '</p>' : '') +
+    '<h2>Vereinbarung</h2><ol>' +
+      '<li>Der Kunde bestätigt, dass die oben stehenden Angaben und die Liste der Gegenstände vollständig und richtig sind.</li>' +
+      '<li>Diese Vorvereinbarung enthält keinen Preis. Stabil Umzug erstellt auf ihrer Grundlage ein Angebot mit Preis' + (p.kind ? ' und richtet es auf Wunsch des Kunden direkt an den Kostenträger (' + x(p.name || p.label) + ').' : '.') + '</li>' +
+      '<li>Ein verbindlicher Auftrag kommt erst zustande, wenn dieses Angebot angenommen wurde' + (p.kind ? ' bzw. der Kostenträger die Kosten übernimmt' : '') + '. Bis dahin ist die Vorvereinbarung für beide Seiten kostenlos und unverbindlich.</li>' +
+      '<li>Ändern sich Umfang, Gegenstände, Zugang oder Termin, passt Stabil Umzug das Angebot an.</li></ol>' +
+    '<div class="ok"><b>Zugestimmt:</b> ' + x(d.name) + ', elektronisch über www.stabilumzug.de am ' + at + ' Uhr (Anfrage ' + x(d.id) + ').</div>' +
+    '<div class="foot">' + x(c.name) + ' · ' + x(c.legal) + ' · Inhaber ' + x(c.owner) + ' · ' + x(c.street) + ', ' + x(c.city) + ' · ' + x(c.phone) + ' · ' + x(c.email) + '</div>' +
+    '</body></html>';
+}
+
+function preAgreementPdf_(d) {
+  return HtmlService.createHtmlOutput(preAgreementHtml_(d)).getBlob().getAs('application/pdf').setName('Vorvereinbarung-V-' + d.id + '.pdf');
+}
+
+function preAgreementMail_(email, en, id, name, pdf) {
+  if (!email) return;
+  var c = company_();
+  MailApp.sendEmail({to: email, name: c.name, replyTo: c.email, attachments: [pdf],
+    subject: en ? 'Your pre-agreement V-' + id + ' – Stabil Umzug' : 'Ihre Vorvereinbarung V-' + id + ' – Stabil Umzug',
+    body: (en ? ['Hello ' + name + ',', '', 'thank you for your request ' + id + '. Attached is your pre-agreement V-' + id + ' with all details and items – without a price.',
+      'If your employer, the Jobcenter or another office pays for the move, you can hand it in there. We will send the offer with the price within 24 hours' +
+      ' – to the payer if you named one.', '', 'The document is in German because it is meant for German offices. Questions? Just reply to this e-mail or call ' + c.phone + '.']
+      : ['Guten Tag ' + name + ',', '', 'danke für Ihre Anfrage ' + id + '. Im Anhang finden Sie Ihre Vorvereinbarung V-' + id + ' mit allen Angaben und Gegenständen – ohne Preis.',
+      'Zahlt Ihr Arbeitgeber, das Jobcenter oder eine andere Stelle den Umzug, können Sie sie dort einreichen. Das Angebot mit Preis schicken wir innerhalb von 24 Stunden' +
+      ' – an den Kostenträger, wenn Sie einen angegeben haben.', '', 'Fragen? Antworten Sie einfach auf diese E-Mail oder rufen Sie an: ' + c.phone + '.']).concat(['', c.name, c.street + ', ' + c.city, c.web]).join('\n')});
+}
+
 function nextApptNr_() {
   var props = PropertiesService.getScriptProperties();
   var n = Number(props.getProperty('NEXT_APPT') || 1001);

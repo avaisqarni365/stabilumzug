@@ -14,7 +14,10 @@ var STATUS = ['Neu', 'In Arbeit', 'Angebot raus', 'Gebucht', 'Erledigt', 'Verlor
 var LEAD_COLS = ['ID', 'Eingang', 'Status', 'Zuständig', 'Angebot €', 'Name', 'Telefon', 'E-Mail', 'Kontaktweg', 'Von', 'Nach',
   'km (Familie)', 'km (Maps)', 'Fahrzeit min', 'Termin', 'Haushalt', 'Zugang Auszug', 'Zugang Einzug', 'Halteverbot', 'Räume',
   'Anzahl', 'Volumen min m³', 'Volumen max m³', 'Gewicht kg', 'Fahrzeug', 'Team', 'Stunden', 'Vertrauen', 'Stammdaten',
-  'Quelle', 'Sprache', 'Nachricht', 'Referenz', 'Einwilligung', 'Daten (JSON)', 'Leistung', 'Notizen', 'Kundentoken', 'Angebot gesendet'];
+  'Quelle', 'Sprache', 'Nachricht', 'Referenz', 'Einwilligung', 'Daten (JSON)', 'Leistung', 'Notizen', 'Kundentoken', 'Angebot gesendet',
+  'Kostenträger', 'Vorvereinbarung'];
+/* Who pays for the move (planner, "Wer bezahlt den Umzug?"): an offer for these goes to the payer, not to the customer. */
+var PAYERS = ['Selbstzahler', 'Arbeitgeber', 'Jobcenter', 'Sozialamt', 'Andere'];
 var JSON_COL = LEAD_COLS.indexOf('Daten (JSON)') + 1;   // 1-based
 var SERVICE_DE = {moves: 'Umzug', clearance: 'Entrümpelung', dissolution: 'Wohnungsauflösung', transport: 'Transport', other: 'Sonstiges'};
 var ITEM_COLS = ['Anfrage', 'item_id', 'Gegenstand', 'Größe', 'Anzahl', 'Herkunft', 'm³ je Stück', 'm³ gesamt'];
@@ -148,6 +151,27 @@ function day_(v) { return v instanceof Date ? Utilities.formatDate(v, 'Europe/Be
 function de_(x, d) { return String(round_(x, d)).replace('.', ','); }
 function round_(x, d) { var f = Math.pow(10, d == null ? 1 : d); return Math.round(x * f) / f; }
 function sheet_(name) { var sh = ss_().getSheetByName(name); if (!sh) throw new Error('Tab fehlt: ' + name + ' – bitte „Einrichten“ ausführen.'); return sh; }
+/* Company data printed on every document. Stored in the Konfiguration tab (key "firma_…"); these are the defaults. */
+var COMPANY_FIELDS = [
+  ['name', 'Firmenname', 'Stabil Umzug'], ['owner', 'Inhaber', 'Ibrahim Abdelaal'], ['legal', 'Rechtsform', 'Einzelunternehmen'],
+  ['street', 'Straße und Hausnummer', 'Karlstraße 32'], ['city', 'PLZ und Ort', '45329 Essen'],
+  ['phone', 'Telefon', '0163 9688190'], ['email', 'E-Mail', 'info.stabilumzug@gmail.com'], ['web', 'Website', 'www.stabilumzug.de'],
+  ['vat_id', 'USt-IdNr.', 'DE458214531'], ['tax_no', 'Steuernummer', ''],
+  ['bank', 'Bank', ''], ['iban', 'IBAN', ''], ['bic', 'BIC', ''],
+  ['small', 'Kleinunternehmer nach § 19 UStG (ja/nein)', 'nein'], ['vat', 'Standard-USt-Satz %', 19],
+  ['price_mode', 'Preise eingeben als (brutto/netto)', 'brutto'], ['pay_days', 'Zahlungsziel Tage', 14], ['offer_days', 'Angebot gültig Tage', 14],
+  ['bcc', 'Kopie gesendeter Belege an (E-Mail)', '']
+];
+
+function company_() {
+  var c = {};
+  COMPANY_FIELDS.forEach(function (f) { var v = config_('firma_' + f[0]); c[f[0]] = v === '' || v == null ? f[2] : v; });
+  c.small = /^(ja|yes|true|1)$/i.test(String(c.small));
+  c.vat = Number(c.vat) || 0; c.pay_days = Number(c.pay_days) || 0; c.offer_days = Number(c.offer_days) || 0;
+  c.price_mode = String(c.price_mode).toLowerCase() === 'netto' ? 'net' : 'gross';
+  return c;
+}
+
 function config_(key) {
   var sh = ss_().getSheetByName(TAB.config);
   if (!sh) return '';

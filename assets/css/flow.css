@@ -252,3 +252,20 @@ p.uf-small,.uf-how .uf-small,.uf-card .uf-small{text-align:justify}
   .uf .btn.uf-mini{min-height:44px}
   .uf-card .uf-small,.uf-how .uf-small{text-align:left}
 }
+
+/* who pays + pre-agreement without a price (step 6) */
+.uf .uf-seg-wrap{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));width:100%}
+.uf .uf-seg-wrap .seg-opt + .seg-opt{border-left:1px solid var(--c-div)}
+.uf-payer{display:flex;flex-direction:column;gap:12px}
+.uf-payer-in{gap:12px;padding:12px 14px;background:var(--c-surface)}
+.uf-pre{border:1px solid var(--c-div);padding:12px 14px;transition:background .2s,border-color .2s}
+.uf-pre.on{background:var(--c-acc-tint);border-color:var(--c-accent)}
+.uf-pre-in{margin:10px 0 0 34px;display:flex;flex-direction:column;gap:8px}
+.uf-pre-list{margin:0;padding-left:18px;font-size:14px;display:flex;flex-direction:column;gap:4px}
+.uf-pre .uf-small,.uf-pre-list li,.uf-payer-in .uf-small{text-align:left}
+@media (max-width:560px){
+  .uf .uf-seg-wrap{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .uf .uf-seg-wrap .seg-opt{border-top:1px solid var(--c-div);margin-top:-1px}
+  .uf .uf-seg-wrap .seg-opt:nth-child(3n+1){border-left:0}
+  .uf-pre-in{margin-left:0}
+}

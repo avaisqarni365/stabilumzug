@@ -18,26 +18,7 @@ var DOC_TAB = 'Belege';
 var DOC_TYPES = {offer: 'Angebot', invoice: 'Rechnung', deposit: 'Abschlagsrechnung', final: 'Schlussrechnung', storno: 'Stornorechnung'};
 var PAY_METHODS = ['Überweisung', 'Bar', 'EC-/Kreditkarte', 'PayPal'];
 
-/* Company data printed on every document. Stored in the Konfiguration tab (key "firma_…"); these are the defaults. */
-var COMPANY_FIELDS = [
-  ['name', 'Firmenname', 'Stabil Umzug'], ['owner', 'Inhaber', 'Ibrahim Abdelaal'], ['legal', 'Rechtsform', 'Einzelunternehmen'],
-  ['street', 'Straße und Hausnummer', 'Karlstraße 32'], ['city', 'PLZ und Ort', '45329 Essen'],
-  ['phone', 'Telefon', '0163 9688190'], ['email', 'E-Mail', 'info.stabilumzug@gmail.com'], ['web', 'Website', 'www.stabilumzug.de'],
-  ['vat_id', 'USt-IdNr.', 'DE458214531'], ['tax_no', 'Steuernummer', ''],
-  ['bank', 'Bank', ''], ['iban', 'IBAN', ''], ['bic', 'BIC', ''],
-  ['small', 'Kleinunternehmer nach § 19 UStG (ja/nein)', 'nein'], ['vat', 'Standard-USt-Satz %', 19],
-  ['price_mode', 'Preise eingeben als (brutto/netto)', 'brutto'], ['pay_days', 'Zahlungsziel Tage', 14], ['offer_days', 'Angebot gültig Tage', 14],
-  ['bcc', 'Kopie gesendeter Belege an (E-Mail)', '']
-];
-
-function company_() {
-  var c = {};
-  COMPANY_FIELDS.forEach(function (f) { var v = config_('firma_' + f[0]); c[f[0]] = v === '' || v == null ? f[2] : v; });
-  c.small = /^(ja|yes|true|1)$/i.test(String(c.small));
-  c.vat = Number(c.vat) || 0; c.pay_days = Number(c.pay_days) || 0; c.offer_days = Number(c.offer_days) || 0;
-  c.price_mode = String(c.price_mode).toLowerCase() === 'netto' ? 'net' : 'gross';
-  return c;
-}
+/* COMPANY_FIELDS and company_() live in Shared.js (the website prints the pre-agreement with them). */
 
 /* ------------------------------------------------------------------ sheet */
 
@@ -187,9 +168,15 @@ function newDoc_(type, leadId) {
     var l = leadObj_(hit.values), a = splitAddr_(l.to || l.from);
     doc.to.name = l.name; doc.to.street = a.street; doc.to.city = a.city; doc.to.email = l.email; doc.to.phone = l.phone;
     if (/^\d{4}-\d{2}-\d{2}$/.test(l.date)) { doc.serviceFrom = l.date; }
+    // paid by an employer, the Jobcenter or the social welfare office: the offer goes to them, the customer is the reference
+    var pd = l.payerData, pk = pd ? Math.max(0, Math.min(PAYERS.length - 1, Number(pd.kind) || 0)) : 0;
+    if (pk) {
+      doc.to = {kind: 'firma', name: '', company: String(pd.name || PAYERS[pk]).slice(0, 120), street: '', city: '', country: 'Deutschland', email: String(pd.email || '').slice(0, 120), phone: '', vatId: ''};
+      doc.ref = ['Leistungsempfänger: ' + l.name + (l.from ? ', ' + l.from : ''), pd.ref ? 'Aktenzeichen / BG-Nr.: ' + String(pd.ref).slice(0, 60) : '', l.pre ? 'Vorvereinbarung V-' + leadId : ''].filter(String).join(' · ');
+    }
     var svc = String(l.service || 'Umzug').replace(/ \((Planer|Kurzformular)\)$/, '');
     doc.subject = t.subject.replace('Ihren Umzug', 'Ihren Auftrag „' + svc + '“') + (type === 'offer' ? '' : ' – ' + svc) + ' (Anfrage ' + leadId + ')';
-    if (l.name) {
+    if (l.name && !pk) {
       var hello = 'Guten Tag ' + l.name + ',';
       doc.intro = doc.intro.replace('Sehr geehrte Damen und Herren,', hello);
     }
