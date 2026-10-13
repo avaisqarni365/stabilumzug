@@ -1125,3 +1125,20 @@ details.fs-card > summary:focus-visible{outline:2px solid var(--red);outline-off
   .svc-overview .svc-tile h3{grid-column:1/-1;grid-row:1;margin-bottom:6px}
   .svc-overview .svc-tile .ti{grid-row:2/4}
 }
+
+/* ---------- about page on phones ---------- */
+.pr > summary{list-style:none}
+.pr > summary::-webkit-details-marker{display:none}
+@media (min-width:761px){.pr > summary{pointer-events:none}}
+@media (max-width:760px){
+  .costs.two div{padding:0}
+  .pr > summary{cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:48px;padding:10px 0}
+  .pr > summary h3{margin:0;font-size:1.02rem}
+  .pr > summary::after{content:"";flex:none;width:9px;height:9px;border-right:2px solid var(--red);border-bottom:2px solid var(--red);transform:rotate(45deg) translateY(-3px);transition:transform .2s}
+  .pr[open] > summary::after{transform:rotate(-135deg) translateY(-3px)}
+  .pr p{padding:0 0 14px;text-align:left}
+  .costs.two div::before{display:none}
+  .looks{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  .look figcaption{padding-top:10px;font-size:13.5px;line-height:1.45}
+  .look figcaption b{font-size:1rem}
+}
