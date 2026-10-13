@@ -187,17 +187,17 @@ def service_page(skey):
         c = SERVICES[skey][lang]
         quote_href = link(key, "quote", lang) + ("?service=%s" % skey if skey != "extras" else "")
         head = ('<div class="page-head ph-photo"><div class="container"><div class="ph-text">%s<span class="kicker red">%s</span><h1>%s</h1><p class="lead">%s</p>'
-                '<div class="actions" style="margin-top:28px"><a class="button primary" href="%s">%s</a>%s</div></div>'
+                '<div class="actions ph-actions" style="margin-top:28px"><a class="button primary" href="%s">%s</a>%s</div></div>'
                 '<figure class="ph-img"><img src="' + prefix_for(key, lang) + 'assets/img/photos/' + PHOTO[skey] + '" alt="' + esc(c["nav"]) + '" width="1600" height="1067" fetchpriority="high"></figure></div></div>') % (
             crumbs(key, lang, c["nav"], parent="services"), t("Stabil Umzug · Essen", "Stabil Umzug · Essen", lang), esc(c["title"]), inline(c["lead"], key, lang),
-            quote_href, t("Jetzt kostenloses Angebot anfordern", "Request your free quote now", lang),
-            ('<a class="button arrow" href="tel:%s">%s %s</a>' % (esc(SITE["phone_href"]), t("Anrufen", "Call", lang), esc(SITE["phone"]))) if SITE.get("phone_href") else "")
+            quote_href, t("Kostenloses Angebot", "Free quote", lang),
+            ('<a class="button arrow tel" href="tel:%s" aria-label="%s">%s</a>' % (esc(SITE["phone_href"]), esc(t("Anrufen: ", "Call: ", lang) + SITE["phone"]), esc(SITE["phone"]))) if SITE.get("phone_href") else "")
         items = "".join('<div><h3>%s</h3><p>%s</p></div>' % (esc(a), inline(b, key, lang)) for a, b in c["items"])
         body = head + (route_section(key, skey, lang) if skey in ROUTE_SERVICES else "") + '<section class="section"><div class="container"><div class="head"><div><span class="kicker red">%s</span><h2>%s</h2></div><p>%s</p></div><div class="costs svc">%s</div></div></section>' % (
             t("Leistungen", "Services", lang), esc(t("Was wir für Sie übernehmen.", "What we take care of.", lang)), esc(c["teaser"]), items)
         steps = "".join('<li><span class="n">%02d</span><h3>%s</h3><p>%s</p></li>' % (i + 1, esc(a), inline(b, key, lang)) for i, (a, b) in enumerate(c["process"]))
         incl = "".join("<li>%s</li>" % inline(x, key, lang) for x in c["included"])
-        body += ('<section class="section alt"><div class="container"><div class="head"><div><span class="kicker red">%s</span><h2>%s</h2></div><p></p></div><ol class="steps-list">%s</ol>'
+        body += ('<section class="section alt place-steps"><div class="container"><div class="head"><div><span class="kicker red">%s</span><h2>%s</h2></div><p></p></div><ol class="steps-list">%s</ol>'
                  '<div class="split" style="margin-top:48px"><div><h3 style="font-size:1.5rem;margin-bottom:8px">%s</h3><ul class="checks">%s</ul></div>%s</div></div></section>') % (
             t("Ablauf", "How it works", lang), t("In vier Schritten erledigt.", "Done in four steps.", lang), steps,
             t("Typischerweise enthalten", "Typically included", lang), incl, price_hint(skey, key, lang))
@@ -238,7 +238,7 @@ def services_overview(lang):
         t("Umzüge, Entrümpelungen, Wohnungsauflösungen und Transporte aus Essen – im Ruhrgebiet und in ganz Deutschland. Alles aus einer Hand, mit eigenem Transporter und festem Team.",
           "Moves, clear-outs, household clearances and transport from Essen – across the Ruhr area and all of Germany. All from one team, with our own transporter and a fixed crew.", lang),
         kicker=t("Stabil Umzug · Essen", "Stabil Umzug · Essen", lang))
-    body += '<section class="section"><div class="container">%s</div></section>' % service_tiles(key, lang, big=True)
+    body += '<section class="section svc-overview"><div class="container">%s</div></section>' % service_tiles(key, lang, big=True)
     body += cta(key, lang)
     return dict(key=key, lang=lang,
         title=t("Leistungen: Umzug, Entrümpelung, Wohnungsauflösung, Transport | Stabil Umzug", "Services: moves, clear-outs, clearance, transport | Stabil Umzug", lang),

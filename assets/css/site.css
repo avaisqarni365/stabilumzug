@@ -1103,3 +1103,25 @@ details.fs-card > summary:focus-visible{outline:2px solid var(--red);outline-off
   .qc:active{transform:translateY(1px)}
   .form-more-in{grid-template-columns:minmax(0,1fr)}
 }
+
+/* ---------- service pages and overview on phones ---------- */
+@media (max-width:760px){
+  /* route section: only the planner card (like the city pages) */
+  .route-sec .split > div:first-child .lead,.route-sec .split > div:first-child .checks,.route-sec .split > div:first-child .small{display:none}
+  .route-sec .split{gap:14px}
+  /* short list items read better ragged than stretched */
+  .checks li{text-align:left}
+  /* overview: picture beside the title, the sub-list lives on each service page */
+  .svc-overview .svc-tile{display:grid;grid-template-columns:112px minmax(0,1fr);gap:4px 14px;align-items:start;padding:14px 0}
+  .svc-overview .svc-tile .ti{grid-row:1/4;margin:0;aspect-ratio:1/1}
+  .svc-overview .svc-tile .ti img{height:100%;object-fit:cover}
+  .svc-overview .svc-tile h3{font-size:1.15rem;margin:0}
+  .svc-overview .svc-tile p{font-size:14.5px;margin:0;text-align:left}
+  .svc-overview .svc-tile ul{display:none}
+  .svc-overview .svc-tile .link-arrow{grid-column:2;font-size:14.5px}
+}
+@media (max-width:420px){
+  .svc-overview .svc-tile{grid-template-columns:96px minmax(0,1fr)}
+  .svc-overview .svc-tile h3{grid-column:1/-1;grid-row:1;margin-bottom:6px}
+  .svc-overview .svc-tile .ti{grid-row:2/4}
+}
