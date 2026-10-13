@@ -19,7 +19,8 @@
     next: 'What happens next', nextList: {visit: ['We arrive on time – the address is in your confirmation.', 'We look at all rooms, the cellar and access.', 'You get your fixed quote within 24 hours.'],
       video: ['We call you by WhatsApp video on your number.', 'Walk us through the rooms with your phone.', 'You get your quote within 24 hours.'],
       call: ['We call you at the booked time.', 'We answer your questions and note your wishes.', 'If you like, we send you a quote right after.']},
-    change: 'Need to change? Reply to the confirmation email or call', ref: 'Reference', sel: 'Your appointment', when: 'Day and time'
+    change: 'Need to change? Reply to the confirmation email or call', ref: 'Reference', sel: 'Your appointment', when: 'Day and time',
+    more: 'More details (optional)', next2: 'Continue'
   } : {
     s1: 'Welche Art von Termin?', s2: 'Tag wählen', s3: 'Uhrzeit wählen', s4: 'Ihre Angaben', min: 'Min.', free: 'frei', full: 'voll', none: 'geschlossen',
     types: {visit: ['Besichtigung vor Ort', 'Wir kommen zu Ihnen, sehen uns alles an und schicken ein verbindliches Angebot. Kostenlos.'], video: ['Video-Besichtigung', 'Zeigen Sie uns Ihre Räume per WhatsApp-Video. Kostenlos, von überall.'], call: ['Rückruf und Beratung', 'Wir rufen Sie an und beantworten Ihre Fragen rund um den Umzug.']},
@@ -32,7 +33,8 @@
     next: 'So geht es weiter', nextList: {visit: ['Wir kommen pünktlich – die Adresse steht in Ihrer Bestätigung.', 'Wir sehen uns alle Räume, Keller und Zugang an.', 'Sie bekommen Ihr verbindliches Angebot innerhalb von 24 Stunden.'],
       video: ['Wir rufen Sie per WhatsApp-Video unter Ihrer Nummer an.', 'Sie zeigen uns die Räume mit dem Handy.', 'Sie bekommen Ihr Angebot innerhalb von 24 Stunden.'],
       call: ['Wir rufen Sie zur gebuchten Zeit an.', 'Wir beantworten Ihre Fragen und notieren Ihre Wünsche.', 'Auf Wunsch schicken wir Ihnen gleich danach ein Angebot.']},
-    change: 'Etwas ändern? Antworten Sie auf die Bestätigung oder rufen Sie an:', ref: 'Terminnummer', sel: 'Ihr Termin', when: 'Tag und Uhrzeit'
+    change: 'Etwas ändern? Antworten Sie auf die Bestätigung oder rufen Sie an:', ref: 'Terminnummer', sel: 'Ihr Termin', when: 'Tag und Uhrzeit',
+    more: 'Weitere Angaben (optional)', next2: 'Weiter'
   };
   var WD = en ? ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] : ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
   var WDL = en ? ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'] : ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
@@ -74,17 +76,36 @@
         '<label class="field"><span>' + esc(T.phone) + ' *</span><input class="input" name="phone" type="tel" required autocomplete="tel"></label>' +
         '<label class="field bk-wide"><span>' + esc(T.email) + ' *</span><input class="input" name="email" type="email" required autocomplete="email"></label>' +
         '<label class="field bk-wide"><span id="bk-addr-l">' + esc(T.addrVisit) + ' *</span><input class="input" name="address" autocomplete="street-address"></label>' +
-        '<label class="field bk-wide"><span>' + esc(T.to) + '</span><input class="input" name="to"></label>' +
-        '<label class="field bk-wide"><span>' + esc(T.msg) + '</span><textarea class="input" name="message" rows="3"></textarea></label>' +
+        '<details class="bk-more bk-wide"><summary>' + esc(T.more) + '</summary><div class="bk-more-in">' +
+          '<label class="field"><span>' + esc(T.to) + '</span><input class="input" name="to" autocomplete="off"></label>' +
+          '<label class="field"><span>' + esc(T.msg) + '</span><textarea class="input" name="message" rows="3"></textarea></label></div></details>' +
         '<input class="hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">' +
         '<label class="bk-consent bk-wide"><input type="checkbox" name="consent" required><span>' + esc(T.consent) + ' <a href="' + esc(privacy) + '">' + esc(T.privacy) + '</a></span></label>' +
         '<p class="bk-msg bk-wide" id="bk-err" hidden role="alert"></p>' +
         '<button class="button primary bk-wide" type="submit" id="bk-go">' + esc(T.book) + '</button></form>' +
         (phone ? '<p class="bk-muted" style="margin-top:12px">' + esc(T.change) + ' <a href="tel:' + esc(SITE.phone_href || phone) + '">' + esc(phone) + '</a></p>' : '') + '</section>' +
-      '</div>';
+      '</div>' +
+      '<div class="bk-bar" id="bk-bar" hidden><div><small>' + esc(T.sel) + '</small><b id="bk-bar-t"></b></div><button type="button" class="button primary" id="bk-bar-go">' + esc(T.next2) + '</button></div>';
+    root.querySelector('#bk-bar-go').addEventListener('click', function () { toForm(); });
     root.querySelectorAll('input[name="bk-type"]').forEach(function (r) { r.addEventListener('change', function () { S.type = r.value; S.date = ''; S.time = ''; load(); }); });
     root.querySelector('#bk-form').addEventListener('submit', submit);
     load();
+  }
+
+  function toForm() {
+    root.querySelector('#bk-s4').scrollIntoView({block: 'start', behavior: 'smooth'});
+    setTimeout(function () { var n = root.querySelector('input[name="name"]'); if (n && !n.value) n.focus({preventScroll: true}); }, 450);
+  }
+  function barState() {
+    var bar = root.querySelector('#bk-bar'); if (!bar) return;
+    var s4 = root.querySelector('#bk-s4');   // hidden while the form itself is on screen
+    var formInView = s4 && s4.getBoundingClientRect().top < window.innerHeight * 0.8;
+    var on = !!(S.date && S.time) && !formInView && small();
+    bar.hidden = !on;
+    if (on) {   // short form so it fits one line on small phones: "Vor Ort · Mi., 14.10. · 09:30"
+      var d = new Date(S.date + 'T12:00:00'), shortType = {visit: en ? 'On site' : 'Vor Ort', video: 'Video', call: en ? 'Call-back' : 'Rückruf'}[S.type];
+      root.querySelector('#bk-bar-t').textContent = shortType + ' · ' + WD[d.getDay()] + (en ? ' ' + S.date.slice(8, 10) + '/' + S.date.slice(5, 7) : '., ' + S.date.slice(8, 10) + '.' + S.date.slice(5, 7) + '.') + ' · ' + S.time;
+    }
   }
 
   /* The chosen appointment, shown at the top of step 4. */
@@ -96,11 +117,13 @@
     el.innerHTML = '<span class="bk-ico bk-' + S.type + '" aria-hidden="true"></span><div><b>' + esc(T.types[S.type][0]) + '</b>' +
       (S.date && S.time ? '<span>' + esc(dLong(S.date)) + ', ' + esc(S.time) + (en ? '' : ' Uhr') + '</span>' : '<span class="bk-muted">' + esc(T.pick) + '</span>') + '</div>';
     el.classList.toggle('is-set', !!(S.date && S.time));
+    barState();
   }
 
   function load() {
     var box = root.querySelector('#bk-cal');
-    box.innerHTML = '<p class="bk-msg">' + esc(T.loading) + '</p>';
+    var sk = ''; for (var i = 0; i < 35; i++) sk += '<span class="bk-c sk"></span>';
+    box.innerHTML = '<div class="bk-cal-head"><span class="bk-nav sk"></span><b class="sk-t">' + esc(T.loading) + '</b><span class="bk-nav sk"></span></div><div class="bk-grid" aria-busy="true">' + sk + '</div>';
     root.querySelector('#bk-times').innerHTML = '<p class="bk-muted">' + esc(T.pick) + '</p>';
     summary();
     fetch(API + '?action=slots&type=' + encodeURIComponent(S.type)).then(function (r) { return r.json(); }).then(function (r) {
@@ -149,9 +172,7 @@
     box.querySelectorAll('input').forEach(function (r) {
       r.addEventListener('change', function () {
         S.time = r.value; summary();
-        var s4 = root.querySelector('#bk-s4');   // on to step 4
-        s4.scrollIntoView({block: 'start', behavior: 'smooth'});
-        setTimeout(function () { var n = root.querySelector('input[name="name"]'); if (n && !n.value) n.focus({preventScroll: true}); }, 400);
+        toForm();   // on to step 4
       });
     });
   }
@@ -182,6 +203,7 @@
     var ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Stabil Umzug//Termine//DE', 'BEGIN:VEVENT', 'UID:' + r.nr + '@stabilumzug.de', 'DTSTAMP:' + z(new Date()), 'DTSTART:' + z(start), 'DTEND:' + z(end),
       'SUMMARY:' + title, 'LOCATION:' + where.replace(/[,;]/g, '\\$&'), 'END:VEVENT', 'END:VCALENDAR'].join('\r\n');
     var icsUrl = URL.createObjectURL(new Blob([ics], {type: 'text/calendar'}));
+    S.date = ''; S.time = '';
     root.innerHTML = '<div class="bk-done" tabindex="-1"><span class="bk-check" aria-hidden="true"></span><h2>' + esc(T.done) + '</h2>' +
       '<p class="bk-when">' + esc(T.types[r.type][0]) + '<b>' + esc(dLong(r.date)) + ', ' + esc(r.time) + (en ? '' : ' Uhr') + '</b></p>' +
       '<p>' + esc(T.doneText) + ' <b>' + esc(b.email) + '</b>. ' + esc(T.ref) + ': <b>' + esc(r.nr) + '</b></p>' +
@@ -190,6 +212,13 @@
       (phone ? '<p class="bk-muted">' + esc(T.change) + ' <a href="tel:' + esc(SITE.phone_href || phone) + '">' + esc(phone) + '</a></p>' : '') + '</div>';
     var d = root.querySelector('.bk-done'); d.focus(); d.scrollIntoView({block: 'start', behavior: 'smooth'});
   }
+
+  var ticking = false;
+  window.addEventListener('scroll', function () {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(function () { ticking = false; barState(); });
+  }, {passive: true});
 
   draw();
 })();
