@@ -238,6 +238,7 @@ textarea.input{min-height:120px;resize:vertical;line-height:1.5}
       fact('Zugang Auszug', l.accOld) + fact('Zugang Einzug', l.accNew) + fact('Halteverbot', l.hvz) + fact('Räume', l.rooms) +
       fact('Volumen', l.volMin != null ? l.volMin + '–' + l.volMax + ' m³' : '') + fact('Gewicht', l.weight ? l.weight + ' kg' : '') +
       fact('Fahrzeug', l.vehicle) + fact('Team / Stunden', l.crew ? l.crew + ' Personen · ' + l.hours + ' Std.' : '') + fact('Vertrauen', l.confidence) +
+      fact('Kostenträger', l.payer && l.payer !== 'Selbstzahler' ? l.payer : '') + fact('Vorvereinbarung', l.pre) +
       fact('Quelle', l.source) + fact('Sprache', l.lang) + fact('Eingang', dt(l.received));
     var items = d.items.length ? '<div class="card"><h2>Gegenstände (' + d.items.reduce(function (a, i) { return a + i.n; }, 0) + ')</h2><table class="tbl" style="border-top:0"><thead><tr><th>Gegenstand</th><th>Herkunft</th><th class="num">Anz.</th><th class="num">m³</th></tr></thead><tbody>' +
       d.items.map(function (i) { return '<tr style="cursor:default"><td>' + esc(i.name) + (i.size ? ' <span class="muted">' + esc(i.size) + '</span>' : '') + '</td><td class="muted">' + esc(i.source) + '</td><td class="num">' + i.n + '</td><td class="num">' + Number(i.vol).toLocaleString('de-DE') + '</td></tr>'; }).join('') + '</tbody></table></div>' : '';

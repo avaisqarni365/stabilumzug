@@ -47,6 +47,7 @@
       mode: 0, q: '', room: 'all', presetSel: null, preset: null, guess: {},
       paste: '', parsed: null, cd: null, src: null,
       contact: {name: '', phone: '', email: '', channel: 0, note: ''}, consent: false, sent: null,
+      payer: {kind: 0, name: '', ref: '', email: ''}, pre: false,
       route: null, remote: null, remoteOk: false, started: 0
     };
   }
@@ -465,11 +466,31 @@
   }
   /* photos of furniture and items (assets/js/photos.js): the same photos show in step 4 and with the contact details */
   function photoSlot() { return API && window.StabilPhotos && !S.sent ? '<div class="uf-block" data-photos="planner"></div>' : ''; }
+  /* "Wer bezahlt den Umzug?" – with an employer, the Jobcenter or an office paying, the offer goes to them */
+  function payerBlock() {
+    var p = S.payer, P = t.pre;
+    return '<div class="uf-payer">' + groupField(P.payer, seg('pay', P.payers, p.kind, 'payer.kind', P.payer).replace('seg uf-seg', 'seg uf-seg uf-seg-wrap')) +
+      (p.kind ? '<div class="uf-col uf-payer-in"><p class="uf-small">' + esc(P.payerHint) + '</p>' +
+        field(P.payerName, '<input class="input" id="uf-pn" data-bind="payer.name" value="' + esc(p.name) + '" placeholder="' + esc(P.payerNamePh[p.kind] || '') + '" autocomplete="organization">', 'uf-pn') +
+        field(P.payerRef, '<input class="input" id="uf-pr" data-bind="payer.ref" value="' + esc(p.ref) + '" autocomplete="off">', 'uf-pr') +
+        field(P.payerMail, '<input class="input" id="uf-pm" type="email" data-bind="payer.email" value="' + esc(p.email) + '" autocomplete="off">', 'uf-pm') + '</div>' : '') +
+      '</div>';
+  }
+  /* pre-agreement without a price: all details and items as a PDF, by e-mail to the customer and to us */
+  function preBlock() {
+    var P = t.pre, e = est();
+    return '<div class="uf-pre' + (S.pre ? ' on' : '') + '"><label class="uf-check"><input type="checkbox" data-toggle="pre" data-k="pre"' + (S.pre ? ' checked' : '') + '><span class="uf-box" aria-hidden="true"></span>' +
+      '<span><span class="uf-strong">' + esc(P.title) + '</span><span class="uf-small uf-block-s">' + esc(P.lead) + '</span></span></label>' +
+      (S.pre ? '<div class="uf-pre-in"><ul class="uf-pre-list">' +
+        '<li>' + esc(fmt(P.items, {n: e.n})) + '</li><li>' + esc(P.person) + '</li><li>' + esc(S.payer.kind ? fmt(P.toPayer, {p: S.payer.name || P.payers[S.payer.kind]}) : P.toSelf) + '</li></ul>' +
+        '<p class="uf-small">' + esc(P.terms) + '</p>' +
+        (S.contact.email.trim() ? '' : '<p class="uf-small uf-acc">' + esc(P.needMail) + '</p>') + '</div>' : '') + '</div>';
+  }
   function contactSection() {
     if (!API) return '';
     if (S.sent) {
       return '<div class="uf-done" tabindex="-1" id="uf-done"><div class="uf-k">' + esc(t.api.sentK) + '</div><div class="uf-big-v">' + esc(S.sent.id) + '</div>' +
-        '<p>' + esc(t.api.sentText) + '</p>' + (S.sent.photos ? '<p role="status">' + esc(S.sent.photos) + '</p>' : '') + '</div>';
+        '<p>' + esc(t.api.sentText) + '</p>' + (S.sent.pre ? '<p>' + esc(fmt(t.pre.sent, {id: S.sent.id, mail: S.sent.pre})) + '</p>' : '') + (S.sent.photos ? '<p role="status">' + esc(S.sent.photos) + '</p>' : '') + '</div>';
     }
     var c = S.contact;
     return '<section class="uf-block" id="uf-contact"><h3 class="uf-h4">' + esc(t.api.title) + '</h3><p class="uf-small">' + esc(t.api.lead) + '</p>' +
@@ -477,7 +498,8 @@
       field(t.api.phone, '<input class="input" id="uf-cp" type="tel" data-bind="contact.phone" value="' + esc(c.phone) + '" autocomplete="tel">', 'uf-cp') +
       field(t.api.email, '<input class="input" id="uf-ce" type="email" data-bind="contact.email" value="' + esc(c.email) + '" autocomplete="email">', 'uf-ce') +
       groupField(t.api.channel, seg('ch', t.api.channels, c.channel, 'contact.channel', t.api.channel)) +
-      field(t.api.note, '<textarea class="input" id="uf-cno" data-bind="contact.note" rows="3">' + esc(c.note) + '</textarea>', 'uf-cno') + photoSlot() +
+      field(t.api.note, '<textarea class="input" id="uf-cno" data-bind="contact.note" rows="3">' + esc(c.note) + '</textarea>', 'uf-cno') +
+      payerBlock() + preBlock() + photoSlot() +
       '<div class="uf-hp" aria-hidden="true"><label>Website <input type="text" id="uf-hp" tabindex="-1" autocomplete="off"></label></div>' +
       '<label class="uf-check"><input type="checkbox" data-toggle="consent" data-k="consent"' + (S.consent ? ' checked' : '') + '><span class="uf-box" aria-hidden="true"></span>' +
       '<span class="uf-small">' + esc(t.api.consent) + ' <a href="' + esc(t.api.privacyHref) + '">' + esc(t.api.privacy) + '</a></span></label>' +
@@ -487,10 +509,11 @@
     var c = S.contact;
     flash.send = '';
     if (!c.name.trim() || (!c.phone.trim() && !c.email.trim())) flash.send = t.api.errContact;
+    else if (S.pre && !c.email.trim()) flash.send = t.pre.needMail;
     else if (!S.consent) flash.send = t.api.errConsent;
     if (flash.send) {
       render();
-      var el = document.getElementById(!c.name.trim() ? 'uf-cn' : (!c.phone.trim() && !c.email.trim()) ? 'uf-cp' : 'uf-contact');
+      var el = document.getElementById(!c.name.trim() ? 'uf-cn' : (!c.phone.trim() && !c.email.trim()) || (S.pre && !c.email.trim()) ? (S.pre ? 'uf-ce' : 'uf-cp') : 'uf-contact');
       if (el) { el.scrollIntoView({block: 'center'}); if (el.focus) el.focus({preventScroll: true}); }
       return;
     }
@@ -504,11 +527,11 @@
         busy = false;
         if (r && r.ok) {
           var n = P ? P.count('planner') : 0;
-          S.sent = {id: r.id, at: Date.now(), photos: n ? t.api.photoSending : ''}; save(); render(); var d = document.getElementById('uf-done'); if (d) d.focus();
+          S.sent = {id: r.id, at: Date.now(), photos: n ? t.api.photoSending : '', pre: r.pre ? c.email : ''}; save(); render(); var d = document.getElementById('uf-done'); if (d) d.focus();
           if (n) P.send('planner', API, r.id, r.up).then(function (k) { S.sent.photos = fmt(t.api.photoOk, {n: k}); }, function () { S.sent.photos = t.api.photoFail; })
             .then(function () { save(); render(); });
         }
-        else { flash.send = r && r.error === 'too_fast' ? t.api.errFast : t.api.errSend; render(); }
+        else { flash.send = r && r.error === 'too_fast' ? t.api.errFast : r && r.error === 'pre_email' ? t.pre.needMail : t.api.errSend; render(); }
       })
       .catch(function () { busy = false; flash.send = t.api.errSend; render(); });
   }

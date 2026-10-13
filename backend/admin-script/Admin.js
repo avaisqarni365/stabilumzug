@@ -49,7 +49,9 @@ function leadObj_(v) {
     weight: String(g('Gewicht kg') || ''), vehicle: String(g('Fahrzeug') || ''), crew: String(g('Team') || ''), hours: String(g('Stunden') || ''),
     confidence: String(g('Vertrauen') || ''), source: String(g('Quelle') || ''), lang: String(g('Sprache') || 'DE'), message: String(g('Nachricht') || ''),
     ref: String(g('Referenz') || ''), service: String(g('Leistung') || 'Umzug (Planer)'), notes: String(g('Notizen') || ''),
-    quoteSent: iso_(g('Angebot gesendet')), hasToken: !!g('Kundentoken')
+    quoteSent: iso_(g('Angebot gesendet')), hasToken: !!g('Kundentoken'),
+    payer: String(g('Kostenträger') || ''), pre: String(g('Vorvereinbarung') || ''),
+    payerData: (function () { try { return JSON.parse(g('Daten (JSON)') || '{}').payer || null; } catch (e) { return null; } })()
   };
 }
 

@@ -23,7 +23,7 @@ function ss_() { return SpreadsheetApp.getActive(); }
 function doGet(e) {
   var p = (e && e.parameter) || {};
   try {
-    if (p.action === 'health') return json({ok: true, version: masterVersion_()});
+    if (p.action === 'health') return json(p.pdf ? {ok: true, pdf: pdfCheck_()} : {ok: true, version: masterVersion_()});
     if (p.action === 'draft') return json(loadDraft_(String(p.ref || ''), String(p.token || '')));
     if (p.action === 'portal') return json(portal_(String(p.id || ''), String(p.k || '')));
     if (p.action === 'slots') return json(slots_(String(p.type || '')));
@@ -60,6 +60,12 @@ function doPost(e) {
   }
 }
 
+/* ?action=health&pdf=1: can this project turn HTML into a PDF (the pre-agreement)? Writes nothing. */
+function pdfCheck_() {
+  try { return HtmlService.createHtmlOutput('<p>Test</p>').getBlob().getAs('application/pdf').getBytes().length > 0; }
+  catch (err) { return String(err).slice(0, 120); }
+}
+
 function json(o) {
   return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON);
 }
@@ -83,6 +89,8 @@ function saveLead_(b) {
   if (!name || (!phone && !email)) return {ok: false, error: 'contact'};
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return {ok: false, error: 'email'};
   if (!s.f1 || !s.acc || typeof s.inv !== 'object') return {ok: false, error: 'state'};
+  var payer = payer_(s.payer), pre = s.pre === true;
+  if (pre && !email) return {ok: false, error: 'pre_email'};   // the pre-agreement is sent by e-mail
 
   var master = loadMaster_();
   var est = Estimator.estimate(s, master);
@@ -90,7 +98,7 @@ function saveLead_(b) {
   master.items.forEach(function (it) { byId[it.id] = it; });
 
   var route = (s.f1.from && s.f1.to) ? route_(clip_(s.f1.from), clip_(s.f1.to)) : {ok: false};
-  var lock = LockService.getScriptLock();
+  var lock = LockService.getScriptLock(), rows = [];
   lock.waitLock(20000);
   try {
     ensureLeadHeader_();
@@ -108,9 +116,10 @@ function saveLead_(b) {
       est.n, round_(est.volLow), round_(est.volHigh), Math.round(est.kgMin) + '–' + Math.round(est.kgMax),
       VEH_DE[est.vehicle] + (est.trips > 1 ? ' · ' + est.trips + ' Fahrten' : ''), est.crew, round_(est.hours),
       {high: 'Hoch', medium: 'Mittel', low: 'Niedrig'}[est.conf], master.version, cell_(srcTxt, 120), b.lang === 'en' ? 'EN' : 'DE',
-      cell_(c.note, 1000), clip_(s.ref, 20), now, JSON.stringify(s).slice(0, 45000), 'Umzug (Planer)'
+      cell_(c.note, 1000), clip_(s.ref, 20), now, JSON.stringify(s).slice(0, 45000), 'Umzug (Planer)', '', '', '',
+      cell_(payer.text, 300), pre ? 'V-' + id + ' zugestimmt am ' + Utilities.formatDate(now, 'Europe/Berlin', 'dd.MM.yyyy HH:mm') : ''
     ]);
-    var rows = [];
+    rows = [];
     Object.keys(s.inv).forEach(function (iid) {
       var e = s.inv[iid], it = byId[iid];
       if (!it || !e || !e.by) return;
@@ -132,8 +141,15 @@ function saveLead_(b) {
   } finally {
     lock.releaseLock();
   }
-  notifyOffice_(id, name, phone, email, s, est, route);
-  return {ok: true, id: id, km: route.ok ? route.km : null, up: photoToken_(id)};
+  var pdf = null;
+  if (pre) {
+    try {
+      pdf = preAgreementPdf_({id: id, at: now, name: name, phone: phone, email: email, note: clip_(c.note, 1000), s: s, est: est, route: route, payer: payer, items: rows});
+      preAgreementMail_(email, b.lang === 'en', id, name, pdf);
+    } catch (err) { console.error(err); }
+  }
+  notifyOffice_(id, name, phone, email, s, est, route, payer, pdf);
+  return {ok: true, id: id, km: route.ok ? route.km : null, up: photoToken_(id), pre: !!pdf};
 }
 
 /* Short form ("Jetzt kostenloses Angebot anfordern"): contact, service, rooms, from/to, date, message. */
@@ -192,7 +208,7 @@ function nextId_() {
   return 'A-' + n;
 }
 
-function notifyOffice_(id, name, phone, email, s, est, route) {
+function notifyOffice_(id, name, phone, email, s, est, route, payer, pdf) {
   var to = config_('notify_email') || Session.getEffectiveUser().getEmail();
   if (!to) return;
   var url = SpreadsheetApp.getActive().getUrl();
@@ -201,9 +217,13 @@ function notifyOffice_(id, name, phone, email, s, est, route) {
     'Name: ' + name, 'Telefon: ' + (phone || '—'), 'E-Mail: ' + (email || '—'), '',
     'Von: ' + (s.f1.from || '—'), 'Nach: ' + (s.f1.to || '—') + (route.ok ? ' (' + route.km + ' km, ' + route.min + ' min)' : ''),
     'Volumen: ' + round_(est.volLow) + '–' + round_(est.volHigh) + ' m³, ' + VEH_DE[est.vehicle] + ', ' + est.crew + ' Personen, ca. ' + round_(est.hours) + ' Std.',
+    'Kostenträger: ' + (payer ? payer.text : 'Selbstzahler'),
+    pdf ? 'Vorvereinbarung V-' + id + ' (ohne Preis) vom Kunden zugestimmt – PDF im Anhang. Angebot mit Preis ' + (payer && payer.kind ? 'an den Kostenträger richten.' : 'an den Kunden.') : '',
     '', 'Tabelle: ' + url
   ].join('\n');
-  try { MailApp.sendEmail({to: to, subject: 'Neue Umzugsanfrage ' + id + ' – ' + name, body: body}); } catch (err) { console.error(err); }
+  var mail = {to: to, subject: 'Neue Umzugsanfrage ' + id + ' – ' + name + (pdf ? ' – Vorvereinbarung' : ''), body: body};
+  if (pdf) mail.attachments = [pdf];
+  try { MailApp.sendEmail(mail); } catch (err) { console.error(err); }
 }
 
 /* ------------------------------------------------------------------ customer area ("Mein Umzug") */

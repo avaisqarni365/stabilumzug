@@ -140,4 +140,40 @@ html = ctx.api_docPreview(r.doc);
 assert(/§ 19 UStG/.test(html) && !/zzgl\. Umsatzsteuer/.test(html));
 ctx.api_companySave({small: 'nein'});
 console.log('ok overview list; small-business documents carry the § 19 note and no VAT');
+
+// --- pre-agreement without a price: the Jobcenter pays; PDF to the customer and the office; the offer goes to the payer
+const preState = {ref: 'SU-V1', f1: {from: 'Altenessener Str. 10, 45326 Essen', to: 'Hauptstr. 5, 45879 Gelsenkirchen', km: '', dateMode: 'flex', date: '', hh: 0},
+  acc: {old: {floor: 3, lift: 0, park: 1}, 'new': {floor: 1, lift: 3, park: 0}}, hvz: false, rooms: [{r: 'living', sqm: '18'}],
+  inv: {sofa: {vi: 1, by: {pick: 1, list: 1}}, carton: {vi: 0, by: {preset: 15}}}, customs: [{name: 'Aquarium <groß>', n: 1, l: 100, b: 40, h: 50, v: 0.2}],
+  payer: {kind: 2, name: 'Jobcenter Essen, Standort Altenessen', ref: '123A456789', email: 'jc@example.de'}, pre: true};
+const preLead = Object.assign({action: 'lead', lang: 'de', consent: true, t: 60000, contact: {name: 'Herr Demir', phone: '0170 1112223', email: '', channel: 'email'}}, {state: preState});
+assert.strictEqual(post(preLead).error, 'pre_email', 'the pre-agreement needs an e-mail address');
+preLead.contact = Object.assign({}, preLead.contact, {email: 'demir@example.de'});
+mails.length = 0; rendered.length = 0;
+const pv = post(preLead);
+assert(pv.ok && pv.pre === true, JSON.stringify(pv));
+const preHtml = rendered.find(h => /Vorvereinbarung zum Umzug/.test(h));
+assert(preHtml, 'pre-agreement rendered');
+assert(!/€|EUR|Preis:/.test(preHtml.replace(/ohne Preis|keinen Preis|Angebot mit Preis/g, '')), 'no price in the pre-agreement');
+assert(/Jobcenter Essen, Standort Altenessen/.test(preHtml) && /123A456789/.test(preHtml) && /Leistungsempfänger/.test(preHtml));
+assert(/Sofa/.test(preHtml) && /Aquarium &lt;groß&gt;/.test(preHtml), 'items listed and escaped');
+assert.strictEqual((preHtml.match(/<td class="n">\d+<\/td><td>Sofa/g) || []).length, 1, 'same item from two sources listed once');
+assert(/Zugestimmt:<\/b> Herr Demir/.test(preHtml));
+const cust = mails.find(m => m.to === 'demir@example.de'), office = mails.find(m => m.to !== 'demir@example.de');
+assert(cust && /^Ihre Vorvereinbarung V-A-\d+/.test(cust.subject) && cust.attachments[0].name === 'Vorvereinbarung-V-' + pv.id + '.pdf');
+assert(office && /Vorvereinbarung$/.test(office.subject) && office.attachments.length === 1 && /Kostenträger: Jobcenter: Jobcenter Essen/.test(office.body));
+const prow = sheets['Anfragen'].data.find(r => r[0] === pv.id), H = sheets['Anfragen'].data[0];
+assert(/^Jobcenter: Jobcenter Essen, Standort Altenessen · Az\. 123A456789 · jc@example\.de$/.test(prow[H.indexOf('Kostenträger')]));
+assert(/^V-A-\d+ zugestimmt am /.test(prow[H.indexOf('Vorvereinbarung')]));
+nr = ctx.api_docNew('offer', pv.id);
+r = ctx.api_doc(nr);
+assert.strictEqual(r.doc.to.company, 'Jobcenter Essen, Standort Altenessen'); assert.strictEqual(r.doc.to.email, 'jc@example.de');
+assert(/Leistungsempfänger: Herr Demir, Altenessener Str\. 10/.test(r.doc.ref) && /123A456789/.test(r.doc.ref) && /Vorvereinbarung V-A-/.test(r.doc.ref), r.doc.ref);
+assert(!/Guten Tag Herr Demir/.test(r.doc.intro), 'letter to the office, not to the customer');
+// paying themselves: no payer, offer to the customer as before
+const self = post(Object.assign({}, preLead, {state: Object.assign({}, preState, {payer: {kind: 0, name: 'x'}, pre: false})}));
+assert(self.ok && !self.pre);
+assert.strictEqual(sheets['Anfragen'].data.find(x => x[0] === self.id)[H.indexOf('Kostenträger')], 'Selbstzahler');
+assert.strictEqual(ctx.api_doc(ctx.api_docNew('offer', self.id)).doc.to.name, 'Herr Demir');
+console.log('ok pre-agreement: needs e-mail, no price, items once, PDF to customer and office, offer addressed to the Jobcenter');
 console.log('ALL OK');
