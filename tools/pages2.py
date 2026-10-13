@@ -210,6 +210,9 @@ def privacy(lang):
             "Für unsere Statistik speichern wir je Berechnung nur Zeitpunkt, Postleitzahl und Ort von Start und Ziel, Entfernung, die aufgerufene Seite und die Kampagne – keine Straße, keine Kontaktdaten – und löschen diese Einträge nach 6 Monaten (Art. 6 Abs. 1 lit. f DSGVO, berechtigtes Interesse an der Planung unseres Angebots). "
             "Mit „Auf einem anderen Gerät weitermachen“ speichern wir Ihren Entwurf nach Ihrer Einwilligung 30 Tage und löschen ihn danach automatisch. "
             "Sie können Ihre Einwilligung jederzeit per E-Mail an uns widerrufen.</p>"
+            "<h2>Fotos</h2><p>Mit einer Anfrage können Sie freiwillig Fotos hochladen (Kamera oder Dateien, höchstens 10). Ihr Browser verkleinert sie vor dem Senden; "
+            "wir erhalten sie als Anhang einer E-Mail in unserem Google-Postfach und nutzen sie nur, um Ihren Umzug zu planen und Ihnen ein Angebot zu machen (Art. 6 Abs. 1 lit. b DSGVO). "
+            "Bitte fotografieren Sie möglichst keine Personen oder Dokumente. Wir löschen die Fotos nach 6 Monaten, wenn daraus kein Auftrag wird.</p>"
             "<h2>Terminbuchung</h2><p>Wenn Sie über „Termin buchen“ einen Termin vereinbaren, speichern wir Art, Tag und Uhrzeit des Termins sowie Name, Telefon, E-Mail, Adresse und Ihre Nachricht "
             "in unserer Google-Tabelle und senden Ihnen und uns eine Bestätigung per E-Mail (Art. 6 Abs. 1 lit. b DSGVO). Wir löschen die Angaben nach 6 Monaten, wenn daraus kein Auftrag wird.</p>",
             "<h2>Requests sent through the moving planner</h2><p>When you click “Send request” in the planner, we transfer your details "
@@ -221,6 +224,9 @@ def privacy(lang):
             "For our statistics we store, for each calculation, only the time, postcode and town of start and destination, the distance, the page and the campaign – no street, no contact details – and delete these entries after 6 months (Art. 6(1)(f) GDPR, legitimate interest in planning our service). "
             "“Continue on another device” stores your draft for 30 days with your consent and deletes it automatically afterwards. "
             "You can withdraw your consent at any time by emailing us.</p>"
+            "<h2>Photos</h2><p>With a request you may upload photos (camera or files, at most 10). Your browser shrinks them before sending; "
+            "we receive them attached to an email in our Google mailbox and use them only to plan your move and prepare a quote (Art. 6(1)(b) GDPR). "
+            "Please avoid photographing people or documents. We delete the photos after 6 months if no order follows.</p>"
             "<h2>Appointment booking</h2><p>When you book an appointment, we store its type, day and time as well as your name, phone, email, address and message "
             "in our Google spreadsheet and send a confirmation email to you and to us (Art. 6(1)(b) GDPR). We delete the details after 6 months if no order follows.</p>", lang)
     body += sec(flag + inner)

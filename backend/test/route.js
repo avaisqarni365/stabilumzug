@@ -3,7 +3,7 @@ const assert = require('assert');
 const M = require('./mock');
 const {ctx, sheets, cache} = M;
 
-M.load('apps-script', ['Estimator.js', 'Shared.js', 'Code.js']);
+M.load('apps-script', ['Estimator.js', 'Shared.js', 'Code.js', 'Website.js']);
 ctx.setup();
 assert(sheets['Strecken'], 'setup creates the Strecken tab');
 

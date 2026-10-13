@@ -202,6 +202,8 @@ def render(page):
     if page.get("planner"):
         for f in ("flow-i18n", "flow-data", "estimator", "flow"):
             scripts.append('<script src="%sassets/js/%s.js" defer></script>' % (pre, f))
+    if (page.get("quote") or page.get("planner")) and SITE.get("api"):   # photos with a request (before quote.js / flow.js)
+        scripts.insert(1, '<script src="%sassets/js/photos.js" defer></script>' % pre)
     if page.get("quote"):
         scripts.append('<script src="%sassets/js/quote.js" defer></script>' % pre)
     if page.get("booking"):

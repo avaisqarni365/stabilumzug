@@ -4,7 +4,7 @@ const M = require('./mock');
 const {ctx, sheets} = M;
 
 // sheet with two requests, created through the website API
-M.load('apps-script', ['Estimator.js', 'Shared.js', 'Code.js']);
+M.load('apps-script', ['Estimator.js', 'Shared.js', 'Code.js', 'Website.js']);
 ctx.setup();
 const post = b => ctx.doPost({postData: {contents: JSON.stringify(b)}});
 const planner = post({action: 'lead', lang: 'de', consent: true, t: 60000, contact: {name: 'Fam. Yilmaz', phone: '0201 123456', email: 'y@example.de', channel: 'whatsapp'},

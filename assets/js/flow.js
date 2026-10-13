@@ -324,7 +324,7 @@
       if (S.customs.length) body += customRows();
       body += '<p class="uf-small">' + esc(t.f4.listNote) + '</p>';
     }
-    return head(t.f4.title, t.f4.lead) + modes + body;
+    return head(t.f4.title, t.f4.lead) + modes + body + photoSlot();
   }
   function cdVol(cd) { var l = parseFloat(cd.l) || 0, b = parseFloat(cd.b) || 0, h = parseFloat(cd.h) || 0; return l * b * h / 1e6; }
   function customRows() {
@@ -463,11 +463,13 @@
       '<div><button type="button" class="btn btn-secondary" data-act="saveRemote" data-k="saveRemote"' + (S.remoteOk && !busy ? '' : ' disabled') + '>' + esc(link ? t.api.remoteUpdate : t.api.remoteSave) + '</button></div>' +
       (flash.remote ? '<p class="uf-small" role="status">' + esc(flash.remote) + '</p>' : '') + '</div></details>';
   }
+  /* photos of furniture and items (assets/js/photos.js): the same photos show in step 4 and with the contact details */
+  function photoSlot() { return API && window.StabilPhotos && !S.sent ? '<div class="uf-block" data-photos="planner"></div>' : ''; }
   function contactSection() {
     if (!API) return '';
     if (S.sent) {
       return '<div class="uf-done" tabindex="-1" id="uf-done"><div class="uf-k">' + esc(t.api.sentK) + '</div><div class="uf-big-v">' + esc(S.sent.id) + '</div>' +
-        '<p>' + esc(t.api.sentText) + '</p></div>';
+        '<p>' + esc(t.api.sentText) + '</p>' + (S.sent.photos ? '<p role="status">' + esc(S.sent.photos) + '</p>' : '') + '</div>';
     }
     var c = S.contact;
     return '<section class="uf-block" id="uf-contact"><h3 class="uf-h4">' + esc(t.api.title) + '</h3><p class="uf-small">' + esc(t.api.lead) + '</p>' +
@@ -475,7 +477,7 @@
       field(t.api.phone, '<input class="input" id="uf-cp" type="tel" data-bind="contact.phone" value="' + esc(c.phone) + '" autocomplete="tel">', 'uf-cp') +
       field(t.api.email, '<input class="input" id="uf-ce" type="email" data-bind="contact.email" value="' + esc(c.email) + '" autocomplete="email">', 'uf-ce') +
       groupField(t.api.channel, seg('ch', t.api.channels, c.channel, 'contact.channel', t.api.channel)) +
-      field(t.api.note, '<textarea class="input" id="uf-cno" data-bind="contact.note" rows="3">' + esc(c.note) + '</textarea>', 'uf-cno') +
+      field(t.api.note, '<textarea class="input" id="uf-cno" data-bind="contact.note" rows="3">' + esc(c.note) + '</textarea>', 'uf-cno') + photoSlot() +
       '<div class="uf-hp" aria-hidden="true"><label>Website <input type="text" id="uf-hp" tabindex="-1" autocomplete="off"></label></div>' +
       '<label class="uf-check"><input type="checkbox" data-toggle="consent" data-k="consent"' + (S.consent ? ' checked' : '') + '><span class="uf-box" aria-hidden="true"></span>' +
       '<span class="uf-small">' + esc(t.api.consent) + ' <a href="' + esc(t.api.privacyHref) + '">' + esc(t.api.privacy) + '</a></span></label>' +
@@ -492,13 +494,20 @@
       if (el) { el.scrollIntoView({block: 'center'}); if (el.focus) el.focus({preventScroll: true}); }
       return;
     }
+    var P = window.StabilPhotos;
+    if (P && P.busy('planner')) { flash.send = t.api.photoWait; render(); return; }
     busy = 'send'; render();
     var hp = document.getElementById('uf-hp');
     api({action: 'lead', lang: lang, consent: true, hp: hp ? hp.value : '', t: Date.now() - (S.started || Date.now()),
       contact: {name: c.name, phone: c.phone, email: c.email, channel: CHANNELS[c.channel], note: c.note}, state: S})
       .then(function (r) {
         busy = false;
-        if (r && r.ok) { S.sent = {id: r.id, at: Date.now()}; save(); render(); var d = document.getElementById('uf-done'); if (d) d.focus(); }
+        if (r && r.ok) {
+          var n = P ? P.count('planner') : 0;
+          S.sent = {id: r.id, at: Date.now(), photos: n ? t.api.photoSending : ''}; save(); render(); var d = document.getElementById('uf-done'); if (d) d.focus();
+          if (n) P.send('planner', API, r.id, r.up).then(function (k) { S.sent.photos = fmt(t.api.photoOk, {n: k}); }, function () { S.sent.photos = t.api.photoFail; })
+            .then(function () { save(); render(); });
+        }
         else { flash.send = r && r.error === 'too_fast' ? t.api.errFast : t.api.errSend; render(); }
       })
       .catch(function () { busy = false; flash.send = t.api.errSend; render(); });
@@ -603,6 +612,7 @@
       '<div class="uf-body' + (S.step === 0 ? ' uf-body0' : '') + (focusHead ? ' uf-enter' : '') + '">' + SCREENS[S.step]() + remoteBox() + '</div>' +
       '<div class="uf-foot">' + footer() + '</div>' +
       '<div class="uf-sr" aria-live="polite" id="uf-live"></div>';
+    if (window.StabilPhotos) window.StabilPhotos.mountAll(root);
     if (focusHead) {
       var h = document.getElementById('uf-h');
       if (h) h.focus({preventScroll: true});

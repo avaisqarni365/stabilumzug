@@ -26,6 +26,50 @@ function clearSlots_() {
   CacheService.getScriptCache().removeAll(['slots_all'].concat(Object.keys(APPT_TYPES).map(function (k) { return 'slots_' + k; })));
 }
 
+/* ------------------------------------------------------------------ photos with a request
+   The customer may add photos of furniture and items (camera or files). The browser shrinks them and sends them
+   right after the request, with the one-time token from that answer. They reach the office as one e-mail with the
+   photos attached (no extra Google permission needed); the request row notes how many arrived. */
+var PHOTO_MAX = 10, PHOTO_MAX_BYTES = 1500000, PHOTO_MAX_BODY = 14000000, PHOTO_TYPES = {'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp'};
+
+function photoToken_(id) {
+  var k = Utilities.getUuid().replace(/-/g, '');
+  CacheService.getScriptCache().put('up_' + id, JSON.stringify({k: k, n: 0}), 7200);   // valid for 2 hours
+  return k;
+}
+
+function photos_(b) {
+  var id = String(b.id || ''), cache = CacheService.getScriptCache(), raw = cache.get('up_' + id), tok = raw ? JSON.parse(raw) : null;
+  if (!/^A-\d+$/.test(id) || !tok || tok.k !== String(b.k || '')) return {ok: false, error: 'token'};
+  var list = Array.isArray(b.images) ? b.images : [];
+  if (!list.length) return {ok: false, error: 'empty'};
+  if (tok.n + list.length > PHOTO_MAX) return {ok: false, error: 'too_many'};
+  var blobs = [];
+  for (var i = 0; i < list.length; i++) {
+    var im = list[i] || {}, ext = PHOTO_TYPES[im.type], data = String(im.data || '');
+    if (!ext || !data || data.length > PHOTO_MAX_BYTES * 4 / 3 + 4) return {ok: false, error: 'file'};
+    var bytes;
+    try { bytes = Utilities.base64Decode(data); } catch (err) { return {ok: false, error: 'file'}; }
+    blobs.push(Utilities.newBlob(bytes, im.type, id + '-foto-' + (tok.n + i + 1) + '.' + ext));
+  }
+  tok.n += blobs.length;
+  cache.put('up_' + id, JSON.stringify(tok), 7200);
+  var note = clip_(b.note, 300), hit = findLead_(id), name = hit ? hit.values[LEAD_COLS.indexOf('Name')] : '';
+  if (hit) {
+    var col = LEAD_COLS.indexOf('Notizen') + 1, old = String(hit.values[col - 1] || '');
+    sheet_(TAB.leads).getRange(hit.row, col).setValue(cell_((old ? old + '\n' : '') + 'Fotos: ' + tok.n + ' per E-Mail an das Büro' + (note ? ' – ' + note : ''), 2000));
+  }
+  var to = config_('notify_email') || Session.getEffectiveUser().getEmail();
+  if (to) {
+    try {
+      MailApp.sendEmail({to: to, subject: 'Fotos zu Anfrage ' + id + (name ? ' – ' + name : '') + ' (' + blobs.length + ')',
+        body: [blobs.length + ' Foto(s) zur Anfrage ' + id + ' über die Website.', note ? 'Hinweis des Kunden: ' + note : '', '',
+               'Tabelle: ' + SpreadsheetApp.getActive().getUrl()].join('\n'), attachments: blobs});
+    } catch (err) { console.error(err); return {ok: false, error: 'mail'}; }
+  }
+  return {ok: true, n: tok.n};
+}
+
 function nextApptNr_() {
   var props = PropertiesService.getScriptProperties();
   var n = Number(props.getProperty('NEXT_APPT') || 1001);
