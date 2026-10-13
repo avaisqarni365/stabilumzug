@@ -187,6 +187,8 @@ def head(page):
     ]
     if page.get("planner"):
         parts.append('<link rel="stylesheet" href="%sassets/css/flow.css">' % pre)
+    if page.get("booking") and SITE.get("api"):   # free times come from Apps Script: open the connection early
+        parts += ['<link rel="preconnect" href="https://script.google.com" crossorigin>', '<link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>']
     if page.get("noindex"):
         parts.append('<meta name="robots" content="noindex">')
     for s in page.get("schema", []):

@@ -6,13 +6,24 @@
 /* ------------------------------------------------------------------ appointments */
 
 /* Free times for the booking page. Cached for one minute so a busy day does not read the sheet for every visitor. */
+/* Free times for one type, or for all types at once (type=all: the booking page switches types without waiting).
+   Cached for 5 minutes and cleared by each booking; a booking always checks its time against fresh data. */
+var SLOT_TTL = 300;
 function slots_(type) {
-  if (!APPT_TYPES[type]) return {ok: false, error: 'type'};
+  if (type !== 'all' && !APPT_TYPES[type]) return {ok: false, error: 'type'};
   var cache = CacheService.getScriptCache(), key = 'slots_' + type, hit = cache.get(key);
   if (hit) return JSON.parse(hit);
-  var res = {ok: true, type: type, min: APPT_TYPES[type].min, days: freeSlots_(type, 21)};
-  cache.put(key, JSON.stringify(res), 60);
+  var res;
+  if (type === 'all') {
+    var base = slotBase_(true), types = {};
+    Object.keys(APPT_TYPES).forEach(function (k) { types[k] = {min: APPT_TYPES[k].min, days: freeSlots_(k, 21, null, base)}; });
+    res = {ok: true, type: 'all', types: types};
+  } else res = {ok: true, type: type, min: APPT_TYPES[type].min, days: freeSlots_(type, 21)};
+  cache.put(key, JSON.stringify(res), SLOT_TTL);
   return res;
+}
+function clearSlots_() {
+  CacheService.getScriptCache().removeAll(['slots_all'].concat(Object.keys(APPT_TYPES).map(function (k) { return 'slots_' + k; })));
 }
 
 function nextApptNr_() {
@@ -65,6 +76,7 @@ function book_(b) {
     ['visit', 'video', 'call'].forEach(function (k) { CacheService.getScriptCache().remove('slots_' + k); });
   } finally { lock.releaseLock(); }
   apptMails_(a, 'booked');
+  clearSlots_();
   return {ok: true, nr: a.nr, lead: leadId, type: type, date: date, time: time, min: T.min};
 }
 

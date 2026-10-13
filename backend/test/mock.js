@@ -54,7 +54,7 @@ const ctx = {
     newDataValidation: chain, newConditionalFormatRule: chain,
     getUi: () => ({alert: (...a) => alerts.push(a.join(' | ')), createMenu: chain, ButtonSet: {OK: 1}}),
   },
-  CacheService: {getScriptCache: () => ({get: k => cache[k] || null, put: (k, v) => { cache[k] = v; }, remove: k => { delete cache[k]; }})},
+  CacheService: {getScriptCache: () => ({get: k => cache[k] || null, put: (k, v) => { cache[k] = v; }, remove: k => { delete cache[k]; }, removeAll: ks => ks.forEach(k => { delete cache[k]; })})},
   PropertiesService: {getScriptProperties: () => ({getProperty: k => props[k] || null, setProperty: (k, v) => { props[k] = v; }})},
   LockService: {getScriptLock: () => ({waitLock() {}, tryLock() { return true; }, releaseLock() {}})},
   Utilities: {

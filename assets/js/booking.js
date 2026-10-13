@@ -120,17 +120,35 @@
     barState();
   }
 
-  function load() {
+  function load(fresh) {
     var box = root.querySelector('#bk-cal');
     var sk = ''; for (var i = 0; i < 35; i++) sk += '<span class="bk-c sk"></span>';
     box.innerHTML = '<div class="bk-cal-head"><span class="bk-nav sk"></span><b class="sk-t">' + esc(T.loading) + '</b><span class="bk-nav sk"></span></div><div class="bk-grid" aria-busy="true">' + sk + '</div>';
     root.querySelector('#bk-times').innerHTML = '<p class="bk-muted">' + esc(T.pick) + '</p>';
     summary();
-    fetch(API + '?action=slots&type=' + encodeURIComponent(S.type)).then(function (r) { return r.json(); }).then(function (r) {
-      if (!r || !r.ok) throw new Error('slots');
-      S.days = r.days; S.month = ''; days();
+    slots(fresh).then(function (all) {
+      var t = all[S.type]; if (!t) throw new Error('slots');
+      S.days = t.days; S.month = ''; days();
     }).catch(function () { box.innerHTML = '<p class="bk-msg">' + esc(T.errLoad) + '</p>'; });
   }
+
+  /* Free times of all types in one request (the server needs a few seconds on a cold start), kept for
+     2 minutes in this tab so switching type or coming back is instant. */
+  var SLOT_KEY = 'bk-slots', pending = null;
+  function slots(fresh) {
+    if (!fresh) {
+      try { var c = JSON.parse(sessionStorage.getItem(SLOT_KEY) || 'null'); if (c && Date.now() - c.at < 120000) return Promise.resolve(c.types); } catch (e) {}
+      if (pending) return pending;
+    }
+    pending = fetch(API + '?action=slots&type=all').then(function (r) { return r.json(); }).then(function (r) {
+      pending = null;
+      if (!r || !r.ok || !r.types) throw new Error('slots');
+      try { sessionStorage.setItem(SLOT_KEY, JSON.stringify({at: Date.now(), types: r.types})); } catch (e) {}
+      return r.types;
+    }, function (e) { pending = null; throw e; });
+    return pending;
+  }
+  function forget() { try { sessionStorage.removeItem(SLOT_KEY); } catch (e) {} }
 
   /* Month calendar (Mo–Su). Bookable days are buttons with the number of free times; the others are greyed out. */
   function days() {
@@ -189,8 +207,8 @@
     S.busy = true; var go = root.querySelector('#bk-go'); go.disabled = true; go.textContent = T.booking; err('');
     fetch(API, {method: 'POST', headers: {'Content-Type': 'text/plain;charset=utf-8'}, body: JSON.stringify(b)}).then(function (r) { return r.json(); }).then(function (r) {
       S.busy = false; go.disabled = false; go.textContent = T.book;
-      if (r && r.ok) return done(r, b);
-      if (r && r.error === 'taken') { err(T.errTaken); S.time = ''; load(); return; }
+      if (r && r.ok) { forget(); return done(r, b); }
+      if (r && r.error === 'taken') { err(T.errTaken); S.time = ''; forget(); load(true); return; }
       err(r && r.error === 'email' ? T.errMail : r && r.error === 'address' ? T.errAddr : T.errGen);
     }).catch(function () { S.busy = false; go.disabled = false; go.textContent = T.book; err(T.errGen); });
   }
