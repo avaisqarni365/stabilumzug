@@ -13,11 +13,13 @@
     need: 'Bitte Name und Telefon oder E-Mail angeben.', consent: 'Bitte bestätigen Sie die Einwilligung.',
     sending: 'Wird gesendet …', fail: 'Senden hat nicht geklappt. Bitte per WhatsApp oder Telefon melden.',
     done: 'Danke! Ihre Anfrage {id} ist bei uns. Wir melden uns innerhalb von 24 Stunden.', title: 'Anfrage über die Website',
+    photos: 'Fotos werden gesendet …', photosOk: '{n} Foto(s) sind ebenfalls angekommen.', photosFail: 'Die Fotos kamen nicht an – schicken Sie sie gern per WhatsApp.', wait: 'Einen Moment, die Fotos werden noch vorbereitet.',
     labels: {service: 'Leistung', name: 'Name', phone: 'Telefon', email: 'E-Mail', rooms: 'Zimmer', from: 'Von', to: 'Nach', date: 'Wunschtermin', message: 'Nachricht'}
   } : {
     need: 'Please enter your name and a phone number or email.', consent: 'Please confirm your consent.',
     sending: 'Sending …', fail: 'Sending did not work. Please contact us by WhatsApp or phone.',
     done: 'Thank you! We have your request {id} and will reply within 24 hours.', title: 'Request via the website',
+    photos: 'Sending photos …', photosOk: '{n} photo(s) arrived as well.', photosFail: 'The photos did not arrive – feel free to send them by WhatsApp.', wait: 'One moment, the photos are still being prepared.',
     labels: {service: 'Service', name: 'Name', phone: 'Phone', email: 'Email', rooms: 'Rooms', from: 'From', to: 'To', date: 'Preferred date', message: 'Message'}
   };
   var $ = function (id) { return document.getElementById(id); };
@@ -57,14 +59,21 @@
       else if (ok(SITE.email)) location.href = 'mailto:' + SITE.email + '?subject=' + encodeURIComponent(T.title) + '&body=' + encodeURIComponent(text(v));
       return;
     }
+    var P = window.StabilPhotos;
+    if (P && P.busy('quote')) { say(T.wait, true); return; }
     btn.disabled = true; say(T.sending);
     fetch(API, {method: 'POST', headers: {'Content-Type': 'text/plain;charset=utf-8'},
       body: JSON.stringify({action: 'quick', lang: de ? 'de' : 'en', consent: true, hp: $('q-hp').value, t: Date.now() - started, form: v, src: source()})})
       .then(function (r) { return r.json(); })
       .then(function (r) {
         btn.disabled = false;
-        if (r && r.ok) { form.reset(); say(T.done.replace('{id}', r.id)); msg.focus(); }
-        else say(T.fail, true);
+        if (!(r && r.ok)) return say(T.fail, true);
+        form.reset();
+        var done = T.done.replace('{id}', r.id);
+        if (!P || !P.count('quote')) { say(done); msg.focus(); return; }
+        btn.disabled = true; say(done + ' ' + T.photos); msg.focus();
+        P.send('quote', API, r.id, r.up).then(function (n) { btn.disabled = false; say(done + ' ' + T.photosOk.replace('{n}', n)); },
+          function () { btn.disabled = false; say(done + ' ' + T.photosFail); });
       })
       .catch(function () { btn.disabled = false; say(T.fail, true); });
   });

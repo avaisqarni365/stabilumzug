@@ -4,7 +4,7 @@ const M = require('./mock');
 const {ctx, sheets, mails} = M;
 
 // a request from the website, then the admin app on the same sheet
-M.load('apps-script', ['Estimator.js', 'Shared.js', 'Code.js']);
+M.load('apps-script', ['Estimator.js', 'Shared.js', 'Code.js', 'Website.js']);
 ctx.setup();
 const post = b => ctx.doPost({postData: {contents: JSON.stringify(b)}});
 const lead = post({action: 'lead', lang: 'de', consent: true, t: 60000, contact: {name: 'Fam. Yilmaz', phone: '0201 123456', email: 'y@example.de', channel: 'email'},

@@ -61,6 +61,7 @@ const ctx = {
     base64EncodeWebSafe: b => Buffer.from(b).toString('base64url'), computeDigest: (a, s) => [...require('crypto').createHash('md5').update(s).digest()],
     DigestAlgorithm: {MD5: 1}, getUuid: () => require('crypto').randomUUID(), formatDate: () => '2026.10.11-1200',
     base64Encode: s => Buffer.from(s, 'utf8').toString('base64'), Charset: {UTF_8: 1},
+    base64Decode: s => { if (!/^[A-Za-z0-9+/=]+$/.test(s)) throw new Error('bad base64'); return [...Buffer.from(s, 'base64')]; },
   },
   Maps: {DirectionFinder: {Mode: {DRIVING: 'd'}}, newDirectionFinder: () => { const o = {}; ['setOrigin', 'setDestination', 'setMode', 'setRegion', 'setLanguage'].forEach(k => o[k] = () => o); o.getDirections = () => ({routes: [{legs: [{distance: {value: 23400}, duration: {value: 1680}}]}]}); return o; }},
   MailApp: {sendEmail: o => mails.push(o)},

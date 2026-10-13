@@ -2,7 +2,8 @@
 const fs = require('fs'), path = require('path'), assert = require('assert'), vm = require('vm');
 const M = require('./mock');
 const {ctx, sheets, alerts, mails, puts, REPO} = M;
-M.load('apps-script', ['Estimator.js', 'Shared.js', 'Code.js']);
+M.load('apps-script', ['Estimator.js', 'Shared.js', 'Code.js', 'Website.js']);
+ctx.Utilities.newBlob = (data, type, name) => ({data, type, name});
 // 1. setup seeds catalogue + rules from master.json
 ctx.setup();
 const master = JSON.parse(fs.readFileSync(path.join(REPO, 'data/master.json'), 'utf8'));
@@ -76,6 +77,32 @@ assert.strictEqual(col('Räume'), '3 Zimmer');
 assert.strictEqual(col('Nachricht'), "'=Keller und Dachboden");
 assert.strictEqual(sheets['Anfragen'].data[1][hdr.indexOf('Leistung')], 'Umzug (Planer)');
 console.log('ok quick form', q.id, '|', col('Leistung'), '|', col('Quelle'));
+
+// 5c. photos after a request: token from the answer, one e-mail with the photos attached, note in the row
+assert(/^[0-9a-f]{32}$/.test(q.up), 'upload token');
+const jpg = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 1, 2, 3, 0xff, 0xd9]).toString('base64');
+const photo = (extra) => Object.assign({action: 'photos', id: q.id, k: q.up, images: [{type: 'image/jpeg', data: jpg}, {type: 'image/png', data: jpg}]}, extra || {});
+assert.strictEqual(post(photo({k: 'nope'})).error, 'token');
+assert.strictEqual(post(photo({id: 'A-1'})).error, 'token');
+assert.strictEqual(post(photo({images: []})).error, 'empty');
+assert.strictEqual(post(photo({images: [{type: 'text/html', data: jpg}]})).error, 'file');
+assert.strictEqual(post(photo({images: [{type: 'image/jpeg', data: '<script>'}]})).error, 'file');
+mails.length = 0;
+let ph = post(photo({note: 'Klavier im Keller'}));
+assert(ph.ok && ph.n === 2, JSON.stringify(ph));
+assert.strictEqual(mails.length, 1);
+assert(/^Fotos zu Anfrage A-\d+ – Frau Test \(2\)$/.test(mails[0].subject), mails[0].subject);
+assert.strictEqual(mails[0].attachments.map(a => a.name).join(), [q.id + '-foto-1.jpg', q.id + '-foto-2.png'].join());
+assert(/Klavier im Keller/.test(mails[0].body));
+const L2 = sheets['Anfragen'].data, qr2 = L2.find(r => r[0] === q.id);
+assert(/Fotos: 2 per E-Mail/.test(qr2[hdr.indexOf('Notizen')]));
+// more photos later with the same token, at most 10 in total
+assert.strictEqual(post(photo({images: Array(9).fill({type: 'image/jpeg', data: jpg})})).error, 'too_many');
+assert(post(photo()).n === 4);
+// large bodies are only accepted for photos
+assert.strictEqual(ctx.doPost({postData: {contents: JSON.stringify({action: 'quick', pad: 'x'.repeat(200000)})}}).error, 'too_large');
+assert.strictEqual(ctx.doPost({postData: {contents: JSON.stringify({action: 'photos', id: q.id, k: q.up, pad: 'x'.repeat(200000), images: [{type: 'image/jpeg', data: jpg}]})}}).n, 5);
+console.log('ok photos: token, types, limit 10, one e-mail with attachments, note in the row');
 
 // 6. rate limit
 for (let i = 0; i < 70; i++) post({action: 'route', from: 'Essen Hbf', to: 'Bochum Hbf'});

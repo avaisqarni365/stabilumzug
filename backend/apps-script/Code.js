@@ -37,7 +37,8 @@ function doGet(e) {
 function doPost(e) {
   try {
     if (!e || !e.postData || !e.postData.contents) return json({ok: false, error: 'empty'});
-    if (e.postData.contents.length > 100000) return json({ok: false, error: 'too_large'});
+    var big = e.postData.contents.length > 100000;   // only photo uploads may be larger (up to 10 photos of ~1600 px)
+    if (big && (e.postData.contents.slice(0, 30).indexOf('"action":"photos"') < 0 || e.postData.contents.length > PHOTO_MAX_BODY)) return json({ok: false, error: 'too_large'});
     if (!rateLimit_()) return json({ok: false, error: 'busy'});
     var body = JSON.parse(e.postData.contents);
     switch (body.action) {
@@ -46,6 +47,7 @@ function doPost(e) {
       case 'route': return json(route_(String(body.from || ''), String(body.to || '')));
       case 'routeMap': return json(routeMap_(body));
       case 'book': return json(book_(body));
+      case 'photos': return json(photos_(body));
       case 'hit': return json(hit_(body));
       case 'saveDraft': return json(saveDraft_(body));
       case 'accept': return json(accept_(String(body.id || ''), String(body.k || ''), body.confirm === true));
@@ -131,7 +133,7 @@ function saveLead_(b) {
     lock.releaseLock();
   }
   notifyOffice_(id, name, phone, email, s, est, route);
-  return {ok: true, id: id, km: route.ok ? route.km : null};
+  return {ok: true, id: id, km: route.ok ? route.km : null, up: photoToken_(id)};
 }
 
 /* Short form ("Jetzt kostenloses Angebot anfordern"): contact, service, rooms, from/to, date, message. */
@@ -180,7 +182,7 @@ function saveQuick_(b) {
         '', clip_(f.message, 1000), '', 'Tabelle: ' + SpreadsheetApp.getActive().getUrl()].join('\n')});
     } catch (err) { console.error(err); }
   }
-  return {ok: true, id: id};
+  return {ok: true, id: id, up: photoToken_(id)};
 }
 
 function nextId_() {

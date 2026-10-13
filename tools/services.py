@@ -40,6 +40,7 @@ def quote_form(key, lang):
         + f("to", t("Zieladresse (bei Umzug und Transport)", "Destination (for moves and transport)", lang), wide=True)
         + '<div class="wide"><label for="q-message">%s</label><textarea id="q-message"></textarea></div>'
         + '</div></details>'
+        '<div class="wide" data-photos="quote"></div>'
         '<div class="hp" aria-hidden="true"><label>Website <input id="q-hp" type="text" tabindex="-1" autocomplete="off"></label></div>'
         '<label class="wide consent"><input type="checkbox" id="q-consent"> <span>%s <a href="%s">%s</a></span></label>'
         '<div class="wide actions"><button class="button primary" type="submit" id="quote-send">%s</button></div>'
