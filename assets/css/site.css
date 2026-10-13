@@ -1184,3 +1184,16 @@ details.fs-card > summary:focus-visible{outline:2px solid var(--red);outline-off
 .ph-err{margin:0;font-size:14px;font-weight:700;color:var(--red-text)}
 .ph-box .ph-btn span{white-space:nowrap}
 @media (max-width:420px){.ph-btns{gap:8px}.ph-box .ph-btn{flex:1 1 0;gap:6px;padding-inline:8px;font-size:14px}}
+
+/* ---------- prices on phones: packages side by side to swipe and compare ---------- */
+.pkg li{text-align:left}
+@media (max-width:600px){
+  .pkgs{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;overscroll-behavior-x:contain;border-top:0;
+    margin-inline:calc(var(--gutter) * -1);padding:4px var(--gutter) 14px;scroll-padding-inline:var(--gutter);scrollbar-width:thin}
+  .pkg,.pkg + .pkg{flex:0 0 84%;scroll-snap-align:start;padding:18px 16px 18px;border:1px solid var(--line);border-top:2px solid var(--ink);background:var(--bg)}
+  .pkgs .pkg.featured{background:var(--dark);border:0;border-top:6px solid var(--red);margin-top:0;padding:18px 16px}
+  .pkg .price{font-size:2.1rem}
+  .pkg ul{margin-bottom:8px}
+  .pkg li{padding:7px 0 7px 22px;font-size:14.5px}
+  .pkg li::before{top:13px}
+}
