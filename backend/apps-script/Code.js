@@ -23,7 +23,7 @@ function ss_() { return SpreadsheetApp.getActive(); }
 function doGet(e) {
   var p = (e && e.parameter) || {};
   try {
-    if (p.action === 'health') return json(p.pdf ? {ok: true, pdf: pdfCheck_()} : {ok: true, version: masterVersion_()});
+    if (p.action === 'health') return json(p.pdf ? {ok: true, pdf: pdfCheck_()} : {ok: true, version: masterVersion_(), warm: PropertiesService.getScriptProperties().getProperty('WARM_TRIGGER') === '1', warmErr: PropertiesService.getScriptProperties().getProperty('WARM_ERR') || ''});
     if (p.action === 'draft') return json(loadDraft_(String(p.ref || ''), String(p.token || '')));
     if (p.action === 'portal') return json(portal_(String(p.id || ''), String(p.k || '')));
     if (p.action === 'slots') return json(slots_(String(p.type || '')));
@@ -527,6 +527,8 @@ function setup() {
   ScriptApp.getProjectTriggers().forEach(function (t) { ScriptApp.deleteTrigger(t); });
   ScriptApp.newTrigger('onEditAudit').forSpreadsheet(ss).onEdit().create();
   ScriptApp.newTrigger('daily').timeBased().everyDays(1).atHour(7).create();
+  ScriptApp.newTrigger('warmSlots').timeBased().everyMinutes(10).create();   // booking page: free times kept ready
+  PropertiesService.getScriptProperties().setProperty('WARM_TRIGGER', '1');
   SpreadsheetApp.getUi().alert('Fertig. Nächster Schritt: Bereitstellen → Neue Bereitstellung → Web-App (siehe README).');
 }
 

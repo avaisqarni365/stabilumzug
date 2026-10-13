@@ -1210,3 +1210,7 @@ details.fs-card > summary:focus-visible{outline:2px solid var(--red);outline-off
   .actionbar.ab-off{transform:translateY(110%)}
 }
 @media (prefers-reduced-motion:reduce){.actionbar{transition:none}}
+
+/* booking: hint when the free times take long (cold server) */
+.bk-slow{margin:10px 0 0;font-size:14px;color:var(--ink2);text-align:left}
+.bk-slow a{font-weight:700;white-space:nowrap}

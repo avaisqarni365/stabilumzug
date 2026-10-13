@@ -141,3 +141,23 @@
     if (off) bar.setAttribute('inert', ''); else bar.removeAttribute('inert');
   }).observe(own);
 })();
+
+/* Booking intent: when someone touches or points at a "Termin" link, ask the server for the free times right away
+   (keepalive: it still arrives when the page changes). The server is then awake and the times are ready; when the
+   answer comes back before the page changes, the booking page shows them at once (same store as booking.js). */
+(function () {
+  var S = window.SITE || {}, api = S.api && String(S.api).charAt(0) !== '[' ? S.api : '', sent = false;
+  if (!api || !window.fetch || /\/(termin|en\/appointment)\/?$/.test(location.pathname)) return;
+  function go(e) {
+    var a = e.target && e.target.closest && e.target.closest('a[href*="termin/"],a[href*="appointment/"]');
+    if (!a || sent) return;
+    try { var c = JSON.parse(sessionStorage.getItem('bk-slots') || 'null'); if (c && Date.now() - c.at < 120000) return; } catch (err) {}
+    sent = true;
+    fetch(api + '?action=slots&type=all', {keepalive: true}).then(function (r) { return r.json(); }).then(function (r) {
+      if (r && r.ok && r.types) try { sessionStorage.setItem('bk-slots', JSON.stringify({at: Date.now(), types: r.types})); } catch (err) {}
+    }).catch(function () { sent = false; });
+  }
+  document.addEventListener('pointerdown', go, {passive: true});
+  document.addEventListener('mouseover', go, {passive: true});
+  document.addEventListener('focusin', go);
+})();

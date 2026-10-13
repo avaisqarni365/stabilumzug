@@ -8,22 +8,44 @@
 /* Free times for the booking page. Cached for one minute so a busy day does not read the sheet for every visitor. */
 /* Free times for one type, or for all types at once (type=all: the booking page switches types without waiting).
    Cached for 5 minutes and cleared by each booking; a booking always checks its time against fresh data. */
-var SLOT_TTL = 300;
+var SLOT_TTL = 900;
 function slots_(type) {
   if (type !== 'all' && !APPT_TYPES[type]) return {ok: false, error: 'type'};
+  ensureWarm_();
   var cache = CacheService.getScriptCache(), key = 'slots_' + type, hit = cache.get(key);
   if (hit) return JSON.parse(hit);
-  var res;
-  if (type === 'all') {
-    var base = slotBase_(true), types = {};
-    Object.keys(APPT_TYPES).forEach(function (k) { types[k] = {min: APPT_TYPES[k].min, days: freeSlots_(k, 21, null, base)}; });
-    res = {ok: true, type: 'all', types: types};
-  } else res = {ok: true, type: type, min: APPT_TYPES[type].min, days: freeSlots_(type, 21)};
+  var res = computeSlots_(type);
   cache.put(key, JSON.stringify(res), SLOT_TTL);
   return res;
 }
+function computeSlots_(type) {
+  if (type !== 'all') return {ok: true, type: type, min: APPT_TYPES[type].min, days: freeSlots_(type, 21)};
+  var base = slotBase_(true), types = {};
+  Object.keys(APPT_TYPES).forEach(function (k) { types[k] = {min: APPT_TYPES[k].min, days: freeSlots_(k, 21, null, base)}; });
+  return {ok: true, type: 'all', types: types};
+}
+/* After a booking: drop the old times and calculate the new ones right away, so the next visitor is not kept waiting. */
 function clearSlots_() {
-  CacheService.getScriptCache().removeAll(['slots_all'].concat(Object.keys(APPT_TYPES).map(function (k) { return 'slots_' + k; })));
+  var cache = CacheService.getScriptCache();
+  cache.removeAll(['slots_all'].concat(Object.keys(APPT_TYPES).map(function (k) { return 'slots_' + k; })));
+  try { cache.put('slots_all', JSON.stringify(computeSlots_('all')), SLOT_TTL); } catch (err) { console.error(err); }
+}
+
+/* Time trigger every 10 minutes (06–22 h): keeps the free times calculated, so the booking page never waits for the
+   sheet. Installed by "Einrichten" and, until that has run, by the first visit to the booking page (ensureWarm_). */
+function warmSlots() {
+  var h = Number(Utilities.formatDate(new Date(), 'Europe/Berlin', 'H'));
+  if (h < 6 || h >= 22) return;
+  CacheService.getScriptCache().put('slots_all', JSON.stringify(computeSlots_('all')), SLOT_TTL);
+}
+function ensureWarm_() {
+  var props = PropertiesService.getScriptProperties();
+  if (props.getProperty('WARM_TRIGGER') === '1') return;
+  try {
+    var has = ScriptApp.getProjectTriggers().some(function (t) { return t.getHandlerFunction() === 'warmSlots'; });
+    if (!has) ScriptApp.newTrigger('warmSlots').timeBased().everyMinutes(10).create();
+    props.setProperty('WARM_TRIGGER', '1');
+  } catch (err) { console.error(err); try { props.setProperty('WARM_ERR', String(err).slice(0, 200)); } catch (e2) {} }
 }
 
 /* ------------------------------------------------------------------ photos with a request
