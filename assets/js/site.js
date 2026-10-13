@@ -129,3 +129,15 @@
   if (!window.matchMedia || !matchMedia('(max-width:760px)').matches) return;
   Array.prototype.forEach.call(document.querySelectorAll('details[data-fold]'), function (d) { d.removeAttribute('open'); });
 })();
+
+/* Phones: the bottom action bar waits while the page's own buttons (hero / page head) are on screen,
+   so the same "Kostenloses Angebot" never shows twice. */
+(function () {
+  var bar = document.querySelector('.actionbar'), own = document.querySelector('main .hero .actions, main .page-head .actions');
+  if (!bar || !own || !('IntersectionObserver' in window)) return;
+  new IntersectionObserver(function (e) {
+    var off = e[0].isIntersecting;
+    bar.classList.toggle('ab-off', off);
+    if (off) bar.setAttribute('inert', ''); else bar.removeAttribute('inert');
+  }).observe(own);
+})();
