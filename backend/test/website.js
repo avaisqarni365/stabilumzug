@@ -30,7 +30,13 @@ const call = get({action: 'slots', type: 'call'});
 const workday = call.days.find(d => d.slots.length && new Date(d.date + 'T12:00:00').getDay() === 2);
 assert.strictEqual(workday.slots[workday.slots.length - 1], '17:30', '30-minute call fits until 18:00');
 assert.strictEqual(get({action: 'slots', type: 'party'}).error, 'type');
-console.log('ok slots: 21 days from tomorrow, opening hours, no Sunday, length respected');
+// all types in one answer, the same times as the single requests
+const all = get({action: 'slots', type: 'all'});
+assert(all.ok && all.types.visit && all.types.video && all.types.call);
+assert.deepStrictEqual(all.types.visit.days, s.days);
+assert.deepStrictEqual(all.types.call.days, call.days);
+assert.strictEqual(all.types.call.min, call.min);
+console.log('ok slots: 21 days from tomorrow, opening hours, no Sunday, length respected, all types at once');
 
 // --- booking: request + appointment + mails with calendar file
 const base = {action: 'book', t: 20000, consent: true, lang: 'de', name: 'Familie Kaya', phone: '0171 1234567', email: 'kaya@example.de',
@@ -42,6 +48,8 @@ assert.strictEqual(post(Object.assign({}, base, {type: 'visit', date: workday.da
 mails.length = 0;
 let r = post(Object.assign({}, base, {type: 'visit', date: workday.date, time: '10:00'}));
 assert(r.ok && /^T-\d+$/.test(r.nr) && /^A-\d+$/.test(r.lead), JSON.stringify(r));
+// the booking clears the cached free times: 10:00 is gone right away
+assert(get({action: 'slots', type: 'all'}).types.visit.days.find(d => d.date === workday.date).slots.indexOf('10:00') < 0, 'cache cleared');
 const appt = ctx.allAppts_()[0];
 assert.strictEqual(appt.type, 'visit'); assert.strictEqual(appt.date, workday.date); assert.strictEqual(appt.time, '10:00'); assert.strictEqual(appt.min, 60);
 const lead = ctx.findLead_(r.lead).values;

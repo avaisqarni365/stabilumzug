@@ -66,20 +66,27 @@ function allAppts_() {
 /* Free start times per day for the next `days` days, starting tomorrow (Berlin time). Every 30 minutes; an appointment
    needs its whole length inside the opening hours and must not overlap another one. On-site viewings are not offered
    on days with a booked move. Returns [{date, slots: ['09:00', …]}]. */
-function freeSlots_(type, days, todayIso) {
-  var T = APPT_TYPES[type]; if (!T) return [];
-  var hours = apptHours_(), blocked = apptBlocked_(), taken = {}, moveDays = {};
+/* What every slot calculation needs, read from the sheet once (several types can share it). */
+function slotBase_(withMoveDays) {
+  var b = {hours: apptHours_(), blocked: apptBlocked_(), taken: {}, moveDays: {}};
   allAppts_().forEach(function (a) {
     if (a.status === 'Abgesagt') return;
     var m = a.time.split(':'), s = Number(m[0]) * 60 + Number(m[1]);
-    (taken[a.date] = taken[a.date] || []).push([s, s + a.min]);
+    (b.taken[a.date] = b.taken[a.date] || []).push([s, s + a.min]);
   });
-  if (type === 'visit') {
+  if (withMoveDays) {
     var ls = ss_().getSheetByName(TAB.leads);
     if (ls && ls.getLastRow() > 1) ls.getRange(2, 1, ls.getLastRow() - 1, LEAD_COLS.length).getValues().forEach(function (v) {
-      if (v[LEAD_COLS.indexOf('Status')] === 'Gebucht') moveDays[day_(v[LEAD_COLS.indexOf('Termin')])] = true;
+      if (v[LEAD_COLS.indexOf('Status')] === 'Gebucht') b.moveDays[day_(v[LEAD_COLS.indexOf('Termin')])] = true;
     });
   }
+  return b;
+}
+
+function freeSlots_(type, days, todayIso, base) {
+  var T = APPT_TYPES[type]; if (!T) return [];
+  base = base || slotBase_(type === 'visit');
+  var hours = base.hours, blocked = base.blocked, taken = base.taken, moveDays = type === 'visit' ? base.moveDays : {};
   var out = [], base = new Date((todayIso || Utilities.formatDate(new Date(), 'Europe/Berlin', 'yyyy-MM-dd')) + 'T12:00:00');
   for (var i = 1; i <= (days || 21); i++) {
     var d = new Date(base.getTime() + i * 864e5), iso = Utilities.formatDate(d, 'Europe/Berlin', 'yyyy-MM-dd');
