@@ -78,7 +78,8 @@ def about(lang):
               "Das meiste Geld und der meiste Stress gehen verloren, wenn Angaben von einem Schritt nicht beim nächsten ankommen. Deshalb haben wir diesen Ablauf in einen einfachen Planer übersetzt.",
               "A move is a chain of steps: measure the new home, list your belongings, clarify access, parking permit, boxes, assembly, registration. "
               "Most money and stress are lost when information from one step does not reach the next. So we turned this flow into a simple planner.", lang)
-    cells = "".join('<div><h3>%s</h3><p>%s</p></div>' % (esc(t(*a, lang)), esc(t(*b, lang))) for a, b in PRINCIPLES)
+    # phones: the six titles first, each text one tap away
+    cells = "".join('<div><details class="pr" data-fold open><summary><h3>%s</h3></summary><p>%s</p></details></div>' % (esc(t(*a, lang)), esc(t(*b, lang))) for a, b in PRINCIPLES)
     body += ('<section class="section"><div class="container"><div class="head"><div><span class="kicker red">%s</span><h2>%s</h2></div><p>%s</p></div>'
              '<div class="costs two">%s</div></div></section>' % (t("Wie wir arbeiten", "How we work", lang), t("Sechs Versprechen.", "Six promises.", lang), esc(intro), cells))
     look = [("uniform.jpg", ("Arbeitskleidung in Orange und Navy", "Workwear in orange and navy"),
@@ -89,8 +90,10 @@ def about(lang):
         prefix_for(key, lang), f, esc(t(*h, lang)), esc(t(*h, lang)), esc(t(*d, lang))) for f, h, d in look)
     body += ('<section class="section alt"><div class="container"><div class="head"><div><span class="kicker red">%s</span><h2>%s</h2></div></div>'
              '<div class="looks">%s</div></div></section>') % (t("Unser Auftritt", "How we look", lang), t("Erkennbar in Orange und Navy.", "Recognisable in orange and navy.", lang), figs)
-    body += sec('<p class="ph">%s</p>' % t("[Hier kurze Vorstellung des Unternehmens, des Teams um Ibrahim Abdelaal und der Erfahrung eintragen]",
-                                            "[Add a short introduction of the company, the team around Ibrahim Abdelaal and its experience here]", lang))
+    # the owner's own introduction appears once it is filled in tools/config.py (about_intro_de / about_intro_en)
+    own = SITE.get("about_intro_" + lang, "").strip()
+    if own:
+        body += sec('<div class="prose"><p>%s</p></div>' % esc(own))
     body += cta(key, lang)
     return dict(key=key, lang=lang, title=t("Über uns | Stabil Umzug Essen", "About us | Stabil Umzug Essen", lang),
                 desc=t("Stabil Umzug aus Essen: Umzüge einfach planen, Preise nachvollziehbar machen, in einfacher Sprache.",

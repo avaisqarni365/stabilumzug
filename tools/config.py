@@ -24,6 +24,9 @@ SITE = {
     "hours": "Mo–Fr 9–19 Uhr · Sa/So 9–17 Uhr",
     # Legal details for the imprint (Impressum). Have them checked by a lawyer.
     "owner": "Ibrahim Abdelaal",
+    # short introduction of the company and team for the About page (left empty: the section is not shown)
+    "about_intro_de": "",
+    "about_intro_en": "",
     "legal_form": "Einzelunternehmen",
     "vat_id": "DE458214531",
     "register": "",
