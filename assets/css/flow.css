@@ -239,3 +239,16 @@ p.uf-small,.uf-how .uf-small,.uf-card .uf-small{text-align:justify}
   .uf .uf-guess .seg-opt{padding:4px 7px}
 }
 @media (prefers-reduced-motion:no-preference){.uf-enter{animation:uf-in .2s ease-out}@keyframes uf-in{from{opacity:.001;transform:translateY(4px)}to{opacity:1;transform:none}}}
+
+/* phones and touch screens: every control at least 44px (Impeccable: operate mode) */
+.uf-remote summary,.uf-why summary{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px;list-style:none}
+.uf-remote summary::-webkit-details-marker,.uf-why summary::-webkit-details-marker{display:none}
+.uf-remote summary::after,.uf-why summary::after{content:"";flex:none;width:9px;height:9px;border-right:2px solid var(--c-accent);border-bottom:2px solid var(--c-accent);transform:rotate(45deg) translateY(-3px);transition:transform .2s}
+.uf-remote[open] summary::after,.uf-why[open] summary::after{transform:rotate(-135deg) translateY(-3px)}
+.uf-check{min-height:44px}
+@media (pointer:coarse),(max-width:760px){
+  .uf .uf-vars .seg-opt{min-height:44px;min-width:44px;padding:4px 12px}
+  .uf .uf-guess .seg-opt{min-height:44px;min-width:40px}
+  .uf .btn.uf-mini{min-height:44px}
+  .uf-card .uf-small,.uf-how .uf-small{text-align:left}
+}
