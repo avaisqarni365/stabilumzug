@@ -12,7 +12,7 @@
     types: {visit: ['On-site viewing', 'We come to you, look at everything and send a fixed quote. Free.'], video: ['Video viewing', 'Show us your rooms by WhatsApp video. Free, from anywhere.'], call: ['Call-back and advice', 'We call you and answer your questions about the move.']},
     name: 'Name', phone: 'Phone (for WhatsApp too)', email: 'Email (for the confirmation)', addrVisit: 'Address of the viewing', addr: 'Where do you live? (optional)', to: 'Moving to (optional)', msg: 'Anything we should know? (optional)',
     consent: 'I agree that Stabil Umzug stores my details to arrange this appointment and contacts me about it. I can withdraw this at any time.', privacy: 'Privacy policy',
-    book: 'Book appointment', booking: 'Booking …', pick: 'Choose a day and a time first.', loading: 'Loading free times …', noTimes: 'No free times on this day.',
+    book: 'Book appointment', booking: 'Booking …', pick: 'Choose a day and a time first.', loading: 'Loading free times …', slow: 'Still loading – the first call can take a few seconds. Rather talk right away? Call', noTimes: 'No free times on this day.',
     errLoad: 'The free times could not be loaded. Please call us or write on WhatsApp.', errTaken: 'This time has just been booked by someone else. Please choose another one.',
     errMail: 'Please check your email address.', errAddr: 'Please enter the address for the viewing.', errGen: 'That did not work. Please try again or call us.',
     done: 'Your appointment is booked.', doneText: 'We have sent the confirmation and a calendar file to', add: 'Add to calendar', gcal: 'Google Calendar', ics: 'Calendar file (.ics)',
@@ -26,7 +26,7 @@
     types: {visit: ['Besichtigung vor Ort', 'Wir kommen zu Ihnen, sehen uns alles an und schicken ein verbindliches Angebot. Kostenlos.'], video: ['Video-Besichtigung', 'Zeigen Sie uns Ihre Räume per WhatsApp-Video. Kostenlos, von überall.'], call: ['Rückruf und Beratung', 'Wir rufen Sie an und beantworten Ihre Fragen rund um den Umzug.']},
     name: 'Name', phone: 'Telefon (auch für WhatsApp)', email: 'E-Mail (für die Bestätigung)', addrVisit: 'Adresse der Besichtigung', addr: 'Wo wohnen Sie? (optional)', to: 'Umzug nach (optional)', msg: 'Was sollten wir wissen? (optional)',
     consent: 'Ich bin einverstanden, dass Stabil Umzug meine Angaben speichert, um diesen Termin zu vereinbaren, und mich dazu kontaktiert. Ich kann das jederzeit widerrufen.', privacy: 'Datenschutzerklärung',
-    book: 'Termin verbindlich buchen', booking: 'Wird gebucht …', pick: 'Bitte zuerst Tag und Uhrzeit wählen.', loading: 'Freie Zeiten werden geladen …', noTimes: 'An diesem Tag ist nichts mehr frei.',
+    book: 'Termin verbindlich buchen', booking: 'Wird gebucht …', pick: 'Bitte zuerst Tag und Uhrzeit wählen.', loading: 'Freie Zeiten werden geladen …', slow: 'Lädt noch – beim ersten Aufruf dauert es einige Sekunden. Lieber direkt sprechen? Rufen Sie an:', noTimes: 'An diesem Tag ist nichts mehr frei.',
     errLoad: 'Die freien Zeiten konnten nicht geladen werden. Bitte rufen Sie uns an oder schreiben Sie per WhatsApp.', errTaken: 'Diese Zeit wurde gerade vergeben. Bitte wählen Sie eine andere.',
     errMail: 'Bitte prüfen Sie Ihre E-Mail-Adresse.', errAddr: 'Bitte die Adresse für die Besichtigung eingeben.', errGen: 'Das hat nicht geklappt. Bitte noch einmal versuchen oder anrufen.',
     done: 'Ihr Termin ist gebucht.', doneText: 'Die Bestätigung mit Kalenderdatei haben wir geschickt an', add: 'Zum Kalender hinzufügen', gcal: 'Google Kalender', ics: 'Kalenderdatei (.ics)',
@@ -126,10 +126,16 @@
     box.innerHTML = '<div class="bk-cal-head"><span class="bk-nav sk"></span><b class="sk-t">' + esc(T.loading) + '</b><span class="bk-nav sk"></span></div><div class="bk-grid" aria-busy="true">' + sk + '</div>';
     root.querySelector('#bk-times').innerHTML = '<p class="bk-muted">' + esc(T.pick) + '</p>';
     summary();
+    // a cold start of the server can take a while: after 5 s say so, with the phone number as the way out
+    var slowT = setTimeout(function () {
+      if (box.querySelector('.bk-grid[aria-busy]')) box.insertAdjacentHTML('beforeend', '<p class="bk-slow" role="status">' + esc(T.slow) +
+        (phone ? ' <a href="tel:' + esc(SITE.phone_href || phone) + '">' + esc(phone) + '</a>' : '') + '</p>');
+    }, 5000);
     slots(fresh).then(function (all) {
+      clearTimeout(slowT);
       var t = all[S.type]; if (!t) throw new Error('slots');
       S.days = t.days; S.month = ''; days();
-    }).catch(function () { box.innerHTML = '<p class="bk-msg">' + esc(T.errLoad) + '</p>'; });
+    }).catch(function () { clearTimeout(slowT); box.innerHTML = '<p class="bk-msg">' + esc(T.errLoad) + '</p>'; });
   }
 
   /* Free times of all types in one request (the server needs a few seconds on a cold start), kept for

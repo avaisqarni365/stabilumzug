@@ -38,6 +38,23 @@ assert.deepStrictEqual(all.types.call.days, call.days);
 assert.strictEqual(all.types.call.min, call.min);
 console.log('ok slots: 21 days from tomorrow, opening hours, no Sunday, length respected, all types at once');
 
+// warm-up: the first slots request installs the 10-minute trigger once; the trigger fills the cache during the day
+const made = [];
+const realScriptApp = ctx.ScriptApp;
+ctx.ScriptApp = {getProjectTriggers: () => made.map(h => ({getHandlerFunction: () => h})),
+  newTrigger: h => ({timeBased: () => ({everyMinutes: m => ({create: () => made.push(h + '/' + m)})})})};
+ctx.PropertiesService.getScriptProperties().setProperty('WARM_TRIGGER', '');
+get({action: 'slots', type: 'all'}); get({action: 'slots', type: 'all'});
+assert.deepStrictEqual(made, ['warmSlots/10'], 'trigger installed once');
+cache['slots_all'] = undefined; delete cache['slots_all'];
+const fmtNow = ctx.Utilities.formatDate;
+ctx.Utilities.formatDate = (d, tz, f) => f === 'H' ? '23' : fmtNow(d, tz, f);
+ctx.warmSlots(); assert(!cache['slots_all'], 'no work at night');
+ctx.Utilities.formatDate = (d, tz, f) => f === 'H' ? '9' : fmtNow(d, tz, f);
+ctx.warmSlots(); assert(JSON.parse(cache['slots_all']).types.visit.days.length === 21, 'cache filled in the day');
+ctx.Utilities.formatDate = fmtNow; ctx.ScriptApp = realScriptApp;
+console.log('ok warm-up: trigger installed once, cache kept ready 06–22 h');
+
 // --- booking: request + appointment + mails with calendar file
 const base = {action: 'book', t: 20000, consent: true, lang: 'de', name: 'Familie Kaya', phone: '0171 1234567', email: 'kaya@example.de',
   address: 'Rüttenscheider Str. 12, 45130 Essen', to: 'Bochum', message: 'Klavier', src: {utm_source: 'google', utm_medium: 'cpc'}};
