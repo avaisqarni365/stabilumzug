@@ -1199,3 +1199,14 @@ details.fs-card > summary:focus-visible{outline:2px solid var(--red);outline-off
 }
 /* contact on phones: phone, WhatsApp and e-mail are already the quick-contact buttons at the top */
 @media (max-width:860px){.quick-contact ~ .contact-grid .contact-list .cl-dup{display:none}}
+/* small tablets (761–860 px): tiles two per row instead of one full-width photo per row */
+@media (min-width:761px) and (max-width:860px){
+  .tiles,.tiles.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .tiles .tile:nth-child(even){padding-left:20px;border-left:1px solid var(--line)}
+}
+/* bottom bar slides away while the page's own buttons are visible (site.js) */
+@media (max-width:760px){
+  .actionbar{transition:transform .28s cubic-bezier(.16,1,.3,1)}
+  .actionbar.ab-off{transform:translateY(110%)}
+}
+@media (prefers-reduced-motion:reduce){.actionbar{transition:none}}
