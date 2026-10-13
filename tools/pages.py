@@ -125,17 +125,14 @@ def faq_html(lang, key):
     return '<div class="faq">%s</div>' % "".join(items)
 
 def quick_plan(key, lang, title=None, kicker=None, from_value=""):
-    """Planner quick start: from, to, household; opens the planner at step 1 (F1) with these filled in.
+    """Planner quick start: from and to; opens the planner at step 1 (F1) with these filled in.
     With the website API connected it also shows the route (distance, drive time, map) – see assets/js/route.js."""
-    hh = [t("1 Person", "1 person", lang), t("2 Personen", "2 people", lang), "3–4", "5+"]
-    chips = "".join('<label class="qp-chip"><input type="radio" name="hh" value="%d"%s><span>%s</span></label>' % (i, " checked" if i == 1 else "", esc(x)) for i, x in enumerate(hh))
     route = bool(SITE.get("api"))
     return ('<form class="quick-plan" action="%s" method="get" aria-labelledby="qp-h"%s><input type="hidden" name="start" value="1"><input type="hidden" name="km" value="">'
             '<div class="qp-head"><span class="qp-k">%s</span><h2 id="qp-h">%s</h2></div>'
             '<div class="qp-row"><label class="qp-field"><span>%s</span><input class="input" name="from" autocomplete="address-level2" placeholder="%s"%s></label>'
             '<label class="qp-field"><span>%s</span><input class="input" name="to" autocomplete="off" placeholder="%s"></label></div>'
             '%s'
-            '<fieldset class="qp-hh"><legend>%s</legend><div>%s</div></fieldset>'
             '<button class="button primary qp-go" type="submit">%s</button>'
             '<p class="qp-note">%s</p></form>') % (
         link(key, "planner", lang), ' data-route' if route else '',
@@ -144,7 +141,6 @@ def quick_plan(key, lang, title=None, kicker=None, from_value=""):
         t("Nach", "To", lang), t("z. B. 44793 Bochum", "e.g. 44793 Bochum", lang),
         ('<button type="button" class="button qp-calc"><span class="pin" aria-hidden="true"></span>%s</button><div class="route-out" hidden aria-live="polite"></div>'
          % t("Strecke und Karte anzeigen", "Show route and map", lang)) if route else "",
-        t("Haushalt", "Household", lang), chips,
         t("Umzug planen", "Plan my move", lang),
         t("Ohne Konto · ca. 10 Minuten · Volumen, Fahrzeug und Team sofort sehen", "No account · about 10 minutes · see volume, vehicle and crew right away", lang))
 
