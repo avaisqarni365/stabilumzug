@@ -1142,3 +1142,17 @@ details.fs-card > summary:focus-visible{outline:2px solid var(--red);outline-off
   .look figcaption{padding-top:10px;font-size:13.5px;line-height:1.45}
   .look figcaption b{font-size:1rem}
 }
+
+/* ---------- guides on phones ---------- */
+.toc-fold > summary{display:none}
+.table-wrap{background:linear-gradient(90deg,var(--bg,#fff) 30%,transparent) left/24px 100% no-repeat local,linear-gradient(270deg,var(--bg,#fff) 30%,transparent) right/24px 100% no-repeat local,
+  radial-gradient(farthest-side at 0 50%,rgba(23,48,79,.18),transparent) left/10px 100% no-repeat scroll,radial-gradient(farthest-side at 100% 50%,rgba(23,48,79,.18),transparent) right/10px 100% no-repeat scroll}
+@media (max-width:760px){
+  .toc-fold > summary{display:flex;justify-content:space-between;align-items:center;min-height:48px;list-style:none;cursor:pointer;font-weight:700;font-size:15px;color:var(--ink);border-top:2px solid var(--ink);border-bottom:1px solid var(--line)}
+  .toc-fold > summary::-webkit-details-marker{display:none}
+  .toc-fold > summary::after{content:"";width:9px;height:9px;border-right:2px solid var(--red);border-bottom:2px solid var(--red);transform:rotate(45deg) translateY(-3px);transition:transform .2s}
+  .toc-fold[open] > summary::after{transform:rotate(-135deg) translateY(-3px)}
+  .toc-fold[open] > summary{margin-bottom:16px}
+  .toc a{min-height:44px;align-items:center}
+  .tiles .tile p{text-align:left}
+}

@@ -50,8 +50,9 @@ def topic_tiles(frm, lang):
 def toc(key, lang):
     li = lambda k, n: '<li><a href="%s"%s><span>%s</span>%s</a></li>' % (
         link(key, k, lang), ' aria-current="page"' if k == key else "", n, esc(GUIDES[k][lang]["nav"]))
-    return ('<nav class="toc" aria-label="%s"><h2>%s</h2><ol>%s</ol><h2>%s</h2><ol>%s</ol></nav>' % (
-        t("Ratgeber", "Guides", lang), t("Ihr Umzug in 10 Schritten", "Your move in 10 steps", lang),
+    # phones: the list of all guides folds under one row after the article
+    return ('<nav class="toc" aria-label="%s"><details class="toc-fold" data-fold open><summary>%s</summary><h2>%s</h2><ol>%s</ol><h2>%s</h2><ol>%s</ol></details></nav>' % (
+        t("Ratgeber", "Guides", lang), t("Alle Ratgeber", "All guides", lang), t("Ihr Umzug in 10 Schritten", "Your move in 10 steps", lang),
         "".join(li(k, "%02d" % GUIDES[k]["step"]) for k in JOURNEY),
         t("Themen", "Topics", lang), "".join(li(k, "·") for k in TOPICS)))
 
