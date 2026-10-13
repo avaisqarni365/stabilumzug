@@ -33,11 +33,13 @@ def quote_form(key, lang):
         + f("name", t("Name", "Name", lang), ac="name", req=True)
         + f("phone", t("Telefon / WhatsApp", "Phone / WhatsApp", lang), "tel", "tel")
         + f("email", t("E-Mail", "Email", lang), "email", "email")
-        + '<div><label for="q-rooms">%s</label><select id="q-rooms"><option value="">–</option>%s</select></div>'
         + f("from", t("Startadresse", "Start address", lang), ac="street-address", wide=True)
-        + f("to", t("Zieladresse (bei Umzug und Transport)", "Destination (for moves and transport)", lang), wide=True)
+        + '<details class="wide bk-more form-more"><summary>' + t("Weitere Angaben (optional)", "More details (optional)", lang) + '</summary><div class="form-more-in">'
+        + '<div><label for="q-rooms">%s</label><select id="q-rooms"><option value="">–</option>%s</select></div>'
         + f("date", t("Wunschtermin", "Preferred date", lang), "date")
+        + f("to", t("Zieladresse (bei Umzug und Transport)", "Destination (for moves and transport)", lang), wide=True)
         + '<div class="wide"><label for="q-message">%s</label><textarea id="q-message"></textarea></div>'
+        + '</div></details>'
         '<div class="hp" aria-hidden="true"><label>Website <input id="q-hp" type="text" tabindex="-1" autocomplete="off"></label></div>'
         '<label class="wide consent"><input type="checkbox" id="q-consent"> <span>%s <a href="%s">%s</a></span></label>'
         '<div class="wide actions"><button class="button primary" type="submit" id="quote-send">%s</button></div>'
@@ -50,6 +52,21 @@ def quote_form(key, lang):
            "I agree that Stabil Umzug stores my details to prepare a quote for me.", lang),
          link(key, "privacy", lang), t("Datenschutz", "Privacy", lang),
          t("Jetzt kostenloses Angebot anfordern", "Request your free quote now", lang))
+
+def quick_contact(lang):
+    """Phones: the three fastest ways to reach us as large buttons, right under the page title."""
+    ico = lambda d: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="%s"/></svg>' % d
+    call = "M6.6 10.8a15 15 0 0 0 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1A17 17 0 0 1 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1z"
+    chat = "M4 4h16a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H8l-4 4V5a1 1 0 0 1 1-1z"
+    mail = "M3 6h18v12H3zM3 6l9 7 9-7"
+    items = []
+    if SITE.get("phone_href"):
+        items.append('<a class="qc" href="tel:%s">%s<b>%s</b><small>%s</small></a>' % (esc(SITE["phone_href"]), ico(call), t("Anrufen", "Call", lang), esc(SITE["phone"])))
+    if SITE.get("whatsapp"):
+        items.append('<a class="qc" href="https://wa.me/%s" rel="noopener">%s<b>WhatsApp</b><small>%s</small></a>' % (esc(SITE["whatsapp"]), ico(chat), t("Nachricht", "Message", lang)))
+    if not is_ph(SITE["email"]):
+        items.append('<a class="qc qc-line" href="mailto:%s">%s<b>E-Mail</b><small>%s</small></a>' % (esc(SITE["email"]), ico(mail), t("schreiben", "write", lang)))
+    return '<nav class="quick-contact" aria-label="%s">%s</nav>' % (t("Direkt erreichen", "Reach us directly", lang), "".join(items))
 
 def contact_aside(lang, key):
     phone = '<a href="tel:%s">%s</a>' % (esc(SITE["phone_href"]), esc(SITE["phone"])) if SITE.get("phone_href") else ph(SITE["phone"])
@@ -72,7 +89,7 @@ def quote_page(lang):
           "Fill in briefly – we reply within 24 hours with your personal, non-binding quote. Prefer to talk? Call or message us on WhatsApp.", lang),
         kicker=t("Kostenlos und unverbindlich", "Free and non-binding", lang), photo="keys.jpg",
         alt=t("Schlüssel für das neue Zuhause", "Keys to the new home", lang))
-    body += ('<section class="section"><div class="container contact-grid"><div>%s</div><div>%s</div></div></section>' % (quote_form(key, lang), contact_aside(lang, key)))
+    body += ('<section class="section"><div class="container">%s<div class="contact-grid"><div>%s</div><div>%s</div></div></div></section>' % (quick_contact(lang), quote_form(key, lang), contact_aside(lang, key)))
     return dict(key=key, lang=lang, quote=True,
         title=t("Kostenloses Angebot: Umzug, Entrümpelung, Transport | Stabil Umzug Essen", "Free quote: moves, clear-outs, transport | Stabil Umzug Essen", lang),
         desc=t("Jetzt kostenloses Angebot anfordern: Umzug, Entrümpelung, Wohnungsauflösung oder Transport in Essen und im Ruhrgebiet. Antwort innerhalb von 24 Stunden.",

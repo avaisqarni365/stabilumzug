@@ -209,7 +209,7 @@ def render(page):
     if page.get("portal"):
         scripts.append('<script src="%sassets/js/portal.js" defer></script>' % pre)
     scripts.append('<script src="%sassets/js/site.js" defer></script>' % pre)
-    no_bar = page.get("planner") or key in ("quote", "portal", "booking")   # the planner has its own footer; the quote page is the bar's target
+    no_bar = page.get("planner") or key in ("quote", "portal", "booking", "contact")   # the planner has its own footer; the quote page is the bar's target
     return hyphenate(responsive_images((
         '<!doctype html>\n<html lang="%s">\n<head>\n%s\n</head>\n<body%s>\n'
         '<a class="skip" href="#main">%s</a>\n%s\n<main id="main">\n%s\n</main>\n%s\n%s%s\n</body>\n</html>\n'

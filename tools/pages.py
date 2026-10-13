@@ -80,8 +80,8 @@ def contact(lang):
         t("Rufen Sie an, schreiben Sie per WhatsApp – oder senden Sie uns kurz Ihre Anfrage. Wir melden uns innerhalb von 24 Stunden.",
           "Call, message us on WhatsApp – or send us your request. We reply within 24 hours.", lang),
         kicker=t("Stabil Umzug · Karlstraße 32 · Essen", "Stabil Umzug · Karlstraße 32 · Essen", lang))
-    body += ('<section class="section"><div class="container contact-grid"><div>%s</div><div>%s</div></div></section>'
-             % (services_mod.quote_form(key, lang), services_mod.contact_aside(lang, key)))
+    body += ('<section class="section"><div class="container">%s<div class="contact-grid"><div>%s</div><div>%s</div></div></div></section>'
+             % (services_mod.quick_contact(lang), services_mod.quote_form(key, lang), services_mod.contact_aside(lang, key)))
     biz = {"@context": "https://schema.org", "@type": "MovingCompany", "name": SITE["company"], "url": SITE["domain"] + "/",
            "telephone": SITE["phone"], "email": SITE["email"],
            "address": {"@type": "PostalAddress", "streetAddress": SITE["street"], "postalCode": SITE["zip"], "addressLocality": SITE["city"], "addressCountry": "DE"},
