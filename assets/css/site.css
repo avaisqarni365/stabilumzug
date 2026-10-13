@@ -1197,3 +1197,5 @@ details.fs-card > summary:focus-visible{outline:2px solid var(--red);outline-off
   .pkg li{padding:7px 0 7px 22px;font-size:14.5px}
   .pkg li::before{top:13px}
 }
+/* contact on phones: phone, WhatsApp and e-mail are already the quick-contact buttons at the top */
+@media (max-width:860px){.quick-contact ~ .contact-grid .contact-list .cl-dup{display:none}}

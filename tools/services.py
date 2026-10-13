@@ -71,9 +71,10 @@ def quick_contact(lang):
 
 def contact_aside(lang, key):
     phone = '<a href="tel:%s">%s</a>' % (esc(SITE["phone_href"]), esc(SITE["phone"])) if SITE.get("phone_href") else ph(SITE["phone"])
-    wa = '<li><b>WhatsApp</b><a href="https://wa.me/%s" rel="noopener">%s</a></li>' % (esc(SITE["whatsapp"]), t("Nachricht schreiben", "Send a message", lang)) if SITE.get("whatsapp") else ""
+    wa = '<li class="cl-dup"><b>WhatsApp</b><a href="https://wa.me/%s" rel="noopener">%s</a></li>' % (esc(SITE["whatsapp"]), t("Nachricht schreiben", "Send a message", lang)) if SITE.get("whatsapp") else ""
     email = '<a href="mailto:%s">%s</a>' % (esc(SITE["email"]), esc(SITE["email"])) if not is_ph(SITE["email"]) else ph(SITE["email"])
-    return ('<ul class="contact-list"><li><b>%s</b>%s</li>%s<li><b>E-Mail</b>%s</li><li><b>%s</b>%s</li><li><b>%s</b>%s<br>%s %s</li></ul>'
+    # phone, WhatsApp and e-mail repeat the quick-contact buttons above the form: hidden on phones (cl-dup)
+    return ('<ul class="contact-list"><li class="cl-dup"><b>%s</b>%s</li>%s<li class="cl-dup"><b>E-Mail</b>%s</li><li><b>%s</b>%s</li><li><b>%s</b>%s<br>%s %s</li></ul>'
             '<div class="planner-box" style="margin-top:24px"><span class="kicker">%s</span><p>%s</p><a class="button arrow" href="%s" style="border-color:var(--dark-line);color:var(--dark-ink)">%s</a></div>'
             % (t("Telefon", "Phone", lang), phone, wa, email, t("Erreichbar", "Hours", lang), ph(SITE["hours"]),
                t("Adresse", "Address", lang), ph(SITE["street"]), ph(SITE["zip"]), esc(SITE["city"]),
