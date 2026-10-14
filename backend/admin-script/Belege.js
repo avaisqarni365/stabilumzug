@@ -361,12 +361,12 @@ function docPdf_(doc) {
 
 /* ------------------------------------------------------------------ API used by the admin (google.script.run) */
 
-function api_docs() {
+function api_docs_() {
   guard_();
   return {docs: allDocs_(), company: company_(), today: today_()};
 }
 
-function api_docNew(type, leadId) {
+function api_docNew_(type, leadId) {
   var email = guard_();
   if (!DOC_TYPES[type] || type === 'storno') throw new Error('Unbekannte Belegart.');
   var doc = newDoc_(type, leadId);
@@ -377,7 +377,7 @@ function api_docNew(type, leadId) {
   return doc.nr;
 }
 
-function api_doc(nr) {
+function api_doc_(nr) {
   guard_();
   var hit = findDoc_(nr);
   if (!hit) throw new Error('Beleg ' + nr + ' nicht gefunden.');
@@ -387,7 +387,7 @@ function api_doc(nr) {
 }
 
 /* Saves a draft. Issued documents cannot be changed. */
-function api_docSave(d) {
+function api_docSave_(d) {
   var email = guard_();
   var lock = LockService.getScriptLock(); lock.waitLock(20000);
   try {
@@ -399,11 +399,11 @@ function api_docSave(d) {
     doc.log = (hit.doc.log || []).concat([{at: iso_(new Date()), by: email, what: 'Entwurf gespeichert'}]).slice(-50);
     writeDoc_(doc, hit.row);
   } finally { lock.releaseLock(); }
-  return api_doc(doc.nr);
+  return api_doc_(doc.nr);
 }
 
 /* Preview of the document as the customer will see it (also for unsaved changes). */
-function api_docPreview(d) {
+function api_docPreview_(d) {
   guard_();
   var hit = findDoc_(d.nr), doc = hit && hit.doc.status !== 'Entwurf' ? hit.doc : cleanDoc_(d, hit ? hit.doc : null);
   if (hit && hit.doc.status === 'Entwurf') { doc.status = 'Entwurf'; doc.nr = hit.doc.nr; }
@@ -411,7 +411,7 @@ function api_docPreview(d) {
 }
 
 /* Issues a draft: checks, number, freeze, PDF to Drive. */
-function api_docIssue(d) {
+function api_docIssue_(d) {
   var email = guard_();
   var lock = LockService.getScriptLock(); lock.waitLock(30000);
   var doc;
@@ -431,10 +431,10 @@ function api_docIssue(d) {
     writeDoc_(doc, hit.row);
     sheet_(TAB.audit).appendRow([new Date(), email, DOC_TAB, doc.nr, '', (DOC_TYPES[doc.type]) + ' ausgestellt: ' + docTotals_(doc).gross + ' €']);
   } finally { lock.releaseLock(); }
-  return api_doc(doc.nr);
+  return api_doc_(doc.nr);
 }
 
-function api_docDelete(nr) {
+function api_docDelete_(nr) {
   var email = guard_();
   var hit = findDoc_(nr);
   if (!hit) throw new Error('Beleg ' + nr + ' nicht gefunden.');
@@ -445,7 +445,7 @@ function api_docDelete(nr) {
 }
 
 /* PDF as base64 for download in the browser. */
-function api_docPdf(nr) {
+function api_docPdf_(nr) {
   guard_();
   var hit = findDoc_(nr);
   if (!hit) throw new Error('Beleg ' + nr + ' nicht gefunden.');
@@ -455,7 +455,7 @@ function api_docPdf(nr) {
 }
 
 /* E-mail with the PDF attached, sent from the signed-in office account. */
-function api_docSend(nr, msg) {
+function api_docSend_(nr, msg) {
   var email = guard_();
   var hit = findDoc_(nr);
   if (!hit) throw new Error('Beleg ' + nr + ' nicht gefunden.');
@@ -484,11 +484,11 @@ function api_docSend(nr, msg) {
       }
     }
   } finally { lock.releaseLock(); }
-  return api_doc(nr);
+  return api_doc_(nr);
 }
 
 /* Offer answered: accepted (request becomes "Gebucht") or declined. */
-function api_docOffer(nr, accepted) {
+function api_docOffer_(nr, accepted) {
   var email = guard_();
   var hit = findDoc_(nr);
   if (!hit || hit.doc.type !== 'offer') throw new Error('Angebot ' + nr + ' nicht gefunden.');
@@ -501,11 +501,11 @@ function api_docOffer(nr, accepted) {
     var lh = findLead_(doc.lead);
     if (lh) sheet_(TAB.leads).getRange(lh.row, leadCol_('Status')).setValue(accepted ? 'Gebucht' : 'Verloren');
   }
-  return api_doc(nr);
+  return api_doc_(nr);
 }
 
 /* Payment received (partial payments allowed). */
-function api_docPay(nr, p) {
+function api_docPay_(nr, p) {
   var email = guard_();
   var lock = LockService.getScriptLock(); lock.waitLock(20000);
   try {
@@ -525,11 +525,11 @@ function api_docPay(nr, p) {
       if (lh && String(lh.values[leadCol_('Status') - 1]) === 'Gebucht' && doc.type !== 'deposit') sheet_(TAB.leads).getRange(lh.row, leadCol_('Status')).setValue('Erledigt');
     }
   } finally { lock.releaseLock(); }
-  return api_doc(nr);
+  return api_doc_(nr);
 }
 
 /* Cancels an issued invoice with a cancellation invoice (all lines negative) – the original stays unchanged. */
-function api_docCancel(nr, reason) {
+function api_docCancel_(nr, reason) {
   var email = guard_();
   var lock = LockService.getScriptLock(); lock.waitLock(30000);
   var st;
@@ -558,7 +558,7 @@ function api_docCancel(nr, reason) {
 }
 
 /* New draft from an existing document: offer -> invoice, invoice -> corrected copy, deposit -> final invoice. */
-function api_docCopy(nr, type) {
+function api_docCopy_(nr, type) {
   var email = guard_();
   var hit = findDoc_(nr);
   if (!hit) throw new Error('Beleg ' + nr + ' nicht gefunden.');
@@ -581,13 +581,13 @@ function api_docCopy(nr, type) {
 }
 
 /* Company data (Firmendaten) for the settings page. */
-function api_company() {
+function api_company_() {
   guard_();
   var c = {};
   COMPANY_FIELDS.forEach(function (f) { var v = config_('firma_' + f[0]); c[f[0]] = v === '' || v == null ? f[2] : v; });
   return {fields: COMPANY_FIELDS.map(function (f) { return {key: f[0], label: f[1]}; }), values: c};
 }
-function api_companySave(vals) {
+function api_companySave_(vals) {
   var email = guard_();
   COMPANY_FIELDS.forEach(function (f) {
     if (vals[f[0]] === undefined) return;
@@ -597,5 +597,5 @@ function api_companySave(vals) {
       sheet_(TAB.audit).appendRow([new Date(), email, TAB.config, 'firma_' + f[0], '', f[0] === 'iban' ? '(IBAN geändert)' : v]);
     }
   });
-  return api_company();
+  return api_company_();
 }

@@ -69,12 +69,16 @@ ctx.SpreadsheetApp.openById = () => M.ss;
 M.ss.getEditors = () => [{getEmail: () => 'office@stabilumzug.test'}];
 M.ss.getOwner = () => ({getEmail: () => 'info.stabilumzug@gmail.com'});
 M.ss.getUrl = () => 'https://docs.google.com/spreadsheets/d/preview';
-ctx.Session.getActiveUser = () => ({getEmail: () => 'office@stabilumzug.test'});
 M.load('admin-script', ['Admin.js', 'Belege.js', 'Termine.js']);
-ctx.api_bootstrap();
+// local test user for the login screen (only in this preview, never in the real sheet)
+const PREVIEW_USER = 'test', PREVIEW_PASS = 'preview-1234';
+ctx.usersSheet_().appendRow([PREVIEW_USER, 'Test Büro', 'ja', PREVIEW_PASS, '', '', '']);
+ctx.CURRENT_ = {user: PREVIEW_USER, name: 'Test Büro'};
+ctx.api_bootstrap_();
 // an offer to the Jobcenter (pre-agreement) and an issued invoice for the first family
-const nr = ctx.api_docNew('offer', L2.id);
-ctx.api_docNew('offer', L1.id);
+const nr = ctx.api_docNew_('offer', L2.id);
+ctx.api_docNew_('offer', L1.id);
+ctx.CURRENT_ = null;
 console.log('preview data:', sheets['Anfragen'].data.length - 1, 'requests,', (sheets['Termine'] || {data: [1]}).data.length - 1, 'appointments, offer', nr);
 
 // the page: Index.html with the two includes, google.script.run answered by POST /api/<fn>
@@ -91,7 +95,7 @@ window.google = {script: {history: {replace: (s, p) => { const q = new URLSearch
 function page(url) {
   const q = new URL(url, 'http://x').searchParams, p = {}; q.forEach((v, k) => { p[k] = v; });
   const start = ctx.startPage_(p);
-  return read('Index.html').replace('<?!= JSON.stringify(start || \'\') ?>', JSON.stringify(start)).replace(/<\?= email \?>/g, 'office@stabilumzug.test').replace(/<\?= siteUrl \?>/g, 'https://www.stabilumzug.de')
+  return read('Index.html').replace('<?!= JSON.stringify(start || \'\') ?>', JSON.stringify(start)).replace(/<\?= siteUrl \?>/g, 'https://www.stabilumzug.de')
     .replace(/<\?!= include_\('(\w+)'\) \?>/g, (m, n) => read(n + '.html')).replace('<head>', '<head><meta name="viewport" content="width=device-width, initial-scale=1">' + STUB);
 }
 http.createServer((req, res) => {
@@ -101,7 +105,7 @@ http.createServer((req, res) => {
       const fn = req.url.slice(5);
       let out;
       try {
-        if (!/^api_\w+$/.test(fn) || typeof ctx[fn] !== 'function') throw new Error('unknown ' + fn);
+        if (['api', 'login', 'logout'].indexOf(fn) < 0) throw new Error('unknown ' + fn);   // like Apps Script: only public functions
         out = {result: JSON.parse(JSON.stringify(ctx[fn].apply(null, JSON.parse(body || '[]')) ?? null))};
       } catch (err) { out = {error: String(err && err.message || err)}; }
       res.writeHead(200, {'Content-Type': 'application/json'}); res.end(JSON.stringify(out));

@@ -122,24 +122,25 @@ const events = [];
 ctx.CalendarApp = {getDefaultCalendar: () => ({createEvent: (t, a, b, o) => { events.push({t, a, b, o}); return {getId: () => 'ev1'}; },
   getEventById: id => ({deleteEvent: () => events.push({deleted: id}), setTime: (a, b) => events.push({moved: id, a, b})})})};
 M.load('admin-script', ['Admin.js', 'Termine.js']);
-let A = ctx.api_appts();
+ctx.CURRENT_ = {user: 'office', name: 'office@test'};
+let A = ctx.api_appts_();
 assert.strictEqual(A.appts.length, 1); assert(A.hours[1]);
-let u = ctx.api_apptCalendar(appt.nr);
+let u = ctx.api_apptCalendar_(appt.nr);
 assert.strictEqual(u.calendar, 'ev1'); assert.strictEqual(events[0].t, 'Besichtigung vor Ort: Familie Kaya'); assert.strictEqual(u.status, 'Bestätigt');
 mails.length = 0;
-u = ctx.api_apptUpdate(appt.nr, {status: 'Verschoben', date: workday.date, time: '14:00', note: 'Team früher frei', notify: true});
+u = ctx.api_apptUpdate_(appt.nr, {status: 'Verschoben', date: workday.date, time: '14:00', note: 'Team früher frei', notify: true});
 assert.strictEqual(u.time, '14:00'); assert(/Neue Zeit/.test(mails[0].subject) && mails[0].attachments.length === 1);
 assert(events.some(e => e.moved === 'ev1'));
-assert.throws(() => ctx.api_apptUpdate(appt.nr, {status: 'Verschoben', date: workday.date, time: '03:00'}), /nicht frei/);
-u = ctx.api_apptUpdate(appt.nr, {status: 'Abgesagt', note: 'Krankheit', notify: true});
+assert.throws(() => ctx.api_apptUpdate_(appt.nr, {status: 'Verschoben', date: workday.date, time: '03:00'}), /nicht frei/);
+u = ctx.api_apptUpdate_(appt.nr, {status: 'Abgesagt', note: 'Krankheit', notify: true});
 assert.strictEqual(u.status, 'Abgesagt'); assert(/abgesagt/.test(mails[1].subject)); assert(events.some(e => e.deleted === 'ev1'));
 assert(ctx.freeSlots_('visit', 21).find(d => d.date === workday.date).slots.indexOf('14:00') >= 0, 'cancelled time is free again');
-ctx.api_apptSettings({hours: {1: [8, 12]}, blocked: '2026-12-24, 2026-12-31'});
+ctx.api_apptSettings_({hours: {1: [8, 12]}, blocked: '2026-12-24, 2026-12-31'});
 assert.deepStrictEqual(JSON.parse(JSON.stringify(ctx.apptHours_())), {1: [8, 12]});
 assert.deepStrictEqual(JSON.parse(JSON.stringify(ctx.apptBlocked_())), ['2026-12-24', '2026-12-31']);
 console.log('ok admin appointments: Google Calendar entry, move and cancel with customer mails, settings');
 
-const D = ctx.api_traffic(30);
+const D = ctx.api_traffic_(30);
 assert.strictEqual(D.totals.views, 6); assert.strictEqual(D.totals.entries, 2);
 assert.strictEqual(D.days.length, 30);
 // sources and devices count visits (entries), pages count views

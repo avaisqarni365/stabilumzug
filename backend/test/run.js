@@ -127,6 +127,18 @@ const dl = post({action: 'quick', consent: true, t: 9000, lang: 'de', form: {ser
 assert(dl.ok && mails.some(m => m.body.indexOf('Im Admin öffnen: ' + ctx.ADMIN_URL + '?a=' + dl.id) >= 0), 'admin link in the office mail');
 console.log('ok office mail links to the admin request');
 
+// 5f. admin users: a password typed into the "Benutzer" tab is encrypted at once and the cell cleared
+const ush = ctx.usersSheet_();
+ush.appendRow(['ibrahim', 'Ibrahim Abdelaal', 'ja', 'sehr-geheim-1', '', '', '']);
+ctx.onEditAudit({range: ush.getRange(2, 4), value: 'sehr-geheim-1'});
+const urw = ush.getRange(2, 1, 1, 7).getValues()[0];
+assert.strictEqual(urw[3], '', 'plain password gone');
+assert.strictEqual(urw[4], ctx.hashPw_('sehr-geheim-1', urw[5]), 'stored as salted hash');
+ush.appendRow(['kurz', 'Kurz', 'ja', '123', '', '', '']);
+ctx.onEditAudit({range: ush.getRange(3, 4), value: '123'});
+assert.strictEqual(ush.getRange(3, 4).getValue(), '', 'too short: cleared'); assert.strictEqual(ush.getRange(3, 5).getValue(), '', 'and not stored');
+console.log('ok admin users: password encrypted on entry, too short ones refused');
+
 // 6. rate limit
 for (let i = 0; i < 70; i++) post({action: 'route', from: 'Essen Hbf', to: 'Bochum Hbf'});
 console.log('ok rate limit:', post({action: 'route', from: 'a b c d', to: 'e f g h'}).error);

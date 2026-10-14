@@ -8,8 +8,12 @@
 var TAB = {
   leads: 'Anfragen', items: 'Gegenstände', quotes: 'Angebote', catalog: 'Katalog', settings: 'Regeln',
   rates: 'Preise', audit: 'Protokoll', drafts: 'Entwürfe', config: 'Konfiguration', routes: 'Strecken',
-  appts: 'Termine', visits: 'Besuche'
+  appts: 'Termine', visits: 'Besuche', users: 'Benutzer'
 };
+/* Admin users (login with username and password). The owner adds a row and types a password into "Neues Passwort";
+   it is stored only as a salted hash (column E/F) and the plain cell is cleared – on edit or at the first login. */
+var USER_COLS = ['Benutzername', 'Name', 'Aktiv', 'Neues Passwort', 'Passwort (verschlüsselt)', 'Salt', 'Letzte Anmeldung'];
+var PW_MIN = 8;
 var DEFAULT_SITE = 'https://www.stabilumzug.de';   // first catalogue is read from here unless SITE_URL or GITHUB_REPO is set
 var STATUS = ['Neu', 'In Arbeit', 'Angebot raus', 'Gebucht', 'Erledigt', 'Verloren'];
 var LEAD_COLS = ['ID', 'Eingang', 'Status', 'Zuständig', 'Angebot €', 'Name', 'Telefon', 'E-Mail', 'Kontaktweg', 'Von', 'Nach',
@@ -147,6 +151,33 @@ function clip_(s, n) { return String(s == null ? '' : s).replace(/[\u0000-\u001f
 function cell_(s, n) { s = clip_(s, n); return /^[=+\-@]/.test(s) ? "'" + s : s; }
 function iso_(v) { return v instanceof Date ? v.toISOString() : (v == null ? '' : String(v)); }
 /* Move date: a calendar day. Sheets turns "2026-11-07" into a Date at local midnight – format it in Berlin time, not UTC. */
+function usersSheet_() {
+  var s = ss_(), sh = s.getSheetByName(TAB.users);
+  if (!sh) {
+    sh = s.insertSheet(TAB.users);
+    sh.getRange(1, 1, 1, USER_COLS.length).setValues([USER_COLS]).setFontWeight('bold').setBackground('#17304f').setFontColor('#ffffff');
+    sh.setFrozenRows(1);
+    sh.getRange(1, USER_COLS.length + 2).setValue('Neuer Benutzer: Benutzername, Name, Aktiv = ja und ein Passwort (mind. ' + PW_MIN + ' Zeichen) unter „Neues Passwort“ eintragen. ' +
+      'Es wird sofort verschlüsselt und die Zelle geleert. Löschen: Zeile löschen oder Aktiv = nein. Passwort ändern: neues Passwort eintragen.');
+  }
+  return sh;
+}
+function hashPw_(pass, salt) {
+  var h = String(pass);
+  for (var i = 0; i < 1000; i++) h = Utilities.base64Encode(Utilities.computeHmacSha256Signature(h, String(salt)));
+  return h;
+}
+/* Turns the typed password in row `row` into hash + salt and clears it. Returns '' or an error text. */
+function setUserPw_(sh, row, plain) {
+  plain = String(plain || '');
+  var c = function (n) { return USER_COLS.indexOf(n) + 1; };
+  sh.getRange(row, c('Neues Passwort')).setValue('');
+  if (plain.length < PW_MIN) return 'Passwort zu kurz (mind. ' + PW_MIN + ' Zeichen) – bitte ein neues eintragen.';
+  var salt = Utilities.getUuid().replace(/-/g, '');
+  sh.getRange(row, c('Passwort (verschlüsselt)'), 1, 2).setValues([[hashPw_(plain, salt), salt]]);
+  return '';
+}
+
 /* Admin app (backend/admin-script): ?a=<request> opens that request. Override with "admin_url" in the Konfiguration tab. */
 var ADMIN_URL = 'https://script.google.com/macros/s/AKfycbzUZgpxmhV4uVShxvhiZIYfYCCA7MUS3EbQUi5xGdONb-3d_Ddxeh5Iw2QroV9a7dc4/exec';
 function adminUrl_(id) {

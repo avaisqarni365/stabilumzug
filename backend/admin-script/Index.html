@@ -99,6 +99,29 @@ textarea.input{min-height:120px;resize:vertical;line-height:1.5}
   .tbl td.hide-m{display:none}
   .top .me span{display:none}
 }
+/* phones: menu as a 3 × 2 grid instead of a row wider than the screen; 44 px tap targets */
+@media (max-width:640px){
+  .top{padding:10px 14px}
+  .top nav{order:3;width:100%;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:2px;border-top:1px solid rgba(243,242,242,.15);padding-top:6px}
+  .top nav a{min-height:44px;display:flex;align-items:center;justify-content:center;padding:6px 4px;font-size:14px}
+  .top .me{gap:4px}
+  .top .me a{min-height:44px;display:inline-flex;align-items:center;padding:0 8px}
+  .btn.small{min-height:44px}
+  main a.muted:first-child{display:inline-flex;align-items:center;min-height:44px}
+  main{padding:16px 14px 80px}
+}
+/* login */
+body.locked .top nav,body.locked .top .me{display:none}
+.login{max-width:380px;margin:8vh auto 0;display:grid;gap:14px;background:#fff;padding:28px 24px;border-top:4px solid var(--red)}
+.login h1{margin:0;font-size:28px}
+.login label{display:grid;gap:6px;font-weight:700;font-size:14px}
+.login .input{min-height:46px;font-size:16px}
+.login .btn{min-height:48px;width:100%}
+.login-brand{display:flex;align-items:center;gap:8px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:13px}
+.login-brand i{width:18px;height:18px;background:var(--red);display:inline-block}
+.login-brand b{color:var(--fill)}
+.login-err{min-height:1.4em;margin:0;color:var(--fill2);font-weight:700;font-size:14px}
+.login .muted{margin:0;font-size:13px}
 </style>
 </head>
 <body>
@@ -112,7 +135,7 @@ textarea.input{min-height:120px;resize:vertical;line-height:1.5}
     <a href="#/belege" data-nav="docs">Belege</a>
     <a href="#/statistik" data-nav="stats">Statistik</a>
   </nav>
-  <div class="me"><span><?= email ?></span><a href="#" id="sheet-link" target="_blank" rel="noopener">Tabelle</a><a href="<?= siteUrl ?>" target="_blank" rel="noopener">Website</a><a href="https://accounts.google.com/Logout">Abmelden</a></div>
+  <div class="me"><span id="me-name"></span><a href="#" id="sheet-link" target="_blank" rel="noopener">Tabelle</a><a href="<?= siteUrl ?>" target="_blank" rel="noopener">Website</a><a href="#" id="logout">Abmelden</a></div>
 </header>
 <main id="app"><p class="loading">Daten werden geladen …</p></main>
 <div id="toast" class="toast" role="status" hidden></div>
@@ -134,10 +157,54 @@ textarea.input{min-height:120px;resize:vertical;line-height:1.5}
 
   /* ---------- helpers ---------- */
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]; }); }
+  /* every call goes through api(token, name, args); without a valid login the server answers LOGIN */
+  var TOKEN = '';
+  try { TOKEN = sessionStorage.getItem('su-admin') || ''; } catch (e) {}
   function run(fn) {
     var args = Array.prototype.slice.call(arguments, 1);
-    return new Promise(function (ok, bad) { var r = google.script.run.withSuccessHandler(ok).withFailureHandler(bad); r[fn].apply(r, args); });
+    return new Promise(function (ok, bad) {
+      google.script.run.withSuccessHandler(ok).withFailureHandler(function (e) {
+        if (/LOGIN/.test(e && e.message || e)) { showLogin(); return; }
+        bad(e);
+      }).api(TOKEN, fn, args);
+    });
   }
+  function setToken(t) { TOKEN = t || ''; try { if (t) sessionStorage.setItem('su-admin', t); else sessionStorage.removeItem('su-admin'); } catch (e) {} }
+  var loginShown = false;
+  function showLogin(msg) {
+    setToken('');
+    if (document.getElementById('login') && !msg) return;   // already on screen
+    loginShown = true;
+    document.body.classList.add('locked');
+    app.innerHTML = '<form class="login" id="login" autocomplete="on"><div class="login-brand"><i aria-hidden="true"></i>Stabil <b>Umzug</b> · Admin</div>' +
+      '<h1>Anmelden</h1><label>Benutzername<input class="input" name="user" autocomplete="username" autocapitalize="none" spellcheck="false" required></label>' +
+      '<label>Passwort<input class="input" name="pass" type="password" autocomplete="current-password" required></label>' +
+      '<p class="login-err" role="alert">' + esc(msg || '') + '</p><button class="btn primary" type="submit">Anmelden <span aria-hidden="true">→</span></button>' +
+      '<p class="muted">Zugang bekommen Sie von Ibrahim Abdelaal (Tabellenblatt „Benutzer“).</p></form>';
+    var f = document.getElementById('login');
+    f.user.focus();
+    f.addEventListener('submit', function (ev) {
+      ev.preventDefault();
+      var b = f.querySelector('button'); b.disabled = true;
+      google.script.run.withSuccessHandler(function (r) {
+        b.disabled = false;
+        if (!r || !r.ok) {
+          f.querySelector('.login-err').textContent = r && r.error === 'locked' ? 'Zu viele Versuche – bitte in 15 Minuten erneut versuchen.' : 'Benutzername oder Passwort stimmt nicht.';
+          f.pass.value = ''; f.pass.focus(); return;
+        }
+        setToken(r.token); loginShown = false; document.body.classList.remove('locked');
+        document.getElementById('me-name').textContent = r.name;
+        app.innerHTML = '<p class="loading">Daten werden geladen …</p>';
+        reload().then(routeTo).catch(function (e) { app.innerHTML = '<p class="loading">Fehler beim Laden: ' + esc(e && e.message || e) + '</p>'; });
+      }).withFailureHandler(function (e) { b.disabled = false; f.querySelector('.login-err').textContent = 'Anmeldung nicht möglich: ' + (e && e.message || e); }).login(f.user.value, f.pass.value);
+    });
+  }
+  document.getElementById('logout').addEventListener('click', function (ev) {
+    ev.preventDefault();
+    google.script.run.withSuccessHandler(function () {}).logout(TOKEN);
+    document.getElementById('me-name').textContent = '';
+    showLogin('Sie sind abgemeldet.');
+  });
   var toastT;
   function toast(msg, err) { var t = document.getElementById('toast'); t.textContent = msg; t.className = 'toast' + (err ? ' err' : ''); t.hidden = false; clearTimeout(toastT); toastT = setTimeout(function () { t.hidden = true; }, 3500); }
   function fail(e) { toast((e && e.message) || String(e), true); }
@@ -154,6 +221,7 @@ textarea.input{min-height:120px;resize:vertical;line-height:1.5}
   /* ---------- routing ---------- */
   function routeTo() {
     var h = location.hash.replace(/^#\/?/, '');
+    if (!TOKEN) return showLogin();   // nothing without a login; the page opens after it (also direct links)
     syncUrl(h);
     if (window.SUDocs && window.SUDocs.route(h)) return;   // Angebote und Rechnungen (BelegeUi.html)
     if (window.SUAppts && window.SUAppts.route(h)) return;   // Termine und Statistik (TermineUi.html)
@@ -164,7 +232,7 @@ textarea.input{min-height:120px;resize:vertical;line-height:1.5}
   }
   window.addEventListener('hashchange', routeTo);
 
-  function reload() { return run('api_bootstrap').then(function (d) { S.leads = d.leads; S.statuses = d.statuses; S.me = d.me; S.portal = d.portal; S.routes = d.routes; document.getElementById('sheet-link').href = d.sheetUrl; }); }
+  function reload() { return run('api_bootstrap').then(function (d) { S.leads = d.leads; S.statuses = d.statuses; S.me = d.me; document.getElementById('me-name').textContent = d.me; S.portal = d.portal; S.routes = d.routes; document.getElementById('sheet-link').href = d.sheetUrl; }); }
 
   /* ---------- overview ---------- */
   function home() {
@@ -375,7 +443,8 @@ textarea.input{min-height:120px;resize:vertical;line-height:1.5}
   /* shared with BelegeUi.html */
   window.SU = {run: run, esc: esc, eur: eur, dt: dt, day: day, toast: toast, fail: fail, app: app, setNav: setNav, waNum: waNum};
 
-  reload().then(routeTo).catch(function (e) { app.innerHTML = '<p class="loading">Fehler beim Laden: ' + esc(e && e.message || e) + '</p>'; });
+  if (TOKEN) reload().then(routeTo).catch(function (e) { app.innerHTML = '<p class="loading">Fehler beim Laden: ' + esc(e && e.message || e) + '</p>'; });
+  else showLogin();
 })();
 </script>
 <?!= include_('BelegeUi') ?>

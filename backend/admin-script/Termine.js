@@ -13,7 +13,7 @@ function apptSet_(a, fields) {
   Object.keys(fields).forEach(function (k) { sh.getRange(a.row, APPT_COLS.indexOf(k) + 1).setValue(fields[k]); });
 }
 
-function api_appts() {
+function api_appts_() {
   guard_();
   var today = Utilities.formatDate(new Date(), 'Europe/Berlin', 'yyyy-MM-dd');
   return {appts: allAppts_().sort(function (a, b) { return (a.date + a.time) < (b.date + b.time) ? -1 : 1; }), today: today,
@@ -21,7 +21,7 @@ function api_appts() {
 }
 
 /* Puts the appointment into the signed-in user's Google Calendar (once) and marks it confirmed. */
-function api_apptCalendar(nr) {
+function api_apptCalendar_(nr) {
   var email = guard_();
   var a = apptByNr_(nr), T = APPT_TYPES[a.type] || {de: a.type};
   if (a.calendar) return apptByNr_(nr);
@@ -37,7 +37,7 @@ function api_apptCalendar(nr) {
 }
 
 /* Status, new time and internal note. Moving checks the new time is free; cancel and move can e-mail the customer. */
-function api_apptUpdate(nr, p) {
+function api_apptUpdate_(nr, p) {
   var email = guard_();
   var lock = LockService.getScriptLock(); lock.waitLock(20000);
   var a;
@@ -71,7 +71,7 @@ function api_apptUpdate(nr, p) {
 }
 
 /* Bookable hours per weekday and blocked days. hours: {1: [9, 18], …} (0 = Sunday), blocked: "2026-12-24, …" */
-function api_apptSettings(p) {
+function api_apptSettings_(p) {
   var email = guard_();
   if (p && p.hours) {
     var clean = {};
@@ -83,14 +83,14 @@ function api_apptSettings(p) {
   }
   if (p && p.blocked !== undefined) setConfig_('termin_gesperrt', String(p.blocked).split(/[\s,;]+/).filter(function (d) { return /^\d{4}-\d{2}-\d{2}$/.test(d); }).join(', '));
   sheet_(TAB.audit).appendRow([new Date(), email, TAB.config, 'termin_zeiten', '', 'Terminzeiten geändert']);
-  return api_appts();
+  return api_appts_();
 }
 
 /* ------------------------------------------------------------------ traffic dashboard */
 
 /* Website numbers for the last `days` days: views and visits per day, top pages, sources, devices, languages,
    and the way from visit to booked job (route checks, planner, requests, appointments, bookings). */
-function api_traffic(days) {
+function api_traffic_(days) {
   guard_();
   days = Math.max(7, Math.min(365, Number(days) || 30));
   var tz = 'Europe/Berlin', now = new Date(), from = Utilities.formatDate(new Date(now.getTime() - (days - 1) * 864e5), tz, 'yyyy-MM-dd');

@@ -577,6 +577,16 @@ function seedFromWebsite_() {
 /* Installable trigger: log every edit to catalogue, rules and prices (who, when, old, new). */
 function onEditAudit(e) {
   var sh = e.range.getSheet(), name = sh.getName();
+  if (name === TAB.users) {   // admin users: a typed password is encrypted at once and the cell cleared
+    var pc = USER_COLS.indexOf('Neues Passwort') + 1;
+    if (e.range.getColumn() <= pc && e.range.getLastColumn() >= pc) {
+      for (var r = Math.max(2, e.range.getRow()); r <= e.range.getLastRow(); r++) {
+        var v = sh.getRange(r, pc).getValue();
+        if (v !== '') { var err = setUserPw_(sh, r, v); if (err) sh.getRange(r, pc).setNote(err); }
+      }
+    }
+    return;
+  }
   if ([TAB.catalog, TAB.settings, TAB.rates].indexOf(name) < 0) return;
   sheet_(TAB.audit).appendRow([new Date(), (e.user && e.user.getEmail()) || Session.getActiveUser().getEmail() || '?', name,
     e.range.getA1Notation(), e.oldValue == null ? '' : e.oldValue, e.value == null ? '(mehrere Zellen)' : e.value]);
