@@ -1230,3 +1230,19 @@ details.fs-card > summary:focus-visible{outline:2px solid var(--red);outline-off
 }
 /* smallest phones: "Kostenloses Angebot" in the bottom bar on one line */
 @media (max-width:360px){.actionbar a{font-size:14px;padding:0 10px}.actionbar .ab-plan::after{display:none}.actionbar .ab-plan{justify-content:center;white-space:nowrap}}
+
+/* service pages: "Typischerweise enthalten" open on wide screens, one row to tap open on phones */
+.incl-fold > summary{list-style:none;display:flex;align-items:center;gap:10px}
+.incl-fold > summary::-webkit-details-marker{display:none}
+.incl-fold .incl-n{display:none}
+@media (min-width:761px){.incl-fold > summary{pointer-events:none}}
+@media (max-width:760px){
+  .incl-fold{border-top:2px solid var(--ink);border-bottom:1px solid var(--line)}
+  .incl-fold > summary{cursor:pointer;min-height:52px;padding:8px 0}
+  .incl-fold > summary h3{margin:0 !important;font-size:1.15rem !important;flex:1}
+  .incl-fold .incl-n{display:inline-grid;place-items:center;min-width:26px;height:26px;padding:0 6px;background:var(--tint);color:var(--tint-ink);font-weight:700;font-size:13px}
+  .incl-fold > summary::after{content:"";flex:none;width:9px;height:9px;margin-right:4px;border-right:2px solid var(--red);border-bottom:2px solid var(--red);transform:rotate(45deg) translateY(-3px);transition:transform .2s}
+  .incl-fold[open] > summary::after{transform:rotate(-135deg) translateY(-3px)}
+  .incl-fold .checks{margin:4px 0 12px}
+  .incl-fold > summary:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+}

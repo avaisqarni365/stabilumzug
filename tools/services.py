@@ -200,9 +200,10 @@ def service_page(skey):
         steps = "".join('<li><span class="n">%02d</span><h3>%s</h3><p>%s</p></li>' % (i + 1, esc(a), inline(b, key, lang)) for i, (a, b) in enumerate(c["process"]))
         incl = "".join("<li>%s</li>" % inline(x, key, lang) for x in c["included"])
         body += ('<section class="section alt place-steps"><div class="container"><div class="head"><div><span class="kicker red">%s</span><h2>%s</h2></div><p></p></div><ol class="steps-list">%s</ol>'
-                 '<div class="split" style="margin-top:48px"><div><h3 style="font-size:1.5rem;margin-bottom:8px">%s</h3><ul class="checks">%s</ul></div>%s</div></div></section>') % (
+                 '<div class="split" style="margin-top:48px"><div><details class="incl-fold" data-fold open><summary><h3 style="font-size:1.5rem;margin-bottom:8px">%s</h3><span class="incl-n">%d</span></summary>'
+                 '<ul class="checks">%s</ul></details></div>%s</div></div></section>') % (   # phones: folded to one row (site.js closes data-fold)
             t("Ablauf", "How it works", lang), t("In vier Schritten erledigt.", "Done in four steps.", lang), steps,
-            t("Typischerweise enthalten", "Typically included", lang), incl, price_hint(skey, key, lang))
+            t("Typischerweise enthalten", "Typically included", lang), len(c["included"]), incl, price_hint(skey, key, lang))
         faq = "".join('<details><summary>%s</summary><div class="a"><p>%s</p></div></details>' % (esc(q), inline(a, key, lang)) for q, a in c["faq"])
         rel = "".join('<a class="tile" href="%s"><h3>%s</h3><p>%s</p><span class="link-arrow">%s</span></a>' % (
             link(key, g, lang), esc(GUIDES[g][lang]["nav"]), esc(GUIDES[g][lang]["teaser"]), t("Lesen", "Read", lang)) for g in c["guides"] if g in GUIDES)
