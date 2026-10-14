@@ -1264,3 +1264,12 @@ details.fs-card > summary:focus-visible{outline:2px solid var(--red);outline-off
    word gaps of several spaces. Normal paragraphs stay justified. */
 .journey li,.journey .teaser,.costs > div > p,.tiles .tile p,.tiles .tile li,.steps-list li,.steps-list p,.pkg .sub,.planner-box p{text-align:left}
 .checks li,.pkg .price{text-align:left}
+
+/* ---------- booking on desktop: types across the full width, appointment summary beside the form ---------- */
+@media (min-width:861px){.bk-types{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}.bk-types .bk-type{width:auto}}
+@media (min-width:960px){
+  #bk-s4{display:grid;grid-template-columns:minmax(0,1fr) minmax(260px,340px);column-gap:40px;align-items:start}
+  #bk-s4 > *{grid-column:1/-1}
+  #bk-s4 > .bk-form{grid-column:1;grid-row:2}
+  #bk-s4 > .bk-chosen{grid-column:2;grid-row:2;margin:0;position:sticky;top:96px;flex-direction:column;align-items:flex-start;gap:8px;padding:20px}
+}
