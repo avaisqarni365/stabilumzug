@@ -1297,3 +1297,9 @@ details.fs-card > summary:focus-visible{outline:2px solid var(--red);outline-off
 @media (min-width:761px) and (max-width:860px){.svc-home .tiles > .tile:last-child:nth-child(odd){grid-column:1/-1}}
 /* about, "Unser Auftritt": the slow zoom stays inside the photo's own frame and never covers the caption */
 .look-img{overflow:hidden}
+
+/* guides on desktop: comfortable long reading – about 70 characters per line, a touch larger text */
+@media (min-width:961px){
+  .article .prose{max-width:68ch}
+  .article .prose > p,.article .prose > ul li,.article .prose > ol li{font-size:18px;line-height:1.7}
+}
