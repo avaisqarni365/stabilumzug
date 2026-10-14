@@ -85,7 +85,7 @@
         '<button class="button primary bk-wide" type="submit" id="bk-go">' + esc(T.book) + '</button></form>' +
         (phone ? '<p class="bk-muted" style="margin-top:12px">' + esc(T.change) + ' <a href="tel:' + esc(SITE.phone_href || phone) + '">' + esc(phone) + '</a></p>' : '') + '</section>' +
       '</div>' +
-      '<div class="bk-bar" id="bk-bar" hidden><div><small>' + esc(T.sel) + '</small><b id="bk-bar-t"></b></div><button type="button" class="button primary" id="bk-bar-go">' + esc(T.next2) + '</button></div>';
+      '<div class="bk-bar" id="bk-bar" hidden><div><small id="bk-bar-k">' + esc(T.sel) + '</small><b id="bk-bar-t"></b></div><button type="button" class="button primary" id="bk-bar-go">' + esc(T.next2) + '</button></div>';
     root.querySelector('#bk-bar-go').addEventListener('click', function () { toForm(); });
     root.querySelectorAll('input[name="bk-type"]').forEach(function (r) { r.addEventListener('change', function () { S.type = r.value; S.date = ''; S.time = ''; load(); }); });
     root.querySelector('#bk-form').addEventListener('submit', submit);
@@ -102,9 +102,11 @@
     var formInView = s4 && s4.getBoundingClientRect().top < window.innerHeight * 0.8;
     var on = !!(S.date && S.time) && !formInView && small();
     bar.hidden = !on;
-    if (on) {   // short form so it fits one line on small phones: "Vor Ort · Mi., 14.10. · 09:30"
+    if (on) {   // label "Ihr Termin · Vor Ort", main line "Mi., 14.10. · 09:30" – fits one line on small phones
       var d = new Date(S.date + 'T12:00:00'), shortType = {visit: en ? 'On site' : 'Vor Ort', video: 'Video', call: en ? 'Call-back' : 'Rückruf'}[S.type];
-      root.querySelector('#bk-bar-t').textContent = shortType + ' · ' + WD[d.getDay()] + (en ? ' ' + S.date.slice(8, 10) + '/' + S.date.slice(5, 7) : '., ' + S.date.slice(8, 10) + '.' + S.date.slice(5, 7) + '.') + ' · ' + S.time;
+      // the type goes up into the small label, so day and time always fit on the smallest phones
+      root.querySelector('#bk-bar-k').textContent = (en ? 'Slot' : 'Termin') + ' · ' + shortType;
+      root.querySelector('#bk-bar-t').textContent = WD[d.getDay()] + (en ? ' ' + S.date.slice(8, 10) + '/' + S.date.slice(5, 7) : '., ' + S.date.slice(8, 10) + '.' + S.date.slice(5, 7) + '.') + ' · ' + S.time;
     }
   }
 
