@@ -1246,3 +1246,8 @@ details.fs-card > summary:focus-visible{outline:2px solid var(--red);outline-off
   .incl-fold .checks{margin:4px 0 12px}
   .incl-fold > summary:focus-visible{outline:2px solid var(--red);outline-offset:2px}
 }
+/* about: the promise arrows sit inside the row */
+.pr > summary::after{margin-right:4px}
+/* phones: justified body text may hyphenate (German dictionaries on iOS and Android) – headings never */
+@media (max-width:760px){main p,main li,main figcaption,main dd{hyphens:auto;-webkit-hyphens:auto}main h1,main h2,main h3{hyphens:manual;-webkit-hyphens:manual}}
+.toc-fold > summary::after{margin-right:4px}
