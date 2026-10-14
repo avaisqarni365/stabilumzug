@@ -146,15 +146,15 @@ def admin_login(lang):
     """Staff login: the admin app itself runs on Google; Google handles the sign-in."""
     key = "admin"
     url = SITE.get("admin_url", "")
-    btn = ('<a class="button primary" href="%s">%s</a>' % (esc(url), t("Mit Google anmelden", "Sign in with Google", lang))) if url else \
+    btn = ('<a class="button primary" href="%s">%s</a>' % (esc(url), t("Zum Admin-Login", "To the admin login", lang))) if url else \
           '<p class="ph">%s</p>' % t("[Admin-Bereich noch nicht eingerichtet]", "[Admin area not set up yet]", lang)
     body = ('<section class="hero on-dark"><div class="container" style="padding-bottom:clamp(48px,7vw,96px)"><div class="hero-copy">'
             '<span class="kicker">%s</span><h1>%s</h1><p class="tagline">%s</p><p class="lead">%s</p><div class="actions">%s</div>'
             '<p class="lead" style="font-size:15px;margin-top:28px">%s</p></div></div></section>') % (
         t("Stabil Umzug · Büro", "Stabil Umzug · Office", lang),
         t("Mitarbeiter-Anmeldung", "Staff sign-in", lang), t("Nur für das Team.", "Team only.", lang),
-        t("Anfragen bearbeiten, Angebote erstellen und senden, Termine im Blick behalten. Die Anmeldung läuft über Ihr Google-Konto – Zugang hat, wem die Tabelle „Stabil Umzug – Anfragen“ freigegeben ist.",
-          "Handle requests, create and send quotes, keep track of dates. You sign in with your Google account – access is granted to everyone the sheet “Stabil Umzug – Anfragen” is shared with.", lang),
+        t("Anfragen bearbeiten, Angebote erstellen und senden, Termine im Blick behalten. Sie melden sich mit Ihrem Benutzernamen und Passwort an – den Zugang richtet Ibrahim Abdelaal ein.",
+          "Handle requests, create and send quotes, keep track of dates. You sign in with your username and password – Ibrahim Abdelaal sets up your access.", lang),
         btn,
         t("Kunde? Ihr Angebot und Ihren Umzugsstatus öffnen Sie über den persönlichen Link aus unserer Nachricht.",
           "Customer? Open your quote and move status with the personal link from our message.", lang))
