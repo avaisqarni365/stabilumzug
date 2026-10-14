@@ -1273,3 +1273,25 @@ details.fs-card > summary:focus-visible{outline:2px solid var(--red);outline-off
   #bk-s4 > .bk-form{grid-column:1;grid-row:2}
   #bk-s4 > .bk-chosen{grid-column:2;grid-row:2;margin:0;position:sticky;top:96px;flex-direction:column;align-items:flex-start;gap:8px;padding:20px}
 }
+
+/* ---------- services on desktop: no half-empty rows ---------- */
+@media (min-width:861px){
+  /* overview: five services as 2 + 3 – moves and clear-outs large on top, the other three below */
+  .svc-overview .tiles.svc-big{grid-template-columns:repeat(6,minmax(0,1fr))}
+  .svc-overview .tiles.svc-big > .tile{grid-column:span 2;padding-left:24px;border-left:1px solid var(--line)}
+  .svc-overview .tiles.svc-big > .tile:nth-child(-n+2){grid-column:span 3}
+  .svc-overview .tiles.svc-big > .tile:nth-child(1),.svc-overview .tiles.svc-big > .tile:nth-child(3){padding-left:0;border-left:0}
+  .svc-overview .tiles.svc-big > .tile:nth-child(-n+2) .ti{aspect-ratio:16/9}
+  .svc-overview .tiles.svc-big > .tile:nth-child(-n+2) h3{font-size:1.9rem}
+}
+/* service pages: an odd last item in the two-column list takes the full width */
+@media (min-width:521px){.costs.svc > div:last-child:nth-child(odd){grid-column:1/-1}}
+@media (min-width:761px) and (max-width:860px){.svc-overview .tiles.svc-big > .tile:last-child:nth-child(odd){grid-column:1/-1}}
+/* home services: the same 2 + 3 layout on desktop, last tile full width on small tablets */
+@media (min-width:861px){
+  .svc-home .tiles{grid-template-columns:repeat(6,minmax(0,1fr))}
+  .svc-home .tiles > .tile{grid-column:span 2;padding-left:24px;border-left:1px solid var(--line)}
+  .svc-home .tiles > .tile:nth-child(-n+2){grid-column:span 3}
+  .svc-home .tiles > .tile:nth-child(1),.svc-home .tiles > .tile:nth-child(3){padding-left:0;border-left:0}
+}
+@media (min-width:761px) and (max-width:860px){.svc-home .tiles > .tile:last-child:nth-child(odd){grid-column:1/-1}}
