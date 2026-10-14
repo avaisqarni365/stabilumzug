@@ -180,6 +180,7 @@ def head(page):
         '<meta property="og:locale" content="%s">' % ("de_DE" if lang == "de" else "en_GB"),
         '<meta name="twitter:card" content="summary_large_image">',
         '<meta name="theme-color" content="#ffffff">',
+        '<meta name="color-scheme" content="light">',   # phones in dark mode get the same light design (form fields, scrollbars)
         '<link rel="icon" href="%sassets/img/favicon.svg" type="image/svg+xml">' % pre,
         '<link rel="preload" href="%sassets/fonts/archivo-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>' % pre,
         '<link rel="preload" href="%sassets/fonts/archivo-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin>' % pre,
@@ -215,7 +216,7 @@ def render(page):
     scripts.append('<script src="%sassets/js/site.js" defer></script>' % pre)
     no_bar = page.get("planner") or key in ("quote", "portal", "booking", "contact")   # the planner has its own footer; the quote page is the bar's target
     return hyphenate(responsive_images((
-        '<!doctype html>\n<html lang="%s">\n<head>\n%s\n</head>\n<body%s>\n'
+        '<!doctype html>\n<html lang="%s" data-theme="light">\n<head>\n%s\n</head>\n<body%s>\n'   # always the light brand design
         '<a class="skip" href="#main">%s</a>\n%s\n<main id="main">\n%s\n</main>\n%s\n%s%s\n</body>\n</html>\n'
     ) % (lang, head(page), "" if no_bar else ' class="has-actionbar"', t("Zum Inhalt springen", "Skip to content", lang),
          header(key, lang), page["body"], footer(key, lang), "" if no_bar else actionbar(key, lang), "\n".join(scripts))))
