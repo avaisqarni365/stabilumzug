@@ -16,7 +16,7 @@ const LEAD = lead.id;
 ctx.SHEET_ID = 'sheet'; ctx.PORTAL_URL = ''; ctx.SITE_URL = 'https://www.stabilumzug.de';
 ctx.SpreadsheetApp.openById = () => M.ss;
 M.ss.getEditors = () => [{getEmail: () => 'office@test'}];
-M.ss.getOwner = () => ({getEmail: () => 'info.stabilumzug@gmail.com'});
+M.ss.getOwner = () => ({getEmail: () => 'info@stabilumzug.de'});
 ctx.Session.getActiveUser = () => ({getEmail: () => 'office@test'});
 ctx.Utilities.formatDate = (d, tz, f) => d.toISOString().slice(0, 10);
 const blob = name => ({name, setName(n) { this.name = n; return this; }, getAs() { return blob(this.name); }, getBytes: () => [37, 80, 68, 70]});

@@ -523,7 +523,10 @@ function setup() {
     rates.getRange(1, 7).setValue('Platzhalter aus dem Design – durch eigene Werte ersetzen. Preise bleiben intern und erscheinen nie auf der Website.');
   }
   if (sheet_(TAB.catalog).getLastRow() < 2) seedFromWebsite_();
-  setConfig_('notify_email', config_('notify_email') || Session.getEffectiveUser().getEmail());
+  // moved to Google Workspace: the old Gmail address in the copied sheet becomes the new business address
+  var me = Session.getEffectiveUser().getEmail();
+  ['notify_email', 'firma_email'].forEach(function (k) { if (OLD_EMAILS.indexOf(String(config_(k)).toLowerCase()) >= 0) setConfig_(k, me); });
+  setConfig_('notify_email', config_('notify_email') || me);
 
   ScriptApp.getProjectTriggers().forEach(function (t) { ScriptApp.deleteTrigger(t); });
   ScriptApp.newTrigger('onEditAudit').forSpreadsheet(ss).onEdit().create();

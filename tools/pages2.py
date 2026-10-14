@@ -202,9 +202,10 @@ def privacy(lang):
     if SITE.get("api"):   # Phase 1: planner connected to the company's Google sheet
         inner += t(
             "<h2>Anfrage über den Umzugsplaner</h2><p>Wenn Sie im Planer auf „Anfrage senden“ klicken, übermitteln wir Ihre Angaben "
-            "(Kontaktdaten, Adressen, Zugang, Gegenstände und die Angabe, über welche Seite oder Kampagne Sie gekommen sind) an unser Google-Konto "
+            "(Kontaktdaten, Adressen, Zugang, Gegenstände und die Angabe, über welche Seite oder Kampagne Sie gekommen sind) an unser Google-Workspace-Konto "
             "und speichern sie in einer Google-Tabelle, um Ihnen ein Angebot zu erstellen (Art. 6 Abs. 1 lit. b DSGVO, Ihre Einwilligung nach Art. 6 Abs. 1 lit. a DSGVO). "
-            "Anbieter ist Google Ireland Limited, Gordon House, Barrow Street, Dublin 4, Irland; eine Übermittlung in die USA ist nicht auszuschließen. "
+            "Wir nutzen dafür Google Workspace (Anbieter: Google Ireland Limited, Gordon House, Barrow Street, Dublin 4, Irland) mit einem Vertrag zur Auftragsverarbeitung nach Art. 28 DSGVO. "
+            "Eine Übermittlung in die USA ist nicht auszuschließen; sie erfolgt auf Grundlage des EU-US Data Privacy Framework, nach dem Google zertifiziert ist, und der EU-Standardvertragsklauseln. "
             "Wir löschen Anfragen, aus denen kein Auftrag wird, nach 6 Monaten.</p>"
             "<p>Mit „Entfernung berechnen“ und „Strecke und Karte anzeigen“ werden die beiden eingegebenen Orte über unseren Server an Google Maps übermittelt, um Fahrstrecke, Fahrzeit und eine Karte zu berechnen; Ihr Browser verbindet sich dabei nicht mit Google. "
             "Für unsere Statistik speichern wir je Berechnung nur Zeitpunkt, Postleitzahl und Ort von Start und Ziel, Entfernung, die aufgerufene Seite und die Kampagne – keine Straße, keine Kontaktdaten – und löschen diese Einträge nach 6 Monaten (Art. 6 Abs. 1 lit. f DSGVO, berechtigtes Interesse an der Planung unseres Angebots). "
@@ -216,9 +217,10 @@ def privacy(lang):
             "<h2>Terminbuchung</h2><p>Wenn Sie über „Termin buchen“ einen Termin vereinbaren, speichern wir Art, Tag und Uhrzeit des Termins sowie Name, Telefon, E-Mail, Adresse und Ihre Nachricht "
             "in unserer Google-Tabelle und senden Ihnen und uns eine Bestätigung per E-Mail (Art. 6 Abs. 1 lit. b DSGVO). Wir löschen die Angaben nach 6 Monaten, wenn daraus kein Auftrag wird.</p>",
             "<h2>Requests sent through the moving planner</h2><p>When you click “Send request” in the planner, we transfer your details "
-            "(contact details, addresses, access, items and which page or campaign brought you to us) to our Google account and store them in a Google spreadsheet "
+            "(contact details, addresses, access, items and which page or campaign brought you to us) to our Google Workspace account and store them in a Google spreadsheet "
             "to prepare a quote for you (Art. 6(1)(b) GDPR, your consent under Art. 6(1)(a) GDPR). "
-            "The provider is Google Ireland Limited, Gordon House, Barrow Street, Dublin 4, Ireland; a transfer to the USA cannot be ruled out. "
+            "We use Google Workspace for this (provider: Google Ireland Limited, Gordon House, Barrow Street, Dublin 4, Ireland) under a data processing agreement according to Art. 28 GDPR. "
+            "A transfer to the USA cannot be ruled out; it is based on the EU-US Data Privacy Framework, under which Google is certified, and the EU standard contractual clauses. "
             "We delete requests that do not lead to an order after 6 months.</p>"
             "<p>“Calculate distance” and “Show route and map” send the two places you entered to Google Maps via our server to calculate distance, drive time and a map; your browser does not connect to Google. "
             "For our statistics we store, for each calculation, only the time, postcode and town of start and destination, the distance, the page and the campaign – no street, no contact details – and delete these entries after 6 months (Art. 6(1)(f) GDPR, legitimate interest in planning our service). "

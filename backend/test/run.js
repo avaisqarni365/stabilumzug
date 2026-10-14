@@ -13,6 +13,14 @@ assert.deepStrictEqual(norm(fromSheet), norm(master), 'catalogue round trip');
 assert.deepStrictEqual(fromSheet.presets, master.presets); assert.deepStrictEqual(fromSheet.guess, master.guess);
 assert.deepStrictEqual(fromSheet.rules, master.rules, 'rules round trip');
 console.log('ok setup + master round trip:', fromSheet.items.length, 'items, rates rows', sheets['Preise'].data.length - 1);
+// moved to Workspace: a copied sheet with the old Gmail address gets the new business address on "Einrichten"
+ctx.setConfig_('notify_email', 'info.stabilumzug@gmail.com'); ctx.setConfig_('firma_email', 'Info.Stabilumzug@gmail.com');
+ctx.setup();
+assert.strictEqual(ctx.config_('notify_email'), 'info@stabilumzug.de'); assert.strictEqual(ctx.config_('firma_email'), 'info@stabilumzug.de');
+ctx.setConfig_('notify_email', 'buero@example.de'); ctx.setup();
+assert.strictEqual(ctx.config_('notify_email'), 'buero@example.de', 'a different address stays');
+ctx.setConfig_('notify_email', 'info@stabilumzug.de');
+console.log('ok Workspace address');
 
 // 2. lead
 const state = {ref: 'SU-TEST1', f1: {from: 'Rüttenscheider Str. 12, Essen', to: 'Alleestr. 4, Bochum', km: '', dateMode: 'fixed', date: '2026-11-07', hh: 1},

@@ -42,7 +42,7 @@ Step 2 'Apps Script API'
 $apiMarker = Join-Path $env:USERPROFILE '.stabil-apps-script-api-on'
 if (-not (Test-Path $apiMarker)) {
   Start-Process 'https://script.google.com/home/usersettings'
-  Pause-For 'In the browser (signed in as info.stabilumzug@gmail.com): switch "Google Apps Script API" to ON.'
+  Pause-For 'In the browser (signed in as info@stabilumzug.de): switch "Google Apps Script API" to ON.'
   New-Item -ItemType File -Path $apiMarker -Force | Out-Null
 }
 
@@ -50,7 +50,7 @@ if (-not (Test-Path $apiMarker)) {
 Step 3 'Logging clasp in to Google'
 $rc = Join-Path $env:USERPROFILE '.clasprc.json'
 if (-not (Test-Path $rc)) {
-  Write-Host 'A browser window opens. Choose info.stabilumzug@gmail.com and click "Zulassen" (Allow).'
+  Write-Host 'A browser window opens. Choose info@stabilumzug.de and click "Zulassen" (Allow).'
   clasp login
 }
 
