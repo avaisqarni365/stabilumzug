@@ -152,8 +152,9 @@ fieldset.lock .input{background:#fff}
   /* ---------- list ---------- */
   function list() {
     U.setNav('docs');
-    U.app.innerHTML = '<p class="loading">Belege werden geladen …</p>';
-    run('api_docs').then(function (r) { D.docs = r.docs; D.company = r.company; D.today = r.today; drawList(); }).catch(U.fail);
+    // the last list at once, the fresh one a moment later
+    if (D.today) drawList(); else U.app.innerHTML = '<p class="loading">Belege werden geladen …</p>';
+    run('api_docs').then(function (r) { D.docs = r.docs; D.company = r.company; D.today = r.today; if (location.hash.replace(/^#\/?/, '') === 'belege') drawList(); }).catch(U.fail);
   }
   function drawList() {
     var inv = D.docs.filter(function (x) { return x.type !== 'offer'; });

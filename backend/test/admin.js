@@ -62,7 +62,8 @@ assert.throws(() => ctx.api(ltok, 'api_bootstrap_', []), /Unbekannte/);
 assert.throws(() => ctx.api(ltok, 'constructor', []), /Unbekannte/);
 assert.throws(() => ctx.api_bootstrap_(), /LOGIN/, 'private functions need a session too');
 us.getRange(2, 3).setValue('nein');
-assert.throws(() => ctx.api(ltok, 'api_bootstrap', []), /LOGIN/, 'deactivated in the sheet: out at once');
+ctx.CacheService.getScriptCache().remove('admok_office');   // the active check is cached for a minute
+assert.throws(() => ctx.api(ltok, 'api_bootstrap', []), /LOGIN/, 'deactivated in the sheet: out within a minute');
 us.getRange(2, 3).setValue('ja');
 lg = ctx.login('office', 'geheim123'); assert(lg.ok);
 ctx.logout(lg.token);
