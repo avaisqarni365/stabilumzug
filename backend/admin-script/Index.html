@@ -119,6 +119,9 @@ textarea.input{min-height:120px;resize:vertical;line-height:1.5}
   .top .me{gap:4px}
   .top .me a{min-height:44px;display:inline-flex;align-items:center;padding:0 8px}
   .btn.small,.chip{min-height:44px}
+  .row{grid-template-columns:56px minmax(0,1fr) auto;gap:4px 12px}   /* more room for name and route */
+  .row.cal{grid-template-columns:80px minmax(0,1fr) auto}
+  #lead-docs .row{grid-template-columns:auto minmax(0,1fr) auto}
   main a.muted:first-child{display:inline-flex;align-items:center;min-height:44px}
   main{padding:16px 14px 80px}
 }
@@ -504,7 +507,7 @@ body.locked .top nav,body.locked .top .me{display:none}
         var name = new Date(m + '-01T12:00:00').toLocaleDateString('de-DE', {month: 'long', year: 'numeric'});
         return '<h2 class="cal-m">' + esc(name) + '</h2><div class="list">' + groups[m].map(function (x) {
           var d = new Date(x.date + 'T12:00:00');
-          return '<a class="row" href="' + x.href + '"><span class="id">' + d.toLocaleDateString('de-DE', {weekday: 'short', day: '2-digit', month: '2-digit'}) + '</span><span><span class="ktag k-' + x.kind.toLowerCase() + '">' + esc(x.kind) + '</span>' + esc(x.name || '–') +
+          return '<a class="row cal" href="' + x.href + '"><span class="id">' + d.toLocaleDateString('de-DE', {weekday: 'short', day: '2-digit', month: '2-digit'}) + '</span><span><span class="ktag k-' + x.kind.toLowerCase() + '">' + esc(x.kind) + '</span>' + esc(x.name || '–') +
             '<small>' + esc(x.info) + '</small></span>' + x.badge + '</a>';
         }).join('') + '</div>';
       }).join('') : '<p class="empty">Keine kommenden Aufträge oder Termine.</p>');
