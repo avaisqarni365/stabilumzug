@@ -1259,3 +1259,8 @@ details.fs-card > summary:focus-visible{outline:2px solid var(--red);outline-off
 @media (min-width:861px) and (max-width:1099px){.hero .actions .button{padding-inline:12px;font-size:14.5px;gap:8px}}
 /* smallest phones: the four hero facts with a little more air */
 @media (max-width:360px){.hero .facts b{font-size:.95rem}.hero .facts li{padding-right:4px}.hero .facts li + li{padding-left:5px}}
+
+/* short texts in narrow grid cells (150–300 px) are left-aligned at every width: justified, they open
+   word gaps of several spaces. Normal paragraphs stay justified. */
+.journey li,.journey .teaser,.costs > div > p,.tiles .tile p,.tiles .tile li,.steps-list li,.steps-list p,.pkg .sub,.planner-box p{text-align:left}
+.checks li,.pkg .price{text-align:left}
