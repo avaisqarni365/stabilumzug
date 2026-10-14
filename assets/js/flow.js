@@ -205,8 +205,10 @@
       }).join('') + '</ol></div>' +
       '<div class="uf-poster"><div class="uf-poster-k">STABIL UMZUG · ESSEN</div><div class="uf-poster-t">' + esc(t.f0.poster) + '</div></div>' +
       '<div class="uf-cards">' +
-        '<div class="uf-card">' + TEAM_SVG + '<div><div class="uf-strong">' + esc(t.f0.team) + '</div><div class="uf-small">' + esc(t.f0.teamText) + '</div></div></div>' +
-        '<div class="uf-card">' + BOX_SVG + '<div><div class="uf-strong">' + esc(t.f0.cartons) + '</div><div class="uf-small">' + esc(t.f0.cartonsText) + '</div></div></div>' +
+        '<div class="uf-card">' + photo('loading-boxes', lang === 'de' ? 'Team von Stabil Umzug sichert Kartons im Transporter' : 'Stabil Umzug crew securing boxes in the van') +
+          '<div><div class="uf-strong">' + esc(t.f0.team) + '</div><div class="uf-small">' + esc(t.f0.teamText) + '</div></div></div>' +
+        '<div class="uf-card">' + photo('packing', lang === 'de' ? 'Team von Stabil Umzug verpackt Geschirr und Gläser' : 'Stabil Umzug crew packing dishes and glasses') +
+          '<div><div class="uf-strong">' + esc(t.f0.cartons) + '</div><div class="uf-small">' + esc(t.f0.cartonsText) + '</div></div></div>' +
       '</div>' +
       ((phone || hours) ? '<div class="uf-strip2">' +
         (hours ? '<div><div class="uf-k">' + esc(t.f0.hours) + '</div><div class="uf-strong">' + esc(hours) + '</div></div>' : '<div></div>') +
@@ -762,8 +764,11 @@
   });
 
   /* Inline brand illustrations from the design handoff. */
-  var TEAM_SVG = '<svg viewBox="0 0 150 110" role="img" aria-hidden="true" focusable="false"><g><circle cx="30" cy="22" r="12" fill="#17304f"/><rect x="14" y="38" width="32" height="44" fill="#f0650f"/><rect x="18" y="46" width="8" height="8" fill="#f3f2f2"/><rect x="14" y="82" width="13" height="26" fill="#17304f"/><rect x="33" y="82" width="13" height="26" fill="#17304f"/></g><g><circle cx="75" cy="18" r="12" fill="#17304f"/><rect x="59" y="34" width="32" height="48" fill="#f0650f"/><rect x="63" y="42" width="8" height="8" fill="#f3f2f2"/><rect x="59" y="82" width="13" height="26" fill="#17304f"/><rect x="78" y="82" width="13" height="26" fill="#17304f"/><rect x="92" y="30" width="40" height="30" fill="#f3f2f2" stroke="#17304f" stroke-width="2"/><rect x="92" y="42" width="40" height="4" fill="#f0650f"/><rect x="98" y="48" width="6" height="6" fill="#f0650f"/></g><g><circle cx="128" cy="26" r="11" fill="#17304f"/><rect x="113" y="62" width="30" height="20" fill="#f0650f"/><rect x="117" y="67" width="7" height="7" fill="#f3f2f2"/><rect x="113" y="82" width="12" height="26" fill="#17304f"/><rect x="131" y="82" width="12" height="26" fill="#17304f"/></g></svg>';
-  var BOX_SVG = '<svg viewBox="0 0 150 110" role="img" aria-hidden="true" focusable="false"><rect x="12" y="52" width="62" height="50" fill="#f3f2f2" stroke="#17304f" stroke-width="2"/><rect x="12" y="52" width="62" height="6" fill="#f0650f"/><rect x="20" y="70" width="10" height="10" fill="#f0650f"/><rect x="34" y="72" width="30" height="3" fill="#17304f"/><rect x="34" y="78" width="20" height="2" fill="#17304f"/><rect x="80" y="40" width="58" height="62" fill="#f3f2f2" stroke="#17304f" stroke-width="2"/><rect x="80" y="40" width="58" height="6" fill="#f0650f"/><rect x="88" y="62" width="10" height="10" fill="#f0650f"/><rect x="102" y="64" width="28" height="3" fill="#17304f"/><rect x="102" y="70" width="18" height="2" fill="#17304f"/><rect x="34" y="6" width="54" height="44" fill="#f3f2f2" stroke="#17304f" stroke-width="2"/><rect x="34" y="6" width="54" height="6" fill="#f0650f"/><rect x="42" y="24" width="10" height="10" fill="#f0650f"/><rect x="56" y="26" width="26" height="3" fill="#17304f"/><rect x="56" y="32" width="16" height="2" fill="#17304f"/></svg>';
+  /* our own photos (team in Stabil Umzug workwear) in the start-screen cards: 640 / 1024 px versions */
+  function photo(name, alt) {
+    var p = BASE + 'assets/img/photos/' + name;
+    return '<img src="' + p + '-640.jpg" srcset="' + p + '-640.jpg 640w, ' + p + '-1024.jpg 1024w" sizes="(max-width:760px) 45vw, 300px" alt="' + esc(alt) + '" width="640" height="427" loading="lazy" decoding="async">';
+  }
 
   if (S.step > 0 && !S.started) S.started = Date.now() - 60000;
   render(false);

@@ -142,7 +142,9 @@ p.uf-small,.uf-how .uf-small,.uf-card .uf-small{text-align:justify}
 .uf-poster-t{font-weight:700;font-size:24px;line-height:1.05;letter-spacing:-.02em;text-wrap:balance}
 .uf-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .uf-card{background:var(--c-surface);padding:12px;display:flex;flex-direction:column;gap:8px}
-.uf-card svg{width:100%;height:auto;display:block}
+.uf-card img{width:100%;height:auto;aspect-ratio:3/2;object-fit:cover;display:block;background:var(--c-bg)}
+.uf-card{padding:0 0 12px}
+.uf-card > div{padding:0 12px}
 .uf-card .uf-small{font-size:12px}
 .uf-strip2{display:grid;grid-template-columns:1fr 1fr;border-top:2px solid var(--c-div);border-bottom:2px solid var(--c-div)}
 .uf-strip2 > div{padding:10px 10px 10px 0}
