@@ -104,6 +104,23 @@ assert.strictEqual(ctx.doPost({postData: {contents: JSON.stringify({action: 'qui
 assert.strictEqual(ctx.doPost({postData: {contents: JSON.stringify({action: 'photos', id: q.id, k: q.up, pad: 'x'.repeat(200000), images: [{type: 'image/jpeg', data: jpg}]})}}).n, 5);
 console.log('ok photos: token, types, limit 10, one e-mail with attachments, note in the row');
 
+// 5d. wished moving date: fixed day, or flexible with an optional time window
+const md = ctx.moveDate_;
+assert.strictEqual(md({dateMode: 'fixed', date: '2026-11-07'}), '2026-11-07');
+assert.strictEqual(md({dateMode: 'fixed', date: '2026-11-07'}, true), '07.11.2026');
+assert.strictEqual(md({dateMode: 'flex'}), 'flexibel');
+assert.strictEqual(md({dateMode: 'flex'}, true), 'flexibel, nach Absprache');
+assert.strictEqual(md({dateMode: 'flex', dateFrom: '2026-11-15', dateTo: '2026-11-01'}), 'flexibel 01.11.2026–15.11.2026', 'reversed ends are swapped');
+assert.strictEqual(md({dateMode: 'flex', dateFrom: '2026-11-01', dateTo: '2026-11-15'}, true), 'flexibel, zwischen 01.11.2026 und 15.11.2026');
+assert.strictEqual(md({dateMode: 'flex', dateFrom: '2026-11-01'}), 'flexibel ab 01.11.2026');
+assert.strictEqual(md({dateMode: 'flex', dateTo: '=1+1'}), 'flexibel', 'junk ignored');
+const wl = post({action: 'lead', consent: true, t: 9000, lang: 'de', contact: {name: 'Fenster', phone: '0170 1'},
+  state: Object.assign({}, state, {f1: Object.assign({}, state.f1, {dateMode: 'flex', date: '', dateFrom: '2026-11-01', dateTo: '2026-11-15'})})});
+assert(wl.ok);
+const LW = sheets['Anfragen'].data, rw = LW.find(r => r[0] === wl.id);
+assert.strictEqual(rw[LW[0].indexOf('Termin')], 'flexibel 01.11.2026–15.11.2026');
+console.log('ok wished date: fixed day, flexible window in the sheet');
+
 // 6. rate limit
 for (let i = 0; i < 70; i++) post({action: 'route', from: 'Essen Hbf', to: 'Bochum Hbf'});
 console.log('ok rate limit:', post({action: 'route', from: 'a b c d', to: 'e f g h'}).error);

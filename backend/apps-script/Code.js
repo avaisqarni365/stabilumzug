@@ -108,7 +108,7 @@ function saveLead_(b) {
     var rooms = (s.rooms || []).map(function (r) { return (ROOM_DE[r.r] || clip_(r.r, 20)) + (String(r.sqm || '').trim() ? ' ' + clip_(r.sqm, 6) + ' m²' : ''); }).join(', ');
     var src = s.src || {};
     var srcTxt = [src.utm_source, src.utm_medium, src.utm_campaign, src.utm_term].filter(Boolean).join(' / ') || src.ref || (src.gclid ? 'Google Ads' : 'direkt');
-    var date = s.f1.dateMode === 'fixed' && s.f1.date ? clip_(s.f1.date, 10) : 'flexibel';
+    var date = moveDate_(s.f1);
     sheet_(TAB.leads).appendRow([
       id, now, STATUS[0], '', '', cell_(name, 80), cell_(phone, 40), cell_(email, 120), clip_(c.channel, 20),
       cell_(s.f1.from), cell_(s.f1.to), clip_(s.f1.km, 8), route.ok ? route.km : '', route.ok ? route.min : '',
@@ -216,6 +216,7 @@ function notifyOffice_(id, name, phone, email, s, est, route, payer, pdf) {
     'Neue Anfrage ' + id + ' über den Umzugsplaner', '',
     'Name: ' + name, 'Telefon: ' + (phone || '—'), 'E-Mail: ' + (email || '—'), '',
     'Von: ' + (s.f1.from || '—'), 'Nach: ' + (s.f1.to || '—') + (route.ok ? ' (' + route.km + ' km, ' + route.min + ' min)' : ''),
+    'Wunschtermin: ' + moveDate_(s.f1, true),
     'Volumen: ' + round_(est.volLow) + '–' + round_(est.volHigh) + ' m³, ' + VEH_DE[est.vehicle] + ', ' + est.crew + ' Personen, ca. ' + round_(est.hours) + ' Std.',
     'Kostenträger: ' + (payer ? payer.text : 'Selbstzahler'),
     pdf ? 'Vorvereinbarung V-' + id + ' (ohne Preis) vom Kunden zugestimmt – PDF im Anhang. Angebot mit Preis ' + (payer && payer.kind ? 'an den Kostenträger richten.' : 'an den Kunden.') : '',

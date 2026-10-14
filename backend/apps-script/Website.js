@@ -111,7 +111,7 @@ function preAgreementHtml_(d) {
   var dz = function (n, k) { return String(round_(n, k)).replace('.', ','); };   // German decimal comma
   var when = Utilities.formatDate(d.at, 'Europe/Berlin', 'dd.MM.yyyy'), at = Utilities.formatDate(d.at, 'Europe/Berlin', 'dd.MM.yyyy, HH:mm');
   var acc = function (a) { return a ? FLOORS[a.floor] + ', ' + LIFTS[a.lift] + ', ' + PARKS[a.park] : '–'; };
-  var date = s.f1.dateMode === 'fixed' && s.f1.date ? s.f1.date.split('-').reverse().join('.') : 'flexibel, nach Absprache';
+  var date = moveDate_(s.f1, true);
   var rooms = (s.rooms || []).map(function (r) { return (ROOM_DE[r.r] || clip_(r.r, 20)) + (String(r.sqm || '').trim() ? ' (' + clip_(r.sqm, 6) + ' m²)' : ''); }).join(', ');
   var row = function (k, v) { return v ? '<tr><th>' + x(k) + '</th><td>' + x(v) + '</td></tr>' : ''; };
   // the same item from several sources (catalogue, list, preset) shows once

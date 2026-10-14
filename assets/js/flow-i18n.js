@@ -29,6 +29,8 @@ window.FLOW_T = {
    from: 'Alte Adresse', to: 'Neue Adresse', fromPh: 'Rüttenscheider Str. 12, 45130 Essen', toPh: 'Alleestr. 4, 44793 Bochum',
    km: 'Entfernung in km', kmHint: 'Ungefähre Fahrstrecke. Leer lassen: wir rechnen mit 20 km und prüfen die Strecke im Angebot.',
    date: 'Umzugstermin', fixed: 'Fester Tag', flex: 'Flexibel', dateLabel: 'Datum',
+   window: 'Wunschzeitraum (optional)', earliest: 'frühestens', latest: 'spätestens', fromDay: 'ab', toDay: 'bis',
+   windowHint: 'Zwischen welchen Tagen passt der Umzug? Wir schlagen einen Termin in diesem Zeitraum vor.',
    hh: 'Haushalt', hhOpts: ['1 Person', '2 Personen', '3–4', '5+']
   },
   f2: {
@@ -148,6 +150,8 @@ window.FLOW_T = {
    from: 'Current address', to: 'New address', fromPh: 'Rüttenscheider Str. 12, 45130 Essen', toPh: 'Alleestr. 4, 44793 Bochum',
    km: 'Distance in km', kmHint: 'Approximate driving distance. Leave empty: we assume 20 km and check the route in the quote.',
    date: 'Moving date', fixed: 'Fixed day', flex: 'Flexible', dateLabel: 'Date',
+   window: 'Preferred time window (optional)', earliest: 'earliest', latest: 'latest', fromDay: 'from', toDay: 'until',
+   windowHint: 'Between which days would the move suit you? We suggest a date in this window.',
    hh: 'Household', hhOpts: ['1 person', '2 people', '3–4', '5+']
   },
   f2: {
