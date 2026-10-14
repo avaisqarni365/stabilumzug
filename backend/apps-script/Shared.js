@@ -215,8 +215,9 @@ var COMPANY_FIELDS = [
 ];
 
 function company_() {
-  var c = {};
-  COMPANY_FIELDS.forEach(function (f) { var v = config_('firma_' + f[0]); c[f[0]] = v === '' || v == null ? f[2] : v; });
+  var c = {}, all = {}, sh = ss_().getSheetByName(TAB.config);   // one read of the Konfiguration tab, not one per field
+  if (sh) sh.getDataRange().getValues().slice(1).forEach(function (r) { if (r[0] !== '' && !(r[0] in all)) all[r[0]] = r[1]; });
+  COMPANY_FIELDS.forEach(function (f) { var v = all['firma_' + f[0]]; c[f[0]] = v === '' || v == null ? f[2] : v; });
   c.small = /^(ja|yes|true|1)$/i.test(String(c.small));
   c.vat = Number(c.vat) || 0; c.pay_days = Number(c.pay_days) || 0; c.offer_days = Number(c.offer_days) || 0;
   c.price_mode = String(c.price_mode).toLowerCase() === 'netto' ? 'net' : 'gross';

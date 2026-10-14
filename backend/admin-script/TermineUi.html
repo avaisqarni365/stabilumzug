@@ -52,8 +52,9 @@
   /* ---------- appointments ---------- */
   function appts() {
     U.setNav('appts');
-    U.app.innerHTML = '<p class="loading">Termine werden geladen …</p>';
-    run('api_appts').then(function (r) { A.data = r; drawAppts(); }).catch(U.fail);
+    // the last list at once, the fresh one a moment later (not while someone is typing in the hours)
+    if (A.data) drawAppts(); else U.app.innerHTML = '<p class="loading">Termine werden geladen …</p>';
+    run('api_appts').then(function (r) { A.data = r; window.SU.appts = r.appts; if (location.hash.replace(/^#\/?/, '') === 'termine' && !U.app.contains(document.activeElement)) drawAppts(); }).catch(U.fail);
   }
   function drawAppts() {
     var r = A.data, today = r.today;
@@ -74,16 +75,16 @@
       }).join('') : '<p class="empty">Keine Termine für diesen Filter.</p>') +
       settingsHtml(r);
     U.app.querySelectorAll('[data-af]').forEach(function (b) { b.addEventListener('click', function () { A.show = b.getAttribute('data-af'); drawAppts(); }); });
-    U.app.querySelectorAll('[data-cal]').forEach(function (b) { b.addEventListener('click', function () { busy(b, run('api_apptCalendar', b.getAttribute('data-cal'))).then(function () { U.toast('In Google Kalender eingetragen.'); appts(); }); }); });
+    U.app.querySelectorAll('[data-cal]').forEach(function (b) { b.addEventListener('click', function () { busy(b, run('api_apptCalendar', b.getAttribute('data-cal'))).then(function () { U.toast('In Google Kalender eingetragen.'); A.data = null; appts(); }); }); });
     U.app.querySelectorAll('[data-move]').forEach(function (b) { b.addEventListener('click', function () { moveBox(b.getAttribute('data-move')); }); });
     U.app.querySelectorAll('[data-cancel]').forEach(function (b) {
       b.addEventListener('click', function () {
         var msg = prompt('Termin absagen? Der Kunde bekommt eine E-Mail.\n\nNachricht an den Kunden (optional):', '');
         if (msg === null) return;
-        busy(b, run('api_apptUpdate', b.getAttribute('data-cancel'), {status: 'Abgesagt', note: msg, message: msg, notify: true})).then(function () { U.toast('Abgesagt, Kunde informiert.'); appts(); });
+        busy(b, run('api_apptUpdate', b.getAttribute('data-cancel'), {status: 'Abgesagt', note: msg, message: msg, notify: true})).then(function () { U.toast('Abgesagt, Kunde informiert.'); A.data = null; appts(); });
       });
     });
-    U.app.querySelectorAll('[data-done]').forEach(function (b) { b.addEventListener('click', function () { busy(b, run('api_apptUpdate', b.getAttribute('data-done'), {status: 'Erledigt'})).then(function () { appts(); }); }); });
+    U.app.querySelectorAll('[data-done]').forEach(function (b) { b.addEventListener('click', function () { busy(b, run('api_apptUpdate', b.getAttribute('data-done'), {status: 'Erledigt'})).then(function () { A.data = null; appts(); }); }); });
     bindSettings();
   }
   function apHtml(a) {
@@ -111,7 +112,7 @@
     m.addEventListener('click', function (e) { if (e.target === m || e.target.hasAttribute('data-x')) m.remove(); });
     m.querySelector('#mv-s').addEventListener('click', function (e) {
       busy(e.target, run('api_apptUpdate', nr, {status: 'Verschoben', date: m.querySelector('#mv-d').value, time: m.querySelector('#mv-t').value, message: m.querySelector('#mv-m').value, notify: m.querySelector('#mv-n').checked}))
-        .then(function () { m.remove(); U.toast('Termin verschoben.'); appts(); });
+        .then(function () { m.remove(); U.toast('Termin verschoben.'); A.data = null; appts(); });
     });
   }
   function settingsHtml(r) {

@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<base target="_top">
 <meta charset="utf-8">
 <style>
 :root{--bg:#f3f2f2;--surface:#eae9e9;--ink:#17304f;--ink2:#55606f;--line:rgba(23,48,79,.4);--soft:rgba(23,48,79,.15);--red:#f0650f;--fill:#c2410c;--fill2:#b4420e;--on:#f3f2f2;--tint:#fff1e8;--tint-ink:#7a2a06}
@@ -89,6 +88,7 @@ textarea.input{min-height:120px;resize:vertical;line-height:1.5}
 .toast.err{background:var(--fill)}
 .loading{padding:40px 0;color:var(--ink2)}
 .cal-m{font-size:20px;margin:24px 0 8px}
+.detail.busy .side{opacity:.55;pointer-events:none}
 .ktag{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:2px 6px;margin-right:8px;vertical-align:1px;border:1px solid currentColor}
 .k-auftrag{color:var(--ink)}.k-flexibel{color:#8a5a00}.k-termin{color:#c2410c}
 .cal-key{font-size:13px;line-height:2}.cal-key .ktag{margin-left:10px}.cal-key .ktag:first-child{margin-left:0}
@@ -102,6 +102,10 @@ textarea.input{min-height:120px;resize:vertical;line-height:1.5}
   .tbl td{border:0;padding:0}
   .tbl td.hide-m{display:none}
   .top .me span{display:none}
+  /* items of a request: name | count | m³ on one line */
+  .tbl.items tr{grid-template-columns:minmax(0,1fr) 36px 48px}
+  .tbl.items td:nth-child(2){display:none}
+  .tbl.items td.num{text-align:right}
 }
 /* phones: menu as a 3 × 2 grid instead of a row wider than the screen; 44 px tap targets */
 @media (max-width:640px){
@@ -239,7 +243,9 @@ body.locked .top nav,body.locked .top .me{display:none}
   function isDate(s) { return /^\d{4}-\d{2}-\d{2}$/.test(s); }
   function badge(s) { return '<span class="badge s' + S.statuses.indexOf(s) + '">' + esc(s) + '</span>'; }
   function svc(l) { return String(l.service || '').replace(/ \((Planer|Kurzformular)\)$/, ''); }
-  function route(l) { return [l.from, l.to].filter(Boolean).map(function (x) { return x.split(',').slice(-1)[0].trim(); }).join(' → ') || '–'; }
+  // "Karlstraße 32, 45329 Essen" → "45329 Essen"; without postcode the last part of the address
+  function place(a) { var m = /(\d{5})\s+([^,\d][^,]*)/.exec(a); return m ? m[1] + ' ' + m[2].trim() : a.split(',').slice(-1)[0].trim(); }
+  function route(l) { return [l.from, l.to].filter(Boolean).map(place).join(' → ') || '–'; }
   function waNum(p) { var d = String(p).replace(/[^\d+]/g, ''); if (d[0] === '+') return d.slice(1); if (d.slice(0, 2) === '00') return d.slice(2); if (d[0] === '0') return '49' + d.slice(1); return d; }
   function setNav(k) { document.querySelectorAll('[data-nav]').forEach(function (a) { if (a.getAttribute('data-nav') === k) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); }); }
 
@@ -256,6 +262,14 @@ body.locked .top nav,body.locked .top .me{display:none}
     return home();
   }
   window.addEventListener('hashchange', routeTo);
+  /* The admin runs in Google's frame: page links (#/…) must stay inside it, phone and mail links open outside. */
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest && e.target.closest('a[href]');
+    if (!a || e.defaultPrevented || e.button || e.metaKey || e.ctrlKey || e.shiftKey) return;
+    var h = a.getAttribute('href');
+    if (h.charAt(0) === '#') { if (h.length > 1 && h !== '#' + location.hash.slice(1)) location.hash = h; e.preventDefault(); }
+    else if (/^(tel|mailto):/.test(h) && !a.target) a.target = '_top';
+  });
 
   function reload() { return run('api_bootstrap').then(function (d) { S.leads = d.leads; S.statuses = d.statuses; S.me = d.me; document.getElementById('me-name').textContent = d.me; S.portal = d.portal; S.routes = d.routes; document.getElementById('sheet-link').href = d.sheetUrl; }); }
 
@@ -329,8 +343,11 @@ body.locked .top nav,body.locked .top .me{display:none}
   /* ---------- detail ---------- */
   function detail(id) {
     setNav('list');
-    app.innerHTML = '<p class="loading">Anfrage ' + esc(id) + ' wird geladen …</p>';
-    run('api_lead', id).then(function (d) { S.cur = d; drawDetail(); }).catch(fail);
+    // show what the list already knows at once; items, quote and editing follow when the server answers
+    var known = (S.leads || []).filter(function (x) { return x.id === id; })[0];
+    if (known) { S.cur = {lead: known, items: [], quote: {lines: [], version: 0}, minPrice: 0, loading: true}; drawDetail(); }
+    else app.innerHTML = '<p class="loading">Anfrage ' + esc(id) + ' wird geladen …</p>';
+    run('api_lead', id).then(function (d) { if (decodeURIComponent(location.hash.replace(/^#\/?/, '')) !== 'a/' + id) return; S.cur = d; drawDetail(); }).catch(fail);
   }
   function drawDetail() {
     var d = S.cur, l = d.lead;
@@ -342,7 +359,7 @@ body.locked .top nav,body.locked .top .me{display:none}
       fact('Fahrzeug', l.vehicle) + fact('Team / Stunden', l.crew ? l.crew + ' Personen · ' + de(l.hours) + ' Std.' : '') + fact('Vertrauen', l.confidence) +
       fact('Kostenträger', l.payer && l.payer !== 'Selbstzahler' ? l.payer : '') + fact('Vorvereinbarung', l.pre) +
       fact('Quelle', l.source) + fact('Sprache', l.lang) + fact('Eingang', dt(l.received));
-    var items = d.items.length ? '<div class="card"><h2>Gegenstände (' + d.items.reduce(function (a, i) { return a + i.n; }, 0) + ')</h2><table class="tbl" style="border-top:0"><thead><tr><th>Gegenstand</th><th>Herkunft</th><th class="num">Anz.</th><th class="num">m³</th></tr></thead><tbody>' +
+    var items = d.items.length ? '<div class="card"><h2>Gegenstände (' + d.items.reduce(function (a, i) { return a + i.n; }, 0) + ')</h2><table class="tbl items" style="border-top:0"><thead><tr><th>Gegenstand</th><th>Herkunft</th><th class="num">Anz.</th><th class="num">m³</th></tr></thead><tbody>' +
       d.items.map(function (i) { return '<tr style="cursor:default"><td>' + esc(i.name) + (i.size ? ' <span class="muted">' + esc(i.size) + '</span>' : '') + '</td><td class="muted">' + esc(i.source) + '</td><td class="num">' + i.n + '</td><td class="num">' + Number(i.vol).toLocaleString('de-DE') + '</td></tr>'; }).join('') + '</tbody></table></div>' : '';
     var contact = (l.phone ? '<a class="btn small" href="tel:' + esc(l.phone.replace(/\s/g, '')) + '">Anrufen</a><a class="btn small" target="_blank" rel="noopener" href="https://wa.me/' + waNum(l.phone) + '">WhatsApp</a>' : '') +
       (l.email ? '<a class="btn small" href="mailto:' + esc(l.email) + '">E-Mail</a>' : '');
@@ -360,6 +377,7 @@ body.locked .top nav,body.locked .top .me{display:none}
         sendHtml() +
         '<div class="card" id="lead-docs"></div>' +
       '</aside></div>';
+    if (d.loading) { app.querySelector('.detail').classList.add('busy'); return; }
     bindDetail();
     if (window.SUDocs) window.SUDocs.leadCard(l, document.getElementById('lead-docs'));
   }
@@ -367,6 +385,7 @@ body.locked .top nav,body.locked .top .me{display:none}
   /* quote editor */
   function quoteHtml() {
     var q = S.cur.quote;
+    if (S.cur.loading) return '<div class="card" id="quote"><h2>Angebot</h2><p class="loading">Positionen werden geladen …</p></div>';
     return '<div class="card" id="quote"><h2>Angebot ' + (q.saved ? '<span class="muted">Version ' + q.version + '</span>' : '<span class="muted">Vorschlag aus den Angaben' + (q.range ? ' (Spanne ±' + q.range + ' %)' : '') + '</span>') + '</h2>' +
       '<div style="overflow-x:auto"><table class="qt"><thead><tr><th>Position</th><th>Basis</th><th class="num">Menge</th><th>Einheit</th><th class="num">Satz €</th><th class="num">Betrag</th><th></th></tr></thead><tbody id="qlines">' +
       q.lines.map(lineHtml).join('') + '</tbody></table></div>' +
@@ -452,10 +471,11 @@ body.locked .top nav,body.locked .top .me{display:none}
   /* ---------- calendar ---------- */
   function calendar() {
     setNav('cal');
-    app.innerHTML = '<p class="loading">Kalender wird geladen …</p>';
-    run('api_appts').then(function (r) { drawCalendar(r.appts || []); }, function () { drawCalendar([]); });
+    // jobs from the list at once, the website appointments as soon as they are loaded
+    drawCalendar(window.SU.appts || [], !window.SU.appts);
+    run('api_appts').then(function (r) { window.SU.appts = r.appts || []; if (location.hash.replace(/^#\/?/, '') === 'kalender') drawCalendar(window.SU.appts); }, function () {});
   }
-  function drawCalendar(appts) {
+  function drawCalendar(appts, pending) {
     var today = new Date().toISOString().slice(0, 10), from = today.slice(0, 8) + '01', items = [];
     S.leads.forEach(function (l) {
       if (l.status === 'Verloren' || l.status === 'Erledigt') return;
@@ -475,6 +495,7 @@ body.locked .top nav,body.locked .top .me{display:none}
     var months = Object.keys(groups).sort();
     app.innerHTML = '<span class="kicker">Kalender</span><div class="h"><h1>Aufträge und Termine</h1><a class="btn small" href="#/termine">Termine verwalten</a></div>' +
       '<p class="muted cal-key"><span class="ktag k-auftrag">Auftrag</span> fester Umzugs- oder Leistungstag <span class="ktag k-flexibel">flexibel</span> Wunschzeitraum, ab dem ersten Tag <span class="ktag k-termin">Termin</span> Besichtigung oder Rückruf von der Website</p>' +
+      (pending ? '<p class="muted">Termine von der Website werden geladen …</p>' : '') +
       (months.length ? months.map(function (m) {
         var name = new Date(m + '-01T12:00:00').toLocaleDateString('de-DE', {month: 'long', year: 'numeric'});
         return '<h2 class="cal-m">' + esc(name) + '</h2><div class="list">' + groups[m].map(function (x) {

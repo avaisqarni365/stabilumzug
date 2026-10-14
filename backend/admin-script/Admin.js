@@ -67,12 +67,15 @@ function api(token, fn, args) {
   var t = String(token || ''), cache = CacheService.getScriptCache(), raw = /^[0-9a-f]{64}$/.test(t) ? cache.get('adm_' + t) : null;
   if (!raw) throw new Error('LOGIN');
   var s = JSON.parse(raw);
-  // the user may have been removed or set inactive in the sheet since the login
-  var sh = usersSheet_(), n = sh.getLastRow(), still = false, c = function (k) { return USER_COLS.indexOf(k); };
-  if (n > 1) sh.getRange(2, 1, n - 1, USER_COLS.length).getValues().forEach(function (r) {
-    if (String(r[c('Benutzername')]).trim().toLowerCase() === s.user && /^(ja|yes|x|1|true)$/i.test(String(r[c('Aktiv')]).trim())) still = true;
-  });
-  if (!still) { cache.remove('adm_' + t); throw new Error('LOGIN'); }
+  // the user may have been removed or set inactive in the sheet since the login (checked at most once a minute)
+  if (!cache.get('admok_' + s.user)) {
+    var sh = usersSheet_(), n = sh.getLastRow(), still = false, c = function (k) { return USER_COLS.indexOf(k); };
+    if (n > 1) sh.getRange(2, 1, n - 1, USER_COLS.length).getValues().forEach(function (r) {
+      if (String(r[c('Benutzername')]).trim().toLowerCase() === s.user && /^(ja|yes|x|1|true)$/i.test(String(r[c('Aktiv')]).trim())) still = true;
+    });
+    if (!still) { cache.remove('adm_' + t); throw new Error('LOGIN'); }
+    cache.put('admok_' + s.user, '1', 60);
+  }
   cache.put('adm_' + t, raw, SESSION_TTL);   // sliding: 6 hours after the last action
   var name = String(fn || '');
   if (!/^api_[A-Za-z]+$/.test(name) || typeof globalThis[name + '_'] !== 'function') throw new Error('Unbekannte Aktion.');
@@ -154,8 +157,8 @@ function api_lead_(id) {
   else {
     var s = null;
     try { s = JSON.parse(hit.values[JSON_COL - 1] || '{}'); } catch (err) {}
-    var q = quoteLines_(s, hit.values, masterFromSheet_(), R);
-    draft = {version: 0, lines: q.lines, saved: false, range: q.est ? Math.round(masterFromSheet_().rules.range[q.est.conf] * 100) : null};
+    var master = masterFromSheet_(), q = quoteLines_(s, hit.values, master, R);   // read the catalog once
+    draft = {version: 0, lines: q.lines, saved: false, range: q.est ? Math.round(master.rules.range[q.est.conf] * 100) : null};
   }
   return {lead: lead, items: items, quote: draft, minPrice: R.min_price};
 }
