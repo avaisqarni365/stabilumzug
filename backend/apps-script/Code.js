@@ -195,7 +195,7 @@ function saveQuick_(b) {
       MailApp.sendEmail({to: to_, subject: 'Neue Anfrage ' + id + ' – ' + service + ' – ' + name, body: [
         'Neue Anfrage ' + id + ' über das Kurzformular', '', 'Leistung: ' + service, 'Name: ' + name, 'Telefon: ' + (phone || '—'), 'E-Mail: ' + (email || '—'),
         'Von: ' + (from || '—'), 'Nach: ' + (to || '—') + (route.ok ? ' (' + route.km + ' km)' : ''), 'Zimmer: ' + (f.rooms || '—'), 'Termin: ' + (f.date || 'flexibel'),
-        '', clip_(f.message, 1000), '', 'Tabelle: ' + SpreadsheetApp.getActive().getUrl()].join('\n')});
+        '', clip_(f.message, 1000), '', adminLink_(id), 'Tabelle: ' + SpreadsheetApp.getActive().getUrl()].join('\n')});
     } catch (err) { console.error(err); }
   }
   return {ok: true, id: id, up: photoToken_(id)};
@@ -220,7 +220,7 @@ function notifyOffice_(id, name, phone, email, s, est, route, payer, pdf) {
     'Volumen: ' + round_(est.volLow) + '–' + round_(est.volHigh) + ' m³, ' + VEH_DE[est.vehicle] + ', ' + est.crew + ' Personen, ca. ' + round_(est.hours) + ' Std.',
     'Kostenträger: ' + (payer ? payer.text : 'Selbstzahler'),
     pdf ? 'Vorvereinbarung V-' + id + ' (ohne Preis) vom Kunden zugestimmt – PDF im Anhang. Angebot mit Preis ' + (payer && payer.kind ? 'an den Kostenträger richten.' : 'an den Kunden.') : '',
-    '', 'Tabelle: ' + url
+    '', adminLink_(id), 'Tabelle: ' + url
   ].join('\n');
   var mail = {to: to, subject: 'Neue Umzugsanfrage ' + id + ' – ' + name + (pdf ? ' – Vorvereinbarung' : ''), body: body};
   if (pdf) mail.attachments = [pdf];
@@ -275,7 +275,7 @@ function accept_(id, k, confirm) {
     try {
       MailApp.sendEmail({to: to, subject: 'Auftrag erteilt: ' + id + ' – ' + v[leadCol_('Name') - 1],
         body: 'Der Kunde hat das Angebot ' + id + ' über „Mein Umzug“ zahlungspflichtig beauftragt.\n\nName: ' + v[leadCol_('Name') - 1] +
-          '\nTelefon: ' + (v[leadCol_('Telefon') - 1] || '—') + '\nAngebot: ' + (v[leadCol_('Angebot €') - 1] || '—') + ' €\n\nBitte Termin bestätigen.\n' + ss_().getUrl()});
+          '\nTelefon: ' + (v[leadCol_('Telefon') - 1] || '—') + '\nAngebot: ' + (v[leadCol_('Angebot €') - 1] || '—') + ' €\n\nBitte Termin bestätigen.\n' + adminLink_(id) + '\n' + ss_().getUrl()});
     } catch (err) { console.error(err); }
   }
   return res;
@@ -601,7 +601,7 @@ function daily() {
   var leads = sheet_(TAB.leads).getDataRange().getValues().slice(1), open = [];
   leads.forEach(function (r) {
     var age = (now - new Date(r[1])) / 864e5;
-    if ((r[2] === 'Neu' && age > 1) || (r[2] === 'Angebot raus' && age > 3)) open.push(r[0] + ' · ' + r[2] + ' · ' + r[5] + ' · seit ' + Math.floor(age) + ' Tagen');
+    if ((r[2] === 'Neu' && age > 1) || (r[2] === 'Angebot raus' && age > 3)) open.push(r[0] + ' · ' + r[2] + ' · ' + r[5] + ' · seit ' + Math.floor(age) + ' Tagen\n   ' + adminUrl_(r[0]));
   });
   var to = config_('notify_email');
   if (open.length && to) MailApp.sendEmail({to: to, subject: 'Stabil Umzug: ' + open.length + ' offene Anfragen', body: open.join('\n') + '\n\n' + SpreadsheetApp.getActive().getUrl()});

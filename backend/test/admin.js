@@ -112,4 +112,11 @@ assert(postA({action: 'resend', email: 'y@example.de'}).ok); assert.strictEqual(
 assert(postA({action: 'resend', email: 'nobody@example.de'}).ok); assert.strictEqual(M.mails.length, m0 + 1, 'unknown: no mail, same answer');
 assert.strictEqual(postA({action: 'resend', email: 'nope'}).error, 'email');
 console.log('ok resend: link mailed once per 10 min, unknown address gets the same answer');
+// direct links: only safe values open a page
+assert.strictEqual(ctx.startPage_({a: 'A-2603'}), 'a/A-2603');
+assert.strictEqual(ctx.startPage_({b: 'AN-2026-0001'}), 'beleg/AN-2026-0001');
+assert.strictEqual(ctx.startPage_({t: '1'}), 'termine');
+assert.strictEqual(ctx.startPage_({a: '"><script>'}), '');
+assert.strictEqual(ctx.startPage_({}), '');
+console.log('ok direct links (?a= / ?b= / ?t=)');
 console.log('ALL OK');

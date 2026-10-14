@@ -147,6 +147,15 @@ function clip_(s, n) { return String(s == null ? '' : s).replace(/[\u0000-\u001f
 function cell_(s, n) { s = clip_(s, n); return /^[=+\-@]/.test(s) ? "'" + s : s; }
 function iso_(v) { return v instanceof Date ? v.toISOString() : (v == null ? '' : String(v)); }
 /* Move date: a calendar day. Sheets turns "2026-11-07" into a Date at local midnight – format it in Berlin time, not UTC. */
+/* Admin app (backend/admin-script): ?a=<request> opens that request. Override with "admin_url" in the Konfiguration tab. */
+var ADMIN_URL = 'https://script.google.com/macros/s/AKfycbzUZgpxmhV4uVShxvhiZIYfYCCA7MUS3EbQUi5xGdONb-3d_Ddxeh5Iw2QroV9a7dc4/exec';
+function adminUrl_(id) {
+  var u = '';
+  try { u = String(config_('admin_url') || ''); } catch (err) {}
+  return (/^https:\/\//.test(u) ? u : ADMIN_URL) + (id ? '?a=' + encodeURIComponent(id) : '');
+}
+function adminLink_(id) { return 'Im Admin öffnen: ' + adminUrl_(id); }
+
 /* Wished moving date as text: a fixed day ("2026-11-07") or "flexibel" with the wished window ("flexibel 01.11.2026–15.11.2026"). */
 function moveDate_(f1, long) {
   f1 = f1 || {};
@@ -376,7 +385,7 @@ function apptMails_(a, kind, note) {
     if (kind === 'booked' && office) {
       MailApp.sendEmail({to: office, subject: 'Neuer Termin ' + a.nr + ': ' + T.de + ' ' + when + ' – ' + a.name, attachments: [Utilities.newBlob(ics_(a, T.de + ': ' + a.name, where, how), 'text/calendar', 'termin-' + a.nr + '.ics')],
         body: ['Neuer Termin über die Website', '', T.de + ' · ' + when + ' (' + a.min + ' min)', 'Name: ' + a.name, 'Telefon: ' + a.phone, 'E-Mail: ' + a.email,
-          'Adresse: ' + (a.address || '—'), 'Umzug nach: ' + (a.to || '—'), 'Nachricht: ' + (a.message || '—'), 'Anfrage: ' + a.lead, 'Quelle: ' + a.source,
+          'Adresse: ' + (a.address || '—'), 'Umzug nach: ' + (a.to || '—'), 'Nachricht: ' + (a.message || '—'), 'Anfrage: ' + a.lead, 'Quelle: ' + a.source, adminLink_(a.lead),
           '', 'Die Kalenderdatei ist angehängt (in Gmail: „Zu Kalender hinzufügen“).', 'Tabelle: ' + ss_().getUrl()].join('\n')});
     }
   } catch (err) { console.error(err); }

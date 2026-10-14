@@ -79,8 +79,8 @@ table{width:100%;border-collapse:collapse}
 .qt td{padding:6px 6px 6px 0;border-bottom:1px solid var(--line)}
 .qt th{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink2);text-align:left;padding:6px 6px 6px 0;border-bottom:2px solid var(--ink)}
 .qt .input{min-height:36px;padding:6px 8px;font-size:14px}
-.qt .n{width:84px;text-align:right}
-.qt .u{width:64px}
+.qt .n{width:64px;text-align:right}
+.qt .u{width:54px}
 .qt .x{border:0;background:transparent;cursor:pointer;font-size:18px;line-height:1;padding:6px;color:var(--ink2)}
 .total{display:flex;justify-content:space-between;align-items:baseline;padding:12px 0;border-bottom:2px solid var(--ink);font-weight:700}
 .total b{font-size:28px;font-variant-numeric:tabular-nums}
@@ -123,6 +123,14 @@ textarea.input{min-height:120px;resize:vertical;line-height:1.5}
   var S = {leads: [], statuses: [], me: '', portal: false, filter: {status: 'open', q: '', service: ''}, cur: null};
   var app = document.getElementById('app');
   var OPEN = ['Neu', 'In Arbeit', 'Angebot raus'];
+  var START = <?!= JSON.stringify(start || '') ?>;   // direct link (?a=A-2603), checked in Admin.js
+  if (START && !location.hash.replace(/^#\/?/, '')) location.hash = '#/' + START;
+  /* keep the browser address on the open page, so it can be bookmarked or sent (?a=A-2603) */
+  function syncUrl(h) {
+    if (!(window.google && google.script && google.script.history)) return;
+    var p = h.indexOf('a/') === 0 ? {a: decodeURIComponent(h.slice(2))} : h.indexOf('beleg/') === 0 ? {b: decodeURIComponent(h.slice(6))} : h === 'termine' ? {t: '1'} : {};
+    try { google.script.history.replace(null, p, ''); } catch (err) {}
+  }
 
   /* ---------- helpers ---------- */
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]; }); }
@@ -146,6 +154,7 @@ textarea.input{min-height:120px;resize:vertical;line-height:1.5}
   /* ---------- routing ---------- */
   function routeTo() {
     var h = location.hash.replace(/^#\/?/, '');
+    syncUrl(h);
     if (window.SUDocs && window.SUDocs.route(h)) return;   // Angebote und Rechnungen (BelegeUi.html)
     if (window.SUAppts && window.SUAppts.route(h)) return;   // Termine und Statistik (TermineUi.html)
     if (h.indexOf('a/') === 0) return detail(decodeURIComponent(h.slice(2)));

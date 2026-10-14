@@ -6,6 +6,12 @@
       "runtimeExecutable": "python",
       "runtimeArgs": ["-m", "http.server", "8080", "--bind", "127.0.0.1"],
       "port": 8080
+    },
+    {
+      "name": "admin-preview",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["backend/test/preview.js"],
+      "port": 8090
     }
   ]
 }
