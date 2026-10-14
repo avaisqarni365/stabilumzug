@@ -136,7 +136,7 @@ p.uf-small,.uf-how .uf-small,.uf-card .uf-small{text-align:justify}
 .uf-caption{display:flex;justify-content:space-between;gap:8px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#b8c1ce}
 .uf-how{list-style:none;margin:0;padding:0;border-top:2px solid var(--c-div)}
 .uf-how li{display:grid;grid-template-columns:40px 1fr;gap:10px;padding:10px 0;border-bottom:1px solid var(--c-div)}
-.uf-n{font-weight:700;font-size:24px;line-height:1;color:var(--c-accent)}
+.uf-n{font-weight:700;font-size:24px;line-height:1;color:var(--c-acc-text)}
 .uf-poster{margin:0 -16px;background:var(--c-fill);color:var(--c-on-fill);padding:18px 16px;display:flex;flex-direction:column;gap:8px}
 .uf-poster-k{font-weight:700;font-size:12px;letter-spacing:.12em}
 .uf-poster-t{font-weight:700;font-size:24px;line-height:1.05;letter-spacing:-.02em;text-wrap:balance}
