@@ -122,7 +122,7 @@
     return '<section class="card" style="margin-top:36px"><h2>Buchbare Zeiten</h2><p class="muted" style="margin:0 0 10px">Von–bis in vollen Stunden. Leer lassen = an diesem Tag keine Termine. An Tagen mit gebuchtem Umzug werden keine Besichtigungen angeboten.</p>' +
       '<div class="hours"><b class="muted">Tag</b><b class="muted">von</b><b class="muted">bis</b>' + rows + '</div>' +
       '<div class="field" style="margin-top:14px;max-width:520px"><label for="blk">Gesperrte Tage (Urlaub, Feiertage) – JJJJ-MM-TT, durch Komma getrennt</label><input class="input" id="blk" value="' + esc(r.blocked) + '" placeholder="2026-12-24, 2026-12-31"></div>' +
-      '<div class="actions"><button class="btn primary" id="hs-save">Zeiten speichern</button></div></section>';
+      '<div class="actions" style="margin-top:16px"><button class="btn primary" id="hs-save">Zeiten speichern</button></div></section>';
   }
   function bindSettings() {
     var b = document.getElementById('hs-save'); if (!b) return;

@@ -68,6 +68,11 @@ fieldset.lock .input{background:#fff}
 @media (max-width:700px){
   .f2,.f3,.f4,.sender{grid-template-columns:minmax(0,1fr)}.span2{grid-column:auto}
 }
+@media (min-width:1280px){
+  .lines td.t{min-width:230px}
+  .lines td.tools{white-space:nowrap}
+  .lines td.tools button{width:28px;height:28px}
+}
 @media (max-width:1279px){
   .lines thead{display:none}
   /* each line as a card: number + texts, then Menge | Einheit | Preis | USt, then Rabatt | Lohn | Betrag, then the tools */
@@ -158,6 +163,7 @@ fieldset.lock .input{background:#fff}
     var F = {open: ['Offen', function (x) { return ['Offen', 'Gesendet', 'Teilbezahlt'].indexOf(x.status) >= 0; }], over: ['Überfällig', over],
       offer: ['Angebote', function (x) { return x.type === 'offer'; }], inv: ['Rechnungen', function (x) { return x.type !== 'offer'; }],
       draft: ['Entwürfe', function (x) { return x.status === 'Entwurf'; }], paid: ['Bezahlt', function (x) { return x.status === 'Bezahlt'; }], all: ['Alle', function () { return true; }]};
+    if (!D.picked && !D.docs.filter(F[D.filter][1]).length) D.filter = D.docs.some(F.draft[1]) ? 'draft' : 'all';
     var rows = D.docs.filter(F[D.filter][1]);
     U.app.innerHTML = '<span class="kicker">Belege</span><div class="h"><h1>Angebote und Rechnungen</h1><div class="actions">' +
       '<a class="btn" href="#/neu/offer">+ Neues Angebot</a><a class="btn primary" href="#/neu/invoice">+ Neue Rechnung</a></div></div>' +
@@ -170,7 +176,7 @@ fieldset.lock .input{background:#fff}
           return '<tr data-nr="' + esc(x.nr) + '"><td><b>' + esc(x.status === 'Entwurf' ? 'Entwurf' : x.nr) + '</b>' + (x.lead ? '<div class="muted">' + esc(x.lead) + '</div>' : '') + '</td><td>' + esc(x.typeLabel) + '</td><td>' + esc(x.customer || '–') + '</td>' +
             '<td class="hide-m">' + dDe(x.date) + '</td><td class="hide-m">' + dDe(x.type === 'offer' ? x.validUntil : x.due) + '</td><td class="num">' + eur2(x.gross) + (x.paid && x.status !== 'Bezahlt' ? '<div class="muted">bezahlt ' + eur2(x.paid) + '</div>' : '') + '</td><td>' + stat(x) + '</td></tr>';
         }).join('') + '</tbody></table>' : '<p class="empty">Keine Belege für diesen Filter.</p>');
-    U.app.querySelectorAll('[data-df]').forEach(function (b) { b.addEventListener('click', function () { D.filter = b.getAttribute('data-df'); drawList(); }); });
+    U.app.querySelectorAll('[data-df]').forEach(function (b) { b.addEventListener('click', function () { D.filter = b.getAttribute('data-df'); D.picked = true; drawList(); }); });
     U.app.querySelectorAll('tr[data-nr]').forEach(function (tr) { tr.addEventListener('click', function () { location.hash = '#/beleg/' + encodeURIComponent(tr.getAttribute('data-nr')); }); });
   }
 
@@ -488,13 +494,18 @@ fieldset.lock .input{background:#fff}
   }
 
   /* ---------- company data ---------- */
+  var CHOICES = {small: [['nein', 'Nein – mit Umsatzsteuer'], ['ja', 'Ja – ohne Umsatzsteuer']], price_mode: [['brutto', 'Brutto (inkl. USt)'], ['netto', 'Netto (zzgl. USt)']]};
   function company() {
     U.setNav('docs');
     U.app.innerHTML = '<p class="loading">Firmendaten werden geladen …</p>';
     run('api_company').then(function (r) {
       U.app.innerHTML = '<a href="#/belege" class="muted">← Belege</a><span class="kicker" style="display:block;margin-top:8px">Einstellungen</span><div class="h"><h1>Firmendaten für Angebote und Rechnungen</h1></div>' +
-        '<p class="muted" style="max-width:70ch">Diese Angaben stehen im Kopf und in der Fußzeile jedes Belegs. Für Rechnungen Pflicht: Name und Anschrift, USt-IdNr. oder Steuernummer. Für Überweisungen: IBAN.</p>' +
-        '<div class="f3" style="max-width:980px">' + r.fields.map(function (f) { return fld(f.label, inp('c_' + f.key, r.values[f.key])); }).join('') + '</div>' +
+        '<p class="muted" style="max-width:980px;text-align:justify">Diese Angaben stehen im Kopf und in der Fußzeile jedes Belegs. Für Rechnungen Pflicht: Name und Anschrift, USt-IdNr. oder Steuernummer. Für Überweisungen: IBAN.</p>' +
+        '<div class="f3" style="max-width:980px">' + r.fields.map(function (f) {
+          var ch = CHOICES[f.key], v = r.values[f.key];
+          if (!ch) return fld(f.label, inp('c_' + f.key, v, f.key === 'bcc' ? 'email' : f.key === 'vat' || /_days$/.test(f.key) ? 'number' : 'text'));
+          return fld(f.label.replace(/ \([a-z/]+\)$/, ''), '<select class="input" id="c_' + f.key + '">' + ch.map(function (o) { return '<option value="' + o[0] + '"' + (String(v).toLowerCase() === o[0] ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select>');
+        }).join('') + '</div>' +
         '<div class="actions" style="margin-top:16px"><button class="btn primary" id="c-save">Speichern</button></div>';
       document.getElementById('c-save').addEventListener('click', function (e) {
         var v = {}; r.fields.forEach(function (f) { v[f.key] = document.getElementById('c_' + f.key).value; });

@@ -20,7 +20,7 @@ h1,h2,h3{margin:0;font-weight:700;letter-spacing:-.02em;line-height:1.1}
 .top nav a[aria-current=page]{box-shadow:inset 0 -3px 0 #ff7a2e}
 .top .me{font-size:12.5px;color:#b8c1ce;display:flex;gap:12px;align-items:center}
 .top .me a{color:#f3f2f2}
-main{max-width:1280px;margin:0 auto;padding:24px 20px 80px}
+main{max-width:1280px;margin:0 auto;padding:24px clamp(20px,4vw,48px) 80px}
 .kicker{font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--fill2)}
 .h{display:flex;align-items:end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:6px 0 18px}
 .h h1{font-size:28px}
@@ -89,6 +89,10 @@ textarea.input{min-height:120px;resize:vertical;line-height:1.5}
 .toast.err{background:var(--fill)}
 .loading{padding:40px 0;color:var(--ink2)}
 .cal-m{font-size:20px;margin:24px 0 8px}
+.ktag{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:2px 6px;margin-right:8px;vertical-align:1px;border:1px solid currentColor}
+.k-auftrag{color:var(--ink)}.k-flexibel{color:#8a5a00}.k-termin{color:#c2410c}
+.cal-key{font-size:13px;line-height:2}.cal-key .ktag{margin-left:10px}.cal-key .ktag:first-child{margin-left:0}
+@media (max-width:640px){.cal-key{display:grid;grid-template-columns:auto 1fr;gap:6px 0;align-items:center;line-height:1.4}.cal-key .ktag{margin-left:0;justify-self:start}}
 @media (max-width:900px){
   .detail,.cols{grid-template-columns:minmax(0,1fr)}
   .grid4{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -222,10 +226,16 @@ body.locked .top nav,body.locked .top .me{display:none}
   });
   var toastT;
   function toast(msg, err) { var t = document.getElementById('toast'); t.textContent = msg; t.className = 'toast' + (err ? ' err' : ''); t.hidden = false; clearTimeout(toastT); toastT = setTimeout(function () { t.hidden = true; }, 3500); }
-  function fail(e) { toast((e && e.message) || String(e), true); }
+  function fail(e) {
+    var m = (e && e.message) || String(e), p = app.querySelector(':scope > p.loading');
+    toast(m, true);
+    // a page that could not load (old or mistyped link): say so instead of "wird geladen …" forever
+    if (p) p.outerHTML = '<div class="card"><p><b>' + esc(m) + '</b></p><p><a href="javascript:history.back()">← Zurück</a> · <a href="#/">Zur Übersicht</a></p></div>';
+  }
   function eur(n) { return n == null || n === '' || isNaN(n) ? '–' : Number(n).toLocaleString('de-DE', {minimumFractionDigits: 0, maximumFractionDigits: 2}) + ' €'; }
   function day(iso) { if (!iso) return '–'; var d = new Date(iso); return isNaN(d) ? esc(iso) : d.toLocaleDateString('de-DE', {day: '2-digit', month: '2-digit', year: '2-digit'}); }
   function dt(iso) { if (!iso) return '–'; var d = new Date(iso); return isNaN(d) ? esc(iso) : d.toLocaleString('de-DE', {day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'}); }
+  function de(n) { return String(n == null ? '' : n).replace('.', ','); }   // 4.9 → 4,9
   function isDate(s) { return /^\d{4}-\d{2}-\d{2}$/.test(s); }
   function badge(s) { return '<span class="badge s' + S.statuses.indexOf(s) + '">' + esc(s) + '</span>'; }
   function svc(l) { return String(l.service || '').replace(/ \((Planer|Kurzformular)\)$/, ''); }
@@ -260,7 +270,7 @@ body.locked .top nav,body.locked .top .me{display:none}
     app.innerHTML = '<span class="kicker">Übersicht</span><div class="h"><h1>Guten Tag.</h1><a class="btn primary" href="#/anfragen">Alle Anfragen →</a></div>' +
       '<div class="grid4">' + ['Neu', 'In Arbeit', 'Angebot raus', 'Gebucht'].map(function (s) { return '<a class="kpi" style="text-decoration:none" href="#/anfragen" data-st="' + esc(s) + '"><b>' + c(s) + '</b><span>' + esc(s) + '</span></a>'; }).join('') + '</div>' +
       '<div class="cols"><section class="block"><h2>Neue Anfragen</h2><div class="list">' + (fresh.length ? fresh.map(function (l) { return rowHtml(l); }).join('') : '<p class="empty">Keine neuen Anfragen.</p>') + '</div></section>' +
-      '<section class="block"><h2>Nächste Termine</h2><div class="list">' + (upcoming.length ? upcoming.map(function (l) { return rowHtml(l, true); }).join('') : '<p class="empty">Keine festen Termine.</p>') + '</div>' +
+      '<section class="block"><h2>Nächste Aufträge</h2><div class="list">' + (upcoming.length ? upcoming.map(function (l) { return rowHtml(l, true); }).join('') : '<p class="empty">Keine festen Termine.</p>') + '</div>' +
       (stale.length ? '<h2 style="margin-top:24px">Angebot ohne Antwort (> 3 Tage)</h2><div class="list">' + stale.map(function (l) { return rowHtml(l); }).join('') + '</div>' : '') + '</section></div>' +
       routesHtml();
     app.querySelectorAll('[data-st]').forEach(function (a) { a.addEventListener('click', function () { S.filter.status = a.getAttribute('data-st'); }); });
@@ -311,7 +321,7 @@ body.locked .top nav,body.locked .top .me{display:none}
       rows.map(function (l) {
         return '<tr data-id="' + esc(l.id) + '"><td><b>' + esc(l.id) + '</b><div class="muted">' + dt(l.received) + '</div></td><td>' + esc(l.name || '–') + '<div class="muted">' + esc(l.owner ? 'Zuständig: ' + l.owner : (l.phone || l.email)) + '</div></td>' +
           '<td class="hide-m">' + esc(svc(l)) + '</td><td class="hide-m">' + esc(route(l)) + '</td><td>' + (isDate(l.date) ? day(l.date) : '<span class="muted">' + esc(l.date || 'flexibel') + '</span>') + '</td>' +
-          '<td class="num hide-m">' + (l.volMin != null ? esc(l.volMin) + '–' + esc(l.volMax) + ' m³' : '–') + '</td><td class="num hide-m">' + eur(l.total) + '</td><td>' + badge(l.status) + '</td></tr>';
+          '<td class="num hide-m">' + (l.volMin != null ? esc(de(l.volMin)) + '–' + esc(de(l.volMax)) + ' m³' : '–') + '</td><td class="num hide-m">' + eur(l.total) + '</td><td>' + badge(l.status) + '</td></tr>';
       }).join('') + '</tbody></table>' : '<p class="empty">Keine Anfragen für diesen Filter.</p>';
     document.querySelectorAll('#tbl tr[data-id]').forEach(function (tr) { tr.addEventListener('click', function () { location.hash = '#/a/' + encodeURIComponent(tr.getAttribute('data-id')); }); });
   }
@@ -328,8 +338,8 @@ body.locked .top nav,body.locked .top .me{display:none}
     var facts = fact('Leistung', l.service) + fact('Termin', isDate(l.date) ? day(l.date) : l.date) + fact('Von', l.from) + fact('Nach', l.to) +
       fact('Entfernung', l.kmMaps != null ? l.kmMaps + ' km (' + l.minutes + ' min)' : (l.kmFamily ? l.kmFamily + ' km (Angabe)' : '')) + fact('Haushalt', l.household) +
       fact('Zugang Auszug', l.accOld) + fact('Zugang Einzug', l.accNew) + fact('Halteverbot', l.hvz) + fact('Räume', l.rooms) +
-      fact('Volumen', l.volMin != null ? l.volMin + '–' + l.volMax + ' m³' : '') + fact('Gewicht', l.weight ? l.weight + ' kg' : '') +
-      fact('Fahrzeug', l.vehicle) + fact('Team / Stunden', l.crew ? l.crew + ' Personen · ' + l.hours + ' Std.' : '') + fact('Vertrauen', l.confidence) +
+      fact('Volumen', l.volMin != null ? de(l.volMin) + '–' + de(l.volMax) + ' m³' : '') + fact('Gewicht', l.weight ? l.weight + ' kg' : '') +
+      fact('Fahrzeug', l.vehicle) + fact('Team / Stunden', l.crew ? l.crew + ' Personen · ' + de(l.hours) + ' Std.' : '') + fact('Vertrauen', l.confidence) +
       fact('Kostenträger', l.payer && l.payer !== 'Selbstzahler' ? l.payer : '') + fact('Vorvereinbarung', l.pre) +
       fact('Quelle', l.source) + fact('Sprache', l.lang) + fact('Eingang', dt(l.received));
     var items = d.items.length ? '<div class="card"><h2>Gegenstände (' + d.items.reduce(function (a, i) { return a + i.n; }, 0) + ')</h2><table class="tbl" style="border-top:0"><thead><tr><th>Gegenstand</th><th>Herkunft</th><th class="num">Anz.</th><th class="num">m³</th></tr></thead><tbody>' +
@@ -338,7 +348,7 @@ body.locked .top nav,body.locked .top .me{display:none}
       (l.email ? '<a class="btn small" href="mailto:' + esc(l.email) + '">E-Mail</a>' : '');
     app.innerHTML = '<a href="#/anfragen" class="muted">← Alle Anfragen</a>' +
       '<div class="h"><div><span class="kicker">' + esc(l.id) + ' · ' + esc(svc(l)) + '</span><h1>' + esc(l.name || '–') + '</h1>' +
-      '<div class="muted">' + esc([l.phone, l.email].filter(Boolean).join(' · ')) + (l.channel ? ' · bevorzugt: ' + esc(l.channel) : '') + '</div></div><div class="actions">' + contact + '</div></div>' +
+      '<div class="muted">' + esc([l.phone, l.email].filter(Boolean).join(' · ')) + (l.channel ? ' · bevorzugt: ' + esc(({whatsapp: 'WhatsApp', email: 'E-Mail', phone: 'Telefon', call: 'Telefon'})[String(l.channel).toLowerCase()] || l.channel) : '') + '</div></div><div class="actions">' + contact + '</div></div>' +
       '<div class="detail"><div>' +
         '<div class="card"><h2>Angaben</h2><dl class="facts" style="margin:0">' + facts + '</dl>' + (l.message ? '<p style="margin:12px 0 0;white-space:pre-wrap"><b>Nachricht:</b> ' + esc(l.message) + '</p>' : '') + '</div>' +
         items + quoteHtml() +
@@ -442,18 +452,37 @@ body.locked .top nav,body.locked .top .me{display:none}
   /* ---------- calendar ---------- */
   function calendar() {
     setNav('cal');
-    var withDate = S.leads.filter(function (l) { return isDate(l.date) && l.status !== 'Verloren'; }).sort(function (a, b) { return a.date < b.date ? -1 : 1; });
-    var today = new Date().toISOString().slice(0, 10), groups = {};
-    withDate.filter(function (l) { return l.date >= today.slice(0, 8) + '01'; }).forEach(function (l) { var m = l.date.slice(0, 7); (groups[m] = groups[m] || []).push(l); });
+    app.innerHTML = '<p class="loading">Kalender wird geladen …</p>';
+    run('api_appts').then(function (r) { drawCalendar(r.appts || []); }, function () { drawCalendar([]); });
+  }
+  function drawCalendar(appts) {
+    var today = new Date().toISOString().slice(0, 10), from = today.slice(0, 8) + '01', items = [];
+    S.leads.forEach(function (l) {
+      if (l.status === 'Verloren' || l.status === 'Erledigt') return;
+      var d = isDate(l.date) ? l.date : '', m = !d && /(\d{2})\.(\d{2})\.(\d{4})/.exec(l.date || '');   // flexible: from the first wished day
+      if (m) d = m[3] + '-' + m[2] + '-' + m[1];
+      if (d) items.push({date: d, time: '', href: '#/a/' + encodeURIComponent(l.id), name: l.name, kind: m ? 'flexibel' : 'Auftrag',
+        info: [l.id, svc(l), route(l), m ? l.date : '', l.owner].filter(Boolean).join(' · '), badge: badge(l.status)});
+    });
+    appts.forEach(function (a) {
+      if (a.status === 'Abgesagt' || !isDate(a.date)) return;
+      items.push({date: a.date, time: a.time, href: a.lead ? '#/a/' + encodeURIComponent(a.lead) : '#/termine', name: a.name, kind: 'Termin',
+        info: [a.time + ' Uhr', ({visit: 'Besichtigung vor Ort', video: 'Video-Besichtigung', call: 'Rückruf und Beratung'})[a.type] || a.type, a.nr, a.address].filter(Boolean).join(' · '), badge: '<span class="badge">' + esc(a.status) + '</span>'});
+    });
+    var groups = {};
+    items.filter(function (x) { return x.date >= from; }).sort(function (a, b) { return (a.date + a.time) < (b.date + b.time) ? -1 : 1; })
+      .forEach(function (x) { var k = x.date.slice(0, 7); (groups[k] = groups[k] || []).push(x); });
     var months = Object.keys(groups).sort();
-    app.innerHTML = '<span class="kicker">Kalender</span><div class="h"><h1>Termine</h1></div>' + (months.length ? months.map(function (m) {
-      var name = new Date(m + '-01T12:00:00').toLocaleDateString('de-DE', {month: 'long', year: 'numeric'});
-      return '<h2 class="cal-m">' + esc(name) + '</h2><div class="list">' + groups[m].map(function (l) {
-        var d = new Date(l.date + 'T12:00:00');
-        return '<a class="row" href="#/a/' + encodeURIComponent(l.id) + '"><span class="id">' + d.toLocaleDateString('de-DE', {weekday: 'short', day: '2-digit', month: '2-digit'}) + '</span><span>' + esc(l.name || '–') +
-          '<small>' + esc(l.id) + ' · ' + esc(svc(l)) + ' · ' + esc(route(l)) + (l.owner ? ' · ' + esc(l.owner) : '') + '</small></span>' + badge(l.status) + '</a>';
-      }).join('') + '</div>';
-    }).join('') : '<p class="empty">Noch keine Anfragen mit festem Termin.</p>');
+    app.innerHTML = '<span class="kicker">Kalender</span><div class="h"><h1>Aufträge und Termine</h1><a class="btn small" href="#/termine">Termine verwalten</a></div>' +
+      '<p class="muted cal-key"><span class="ktag k-auftrag">Auftrag</span> fester Umzugs- oder Leistungstag <span class="ktag k-flexibel">flexibel</span> Wunschzeitraum, ab dem ersten Tag <span class="ktag k-termin">Termin</span> Besichtigung oder Rückruf von der Website</p>' +
+      (months.length ? months.map(function (m) {
+        var name = new Date(m + '-01T12:00:00').toLocaleDateString('de-DE', {month: 'long', year: 'numeric'});
+        return '<h2 class="cal-m">' + esc(name) + '</h2><div class="list">' + groups[m].map(function (x) {
+          var d = new Date(x.date + 'T12:00:00');
+          return '<a class="row" href="' + x.href + '"><span class="id">' + d.toLocaleDateString('de-DE', {weekday: 'short', day: '2-digit', month: '2-digit'}) + '</span><span><span class="ktag k-' + x.kind.toLowerCase() + '">' + esc(x.kind) + '</span>' + esc(x.name || '–') +
+            '<small>' + esc(x.info) + '</small></span>' + x.badge + '</a>';
+        }).join('') + '</div>';
+      }).join('') : '<p class="empty">Keine kommenden Aufträge oder Termine.</p>');
   }
 
   /* shared with BelegeUi.html */
