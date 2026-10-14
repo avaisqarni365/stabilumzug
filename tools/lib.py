@@ -227,7 +227,8 @@ SOFT = {w.replace("|", ""): w.replace("|", "­") for w in [
     "Möbel|transporte", "Möbel|transport", "Halte|verbots|zonen", "Umzugs|kartons", "Besichti|gungen", "Besichti|gung",
     "Haushalts|auflösung", "Keller|entrümpelung", "Zusatz|leistungen", "Möbel|montage", "Küchen|montage", "Klavier|transport",
     "Umzugs|kosten", "Umzugs|volumen", "Halte|verbots|zone", "Fahr|strecke", "Trans|porter", "Straßen|verkehrs|behörde", "Berufs|verkehr", "Tages|plan",
-    "Halte|verbot", "aus|messen", "An|meldung", "Ab|lauf", "Haus|rat", "nach|vollziehbar", "Arbeits|kleidung", "Softshell|jacke", "Arbeits|hose"]}
+    "Halte|verbot", "aus|messen", "An|meldung", "Ab|lauf", "Haus|rat", "nach|vollziehbar", "Arbeits|kleidung", "Softshell|jacke", "Arbeits|hose",
+    "Wohnungs|geber|bestätigung", "Adress|änderungen", "Post|leit|zahlen", "Übergabe|protokoll"]}
 _SOFT_RE = re.compile("|".join(sorted(map(re.escape, SOFT), key=len, reverse=True)))
 
 def hyphenate(html):

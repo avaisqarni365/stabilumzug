@@ -276,3 +276,5 @@ p.uf-small,.uf-how .uf-small,.uf-card .uf-small{text-align:justify}
 .uf-item-txt .uf-strong{hyphens:manual;-webkit-hyphens:manual}
 .uf-remote summary::after,.uf-why summary::after{margin-right:4px}
 @media (max-width:360px){.uf-k{letter-spacing:.02em;font-size:10.5px}}
+/* wide screens: the planner's first sentence on one line, "Stabil geplant." on the next (headings one line on desktop) */
+@media (min-width:761px){.uf-hero h1{font-size:29px}.uf-hero h1 span{display:block}}
