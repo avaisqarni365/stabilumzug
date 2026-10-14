@@ -269,3 +269,8 @@ p.uf-small,.uf-how .uf-small,.uf-card .uf-small{text-align:justify}
   .uf .uf-seg-wrap .seg-opt:nth-child(3n+1){border-left:0}
   .uf-pre-in{margin-left:0}
 }
+
+/* small phones (320 px): long German item names and stat labels break with a hyphen instead of overflowing */
+.uf-item-txt .uf-strong{hyphens:manual;-webkit-hyphens:manual}
+.uf-remote summary::after,.uf-why summary::after{margin-right:4px}
+@media (max-width:360px){.uf-k{letter-spacing:.02em;font-size:10.5px}}

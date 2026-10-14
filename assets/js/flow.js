@@ -23,6 +23,11 @@
   function num(x, d) { return Number(x).toLocaleString(loc, {maximumFractionDigits: d == null ? 1 : d, minimumFractionDigits: 0}); }
   function fmt(s, o) { return s.replace(/\{(\w+)\}/g, function (_, k) { return o[k]; }); }
   function nm(it) { return it[lang]; }
+  /* soft hyphens at the word joins of long German names, so they break cleanly on small phones (Schwebetüren-schrank) */
+  var SHY = {'Schwebetürenschrank': 'Schwebetüren­schrank', 'Esszimmerstuhl': 'Esszimmer­stuhl', 'Kleiderschrank': 'Kleider­schrank',
+    'Geschirrspüler': 'Geschirr­spüler', 'Geschirrkarton': 'Geschirr­karton', 'Waschmaschine': 'Wasch­maschine',
+    'Umzugskarton': 'Umzugs­karton', 'Kühlschrank': 'Kühl­schrank', 'Bücherkarton': 'Bücher­karton'};
+  function shy(s) { return s.replace(/[A-Za-zÄÖÜäöüß]{11,}/g, function (w) { return SHY[w] || w; }); }
   function total(e) { var n = 0; for (var k in e.by) n += e.by[k]; return n; }
   function itemLabel(it, vi) { return nm(it) + (it.vars ? ' ' + it.vars[vi || 0].l : ''); }
   function getPath(o, p) { return p.split('.').reduce(function (a, k) { return a == null ? a : a[k]; }, o); }
@@ -259,7 +264,7 @@
       var tags = e ? SRC_ORDER.filter(function (s) { return s !== 'pick' && e.by[s]; }).map(function (s) { return tag(t.f5.source[s] + ' ' + e.by[s]); }).join('') : '';
       var label = itemLabel(it, vi);
       return '<div class="uf-row uf-item' + (n ? ' on' : '') + '">' +
-        '<div class="uf-item-main"><div class="uf-item-txt"><div class="uf-strong">' + esc(nm(it)) + '</div>' +
+        '<div class="uf-item-main"><div class="uf-item-txt"><div class="uf-strong">' + shy(esc(nm(it))) + '</div>' +
         '<div class="uf-meta">' + num(E.itemVol(it, vi), 3) + ' m³' + tags + '</div></div>' +
         '<div class="uf-stepper">' +
           '<button type="button" data-act="dec" data-id="' + it.id + '" data-k="dec-' + it.id + '" aria-label="' + esc(label + ' – ' + t.f4.less) + '"' + (n ? '' : ' disabled') + '>' + ICON.minus + '</button>' +
