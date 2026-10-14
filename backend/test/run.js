@@ -121,6 +121,12 @@ const LW = sheets['Anfragen'].data, rw = LW.find(r => r[0] === wl.id);
 assert.strictEqual(rw[LW[0].indexOf('Termin')], 'flexibel 01.11.2026–15.11.2026');
 console.log('ok wished date: fixed day, flexible window in the sheet');
 
+// 5e. office e-mails carry a direct link into the admin
+mails.length = 0;
+const dl = post({action: 'quick', consent: true, t: 9000, lang: 'de', form: {service: 'moves', name: 'Link Test', phone: '0201 1', email: ''}});
+assert(dl.ok && mails.some(m => m.body.indexOf('Im Admin öffnen: ' + ctx.ADMIN_URL + '?a=' + dl.id) >= 0), 'admin link in the office mail');
+console.log('ok office mail links to the admin request');
+
 // 6. rate limit
 for (let i = 0; i < 70; i++) post({action: 'route', from: 'Essen Hbf', to: 'Bochum Hbf'});
 console.log('ok rate limit:', post({action: 'route', from: 'a b c d', to: 'e f g h'}).error);

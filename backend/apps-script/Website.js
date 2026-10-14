@@ -86,7 +86,7 @@ function photos_(b) {
     try {
       MailApp.sendEmail({to: to, subject: 'Fotos zu Anfrage ' + id + (name ? ' – ' + name : '') + ' (' + blobs.length + ')',
         body: [blobs.length + ' Foto(s) zur Anfrage ' + id + ' über die Website.', note ? 'Hinweis des Kunden: ' + note : '', '',
-               'Tabelle: ' + SpreadsheetApp.getActive().getUrl()].join('\n'), attachments: blobs});
+               adminLink_(id), 'Tabelle: ' + SpreadsheetApp.getActive().getUrl()].join('\n'), attachments: blobs});
     } catch (err) { console.error(err); return {ok: false, error: 'mail'}; }
   }
   return {ok: true, n: tok.n};

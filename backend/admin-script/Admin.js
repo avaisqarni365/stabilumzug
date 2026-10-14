@@ -9,15 +9,25 @@
 
 function ss_() { return SpreadsheetApp.openById(SHEET_ID); }
 
-function doGet() {
+function doGet(e) {
   var email = Session.getActiveUser().getEmail() || '';
   var t, ok = false;
   try { ok = isEditor_(email); } catch (err) { ok = false; }
   t = HtmlService.createTemplateFromFile(ok ? 'Index' : 'NoAccess');
   t.email = email;
   t.siteUrl = typeof SITE_URL !== 'undefined' ? SITE_URL : DEFAULT_SITE;
+  t.start = startPage_(e && e.parameter);
   return t.evaluate().setTitle('Stabil Umzug – Admin')
     .addMetaTag('viewport', 'width=device-width, initial-scale=1');
+}
+
+/* Direct links: ?a=A-2603 opens the request, ?b=AN-2026-0001 the document, ?t=1 the appointments. Only safe values pass. */
+function startPage_(p) {
+  p = p || {};
+  if (/^A-\d{1,8}$/.test(p.a || '')) return 'a/' + p.a;
+  if (/^[A-Z]{1,3}-[A-Za-z0-9-]{4,24}$/.test(p.b || '')) return 'beleg/' + p.b;
+  if (p.t) return 'termine';
+  return '';
 }
 
 /* Only editors (and the owner) of the company sheet may use the admin. */
