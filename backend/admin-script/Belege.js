@@ -47,7 +47,7 @@ function writeDoc_(doc, row) {
   doc.totals = t;
   var paid = (doc.payments || []).reduce(function (a, p) { return a + (Number(p.amount) || 0); }, 0);
   var lastPay = (doc.payments || []).length ? doc.payments[doc.payments.length - 1].date : '';
-  var vals = [doc.nr, DOC_TYPES[doc.type] || doc.type, doc.status, doc.lead || '', doc.date || '', cell_(doc.to.name, 120), t.net, t.vat, t.gross,
+  var vals = [doc.nr, DOC_TYPES[doc.type] || doc.type, doc.status, doc.lead || '', doc.date || '', cell_(doc.to.company && doc.to.kind === 'firma' ? doc.to.company + (doc.to.name ? ' (' + doc.to.name + ')' : '') : doc.to.name, 120), t.net, t.vat, t.gross,
     doc.due || '', lastPay, round_(paid, 2), doc.pdf || '', doc.by || '', new Date(), doc.ref || '', JSON.stringify(doc)];
   if (row) sh.getRange(row, 1, 1, DOC_COLS.length).setValues([vals]);
   else sh.appendRow(vals);

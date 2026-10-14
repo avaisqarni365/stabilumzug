@@ -67,11 +67,23 @@ fieldset.lock .input{background:#fff}
 @media (max-width:1000px){.doc-wrap{grid-template-columns:minmax(0,1fr)}.doc-side{position:static}}
 @media (max-width:700px){
   .f2,.f3,.f4,.sender{grid-template-columns:minmax(0,1fr)}.span2{grid-column:auto}
+}
+@media (max-width:1279px){
   .lines thead{display:none}
-  .lines tr{display:grid;grid-template-columns:28px 1fr 1fr 1fr;gap:6px;padding:10px 0;border-bottom:1px solid var(--line)}
-  .lines td{border:0;padding:0}
-  .lines td.t{grid-column:2/-1}
-  .lines .n,.lines .u,.lines .p,.lines .v,.lines .r{width:100%}
+  /* each line as a card: number + texts, then Menge | Einheit | Preis | USt, then Rabatt | Lohn | Betrag, then the tools */
+  .lines tr{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;padding:12px 0;border-bottom:1px solid var(--line);align-items:end}
+  .lines td{border:0;padding:0;min-width:0}
+  .lines td.pos{grid-column:1/-1;font-weight:700;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink2)}
+  .lines td.pos::before{content:"Position "}
+  .lines td.t{grid-column:1/-1;display:grid;gap:6px}
+  .lines td.amt{grid-column:3/-1;text-align:right;font-weight:700;padding-bottom:12px}
+  .lines td.tools{grid-column:1/-1;display:flex;justify-content:flex-end;gap:6px}
+  .lines td.tools button{width:44px;height:44px}
+  .lines td:nth-child(3)::before,.lines td:nth-child(4)::before,.lines td:nth-child(5)::before,.lines td:nth-child(6)::before,.lines td:nth-child(7)::before,.lines td.lab::before{display:block;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink2);margin-bottom:3px}
+  .lines td:nth-child(3)::before{content:"Menge"}.lines td:nth-child(4)::before{content:"Einheit"}.lines td:nth-child(5)::before{content:"Preis €"}
+  .lines td:nth-child(6)::before{content:"USt"}.lines td:nth-child(7)::before{content:"Rabatt %"}.lines td.lab::before{content:"Lohn § 35a"}
+  .lines td.lab input{width:24px;height:24px;margin:10px 0}
+  .lines .n,.lines .u,.lines .p,.lines .v,.lines .r{width:100%;min-height:44px}
 }
 </style>
 <datalist id="units"><option value="Pausch."><option value="Std."><option value="Tag"><option value="km"><option value="m³"><option value="Stk."><option value="Adr."><option value="min"></datalist>
