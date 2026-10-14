@@ -1303,3 +1303,5 @@ details.fs-card > summary:focus-visible{outline:2px solid var(--red);outline-off
   .article .prose{max-width:68ch}
   .article .prose > p,.article .prose > ul li,.article .prose > ol li{font-size:18px;line-height:1.7}
 }
+/* prices: "Preis auf Anfrage" is text, not a number – smaller, on one line, aligned with the numbers */
+.pkg .price.ask{font-size:1.45rem;line-height:1.2;letter-spacing:-.01em;padding-top:36px;white-space:nowrap}

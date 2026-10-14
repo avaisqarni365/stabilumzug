@@ -104,8 +104,8 @@ def package_cards(key, lang):
     for p in P.PACKAGES:
         name, sub, items = p[lang]
         price = ('<span class="from">%s</span>%s' % (t("ab", "from", lang), eur(p["price"], lang))) if p["price"] else t("Preis auf Anfrage", "Price on request", lang)
-        out.append('<article class="pkg%s"><h3>%s</h3><p class="sub">%s</p><p class="price">%s</p><ul>%s</ul><a class="button %s" href="%s">%s</a></article>' % (
-            " featured" if p.get("featured") else "", esc(name), esc(sub), price, "".join("<li>%s</li>" % esc(i) for i in items),
+        out.append('<article class="pkg%s"><h3>%s</h3><p class="sub">%s</p><p class="price%s">%s</p><ul>%s</ul><a class="button %s" href="%s">%s</a></article>' % (
+            " featured" if p.get("featured") else "", esc(name), esc(sub), "" if p["price"] else " ask", price, "".join("<li>%s</li>" % esc(i) for i in items),
             "primary" if p.get("featured") else "arrow", link(key, "quote", lang) + "?service=moves", t("Angebot anfordern", "Request a quote", lang)))
     return '<div class="pkgs">%s</div>' % "".join(out)
 
