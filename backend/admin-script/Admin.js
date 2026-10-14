@@ -1,8 +1,10 @@
 /**
  * Stabil Umzug – admin app (back office in the browser).
  *
- * Runs as the signed-in Google user ("execute as user accessing"), so Google handles the login and only people
- * the company sheet is shared with (as editors) get in. Everything is read from and written to that sheet.
+ * Login with username and password from the "Benutzer" tab (no Google account needed). The app runs as the
+ * company account ("execute as me"); only login(), logout() and api() can be called from the page – every
+ * api_…_ function is private and reached through api(), which checks the session first.
+ * Everything is read from and written to the company sheet.
  * Config.js (written by backend/deploy-backend.ps1) defines SHEET_ID, SITE_URL and PORTAL_URL.
  * Shared.js and Estimator.js are copies made by tools/build.py.
  */
@@ -10,11 +12,7 @@
 function ss_() { return SpreadsheetApp.openById(SHEET_ID); }
 
 function doGet(e) {
-  var email = Session.getActiveUser().getEmail() || '';
-  var t, ok = false;
-  try { ok = isEditor_(email); } catch (err) { ok = false; }
-  t = HtmlService.createTemplateFromFile(ok ? 'Index' : 'NoAccess');
-  t.email = email;
+  var t = HtmlService.createTemplateFromFile('Index');
   t.siteUrl = typeof SITE_URL !== 'undefined' ? SITE_URL : DEFAULT_SITE;
   t.start = startPage_(e && e.parameter);
   return t.evaluate().setTitle('Stabil Umzug – Admin')
@@ -30,17 +28,60 @@ function startPage_(p) {
   return '';
 }
 
-/* Only editors (and the owner) of the company sheet may use the admin. */
-function isEditor_(email) {
-  if (!email) return false;
-  var s = ss_(), e = email.toLowerCase();
-  if (s.getOwner && s.getOwner() && s.getOwner().getEmail().toLowerCase() === e) return true;
-  return s.getEditors().some(function (u) { return u.getEmail().toLowerCase() === e; });
+/* ---------- login ---------- */
+var SESSION_TTL = 21600, LOCK_TRIES = 5, LOCK_SECONDS = 900;
+var CURRENT_ = null;   // the logged-in user of this call, set by api()
+
+/* login(username, password) → {ok, token, name} or {ok: false, error}. Same answer for unknown user and wrong password. */
+function login(user, pass) {
+  var u = String(user || '').trim().toLowerCase().slice(0, 60), cache = CacheService.getScriptCache(), key = 'admfail_' + u;
+  var fails = Number(cache.get(key) || 0);
+  if (fails >= LOCK_TRIES) return {ok: false, error: 'locked'};
+  var sh = usersSheet_(), n = sh.getLastRow(), c = function (k) { return USER_COLS.indexOf(k); };
+  var rows = n > 1 ? sh.getRange(2, 1, n - 1, USER_COLS.length).getValues() : [], hit = -1;
+  for (var i = 0; i < rows.length; i++) if (String(rows[i][c('Benutzername')]).trim().toLowerCase() === u && u) { hit = i; break; }
+  var ok = false, name = '', row = hit + 2;
+  if (hit >= 0 && /^(ja|yes|x|1|true)$/i.test(String(rows[hit][c('Aktiv')]).trim())) {
+    var r = rows[hit], plain = String(r[c('Neues Passwort')] || '');
+    if (plain) {   // first login after the owner typed a password: encrypt it now
+      var err = setUserPw_(sh, row, plain);
+      if (!err) r = sh.getRange(row, 1, 1, USER_COLS.length).getValues()[0];
+    }
+    if (r[c('Passwort (verschlüsselt)')] && hashPw_(pass, r[c('Salt')]) === String(r[c('Passwort (verschlüsselt)')])) { ok = true; name = String(r[c('Name')] || r[c('Benutzername')]); }
+  }
+  if (!ok) {
+    cache.put(key, String(fails + 1), LOCK_SECONDS);
+    Utilities.sleep(600);
+    return {ok: false, error: fails + 1 >= LOCK_TRIES ? 'locked' : 'login'};
+  }
+  cache.remove(key);
+  sh.getRange(row, c('Letzte Anmeldung') + 1).setValue(new Date());
+  var token = Utilities.getUuid().replace(/-/g, '') + Utilities.getUuid().replace(/-/g, '');
+  cache.put('adm_' + token, JSON.stringify({user: u, name: name}), SESSION_TTL);
+  return {ok: true, token: token, name: name};
+}
+function logout(token) { if (/^[0-9a-f]{64}$/.test(String(token || ''))) CacheService.getScriptCache().remove('adm_' + token); return {ok: true}; }
+
+/* The only door to the data: checks the session, then calls the private api_<name>_ function. */
+function api(token, fn, args) {
+  var t = String(token || ''), cache = CacheService.getScriptCache(), raw = /^[0-9a-f]{64}$/.test(t) ? cache.get('adm_' + t) : null;
+  if (!raw) throw new Error('LOGIN');
+  var s = JSON.parse(raw);
+  // the user may have been removed or set inactive in the sheet since the login
+  var sh = usersSheet_(), n = sh.getLastRow(), still = false, c = function (k) { return USER_COLS.indexOf(k); };
+  if (n > 1) sh.getRange(2, 1, n - 1, USER_COLS.length).getValues().forEach(function (r) {
+    if (String(r[c('Benutzername')]).trim().toLowerCase() === s.user && /^(ja|yes|x|1|true)$/i.test(String(r[c('Aktiv')]).trim())) still = true;
+  });
+  if (!still) { cache.remove('adm_' + t); throw new Error('LOGIN'); }
+  cache.put('adm_' + t, raw, SESSION_TTL);   // sliding: 6 hours after the last action
+  var name = String(fn || '');
+  if (!/^api_[A-Za-z]+$/.test(name) || typeof globalThis[name + '_'] !== 'function') throw new Error('Unbekannte Aktion.');
+  CURRENT_ = s;
+  try { return globalThis[name + '_'].apply(null, Array.isArray(args) ? args : []); } finally { CURRENT_ = null; }
 }
 function guard_() {
-  var email = Session.getActiveUser().getEmail();
-  if (!isEditor_(email)) throw new Error('Kein Zugriff für ' + (email || 'unbekannt') + '.');
-  return email;
+  if (!CURRENT_) throw new Error('LOGIN');
+  return CURRENT_.name || CURRENT_.user;
 }
 
 /* iso_ and day_ live in Shared.js. */
@@ -76,7 +117,7 @@ function allLeads_() {
 
 /* ------------------------------------------------------------------ API used by Index.html (google.script.run) */
 
-function api_bootstrap() {
+function api_bootstrap_() {
   var email = guard_();
   ensureLeadHeader_();
   return {me: email, statuses: STATUS, leads: allLeads_(), sheetUrl: ss_().getUrl(), portal: typeof PORTAL_URL !== 'undefined' && !!PORTAL_URL, routes: routeStats_()};
@@ -100,7 +141,7 @@ function routeStats_() {
   return out;
 }
 
-function api_lead(id) {
+function api_lead_(id) {
   guard_();
   var hit = findLead_(id);
   if (!hit) throw new Error('Anfrage ' + id + ' nicht gefunden.');
@@ -120,7 +161,7 @@ function api_lead(id) {
 }
 
 /* Status, owner and notes. Every change is written to the Protokoll tab. */
-function api_update(id, patch) {
+function api_update_(id, patch) {
   var email = guard_();
   var lock = LockService.getScriptLock(); lock.waitLock(20000);
   try {
@@ -137,11 +178,11 @@ function api_update(id, patch) {
       audit.appendRow([now, email, TAB.leads, id + ' · ' + fields[k], k === 'notes' ? '(Notiz)' : old, k === 'notes' ? '(Notiz geändert)' : val]);
     });
   } finally { lock.releaseLock(); }
-  return api_lead(id).lead;
+  return api_lead_(id).lead;
 }
 
 /* Saves the edited quote lines as a new version. lines: [[Position, Basis, Menge, Einheit, Satz], …] */
-function api_saveQuote(id, lines) {
+function api_saveQuote_(id, lines) {
   var email = guard_();
   if (!Array.isArray(lines) || !lines.length || lines.length > 40) throw new Error('Ungültige Positionen.');
   var clean = lines.map(function (l) { return [clip_(l[0], 80), clip_(l[1], 160), Number(l[2]) || 0, clip_(l[3], 10), Number(l[4]) || 0]; })
@@ -160,7 +201,7 @@ function api_saveQuote(id, lines) {
 
 /* Prepares the message for the customer and marks the quote as sent.
    Returns {text, wa, mail}: the browser opens WhatsApp or the mail app with the (editable) text. */
-function api_sendQuote(id, text, channel) {
+function api_sendQuote_(id, text, channel) {
   var email = guard_();
   var hit = findLead_(id); if (!hit) throw new Error('Anfrage ' + id + ' nicht gefunden.');
   var lead = leadObj_(hit.values), sh = sheet_(TAB.leads);
@@ -176,7 +217,7 @@ function api_sendQuote(id, text, channel) {
 }
 
 /* Personal customer link (used by the customer area). Created once per request. */
-function api_customerLink(id) {
+function api_customerLink_(id) {
   guard_();
   if (typeof PORTAL_URL === 'undefined' || !PORTAL_URL) return '';
   var hit = findLead_(id); if (!hit) throw new Error('Anfrage ' + id + ' nicht gefunden.');

@@ -27,7 +27,8 @@ const folder = {getId: () => 'F1', getFoldersByName: () => ({hasNext: () => fals
   createFile: b => { const f = {getUrl: () => 'https://drive.google.com/file/' + files.length, getId: () => 'file' + files.length, getBlob: () => b}; files.push(b.name); return f; }};
 ctx.DriveApp = {createFolder: () => folder, getFolderById: () => folder, getFileById: () => ({getBlob: () => blob('stored.pdf')})};
 M.load('admin-script', ['Admin.js', 'Belege.js']);
-ctx.api_bootstrap();
+ctx.CURRENT_ = {user: 'office', name: 'office@test'};
+ctx.api_bootstrap_();
 
 const near = (a, b) => assert(Math.abs(a - b) < 0.005, a + ' != ' + b);
 
@@ -44,8 +45,8 @@ near(t.vat, 0); near(t.gross, 500);
 console.log('ok totals: gross/net, VAT per rate, discount, deposit, § 35a labour, small business');
 
 // --- offer from the request: customer, lines from the quote suggestion, validity
-let nr = ctx.api_docNew('offer', LEAD);
-let r = ctx.api_doc(nr);
+let nr = ctx.api_docNew_('offer', LEAD);
+let r = ctx.api_doc_(nr);
 assert.strictEqual(r.doc.status, 'Entwurf'); assert.strictEqual(r.doc.to.name, 'Fam. Yilmaz');
 assert.strictEqual(r.doc.to.street, 'Alleestr. 4'); assert.strictEqual(r.doc.to.city, '44793 Bochum');
 assert(r.doc.lines.length >= 3 && r.doc.lines.some(l => l.labour), 'lines from the quote, labour flagged');
@@ -56,43 +57,43 @@ console.log('ok new offer: customer, address, lines and date taken from the requ
 
 // --- save draft (cleaning), preview shows ENTWURF
 r.doc.lines.push({title: '=HYPERLINK("x")', detail: 'Test', qty: 1, unit: 'Stk.', price: 10, vat: 99, disc: 0, labour: false});
-r = ctx.api_docSave(r.doc);
+r = ctx.api_docSave_(r.doc);
 const last = r.doc.lines[r.doc.lines.length - 1];
 assert.strictEqual(last.vat, 19, 'unknown VAT rate falls back to the standard rate');
-let html = ctx.api_docPreview(r.doc);
+let html = ctx.api_docPreview_(r.doc);
 assert(/ENTWURF/.test(html) && /Gültig bis/.test(html) && /§ 35a EStG/.test(html));
 console.log('ok draft: saved, VAT rates limited to 19/7/0, preview marked ENTWURF');
 
 // --- issue offer -> AN-2026-0001, PDF in Drive, frozen
-r = ctx.api_docIssue(r.doc);
+r = ctx.api_docIssue_(r.doc);
 const offerNr = r.doc.nr;
 assert.strictEqual(offerNr, 'AN-' + r.doc.date.slice(0, 4) + '-0001');
 assert(r.doc.pdf && files.length === 1);
-assert.throws(() => ctx.api_docSave(r.doc), /nicht geändert/);
-assert.throws(() => ctx.api_docDelete(offerNr), /Nur Entwürfe/);
+assert.throws(() => ctx.api_docSave_(r.doc), /nicht geändert/);
+assert.throws(() => ctx.api_docDelete_(offerNr), /Nur Entwürfe/);
 console.log('ok offer issued: ' + offerNr + ', PDF stored, cannot be changed or deleted');
 
 // --- send by e-mail with PDF -> request "Angebot raus"; accept -> "Gebucht"
-r = ctx.api_docSend(offerNr, {to: 'y@example.de', subject: 'Ihr Angebot', body: 'Hallo'});
+r = ctx.api_docSend_(offerNr, {to: 'y@example.de', subject: 'Ihr Angebot', body: 'Hallo'});
 const m = mails.pop();
 assert.strictEqual(m.to, 'y@example.de'); assert.strictEqual(m.attachments.length, 1); assert(/\.pdf$/.test(m.attachments[0].name));
 assert.strictEqual(r.doc.status, 'Gesendet');
 assert.strictEqual(ctx.leadObj_(ctx.findLead_(LEAD).values).status, 'Angebot raus');
-r = ctx.api_docOffer(offerNr, true);
+r = ctx.api_docOffer_(offerNr, true);
 assert.strictEqual(r.doc.status, 'Angenommen'); assert.strictEqual(ctx.leadObj_(ctx.findLead_(LEAD).values).status, 'Gebucht');
 console.log('ok offer sent with PDF, accepted, request booked');
 
 // --- invoice from the offer: checks before issuing
-nr = ctx.api_docCopy(offerNr, 'invoice');
-r = ctx.api_doc(nr);
+nr = ctx.api_docCopy_(offerNr, 'invoice');
+r = ctx.api_doc_(nr);
 assert.strictEqual(r.doc.type, 'invoice'); assert.strictEqual(r.doc.ref, offerNr); assert(r.doc.due > r.doc.date);
 assert(r.problems.some(p => /IBAN/.test(p)), 'IBAN required for bank transfer');
-assert.throws(() => ctx.api_docIssue(r.doc), /IBAN/);
-ctx.api_companySave({iban: 'DE02 1001 0010 0006 8201 01', bank: 'Testbank', bic: 'PBNKDEFF'});
+assert.throws(() => ctx.api_docIssue_(r.doc), /IBAN/);
+ctx.api_companySave_({iban: 'DE02 1001 0010 0006 8201 01', bank: 'Testbank', bic: 'PBNKDEFF'});
 r.doc.serviceFrom = '';
-assert.throws(() => ctx.api_docIssue(r.doc), /Leistungsdatum/);
+assert.throws(() => ctx.api_docIssue_(r.doc), /Leistungsdatum/);
 r.doc.serviceFrom = '2026-11-07';
-r = ctx.api_docIssue(r.doc);
+r = ctx.api_docIssue_(r.doc);
 const invNr = r.doc.nr;
 assert.strictEqual(invNr, 'RE-' + r.doc.date.slice(0, 4) + '-0001');
 html = rendered[rendered.length - 1];
@@ -102,43 +103,43 @@ console.log('ok invoice: needs IBAN and date of service, issued as ' + invNr + '
 
 // --- payments: partial, then full -> Bezahlt, request Erledigt
 const gross = r.doc.totals.toPay;
-r = ctx.api_docPay(invNr, {amount: 100, date: '2026-11-10', method: 'Bar'});
+r = ctx.api_docPay_(invNr, {amount: 100, date: '2026-11-10', method: 'Bar'});
 assert.strictEqual(r.doc.status, 'Teilbezahlt');
-r = ctx.api_docPay(invNr, {amount: gross - 100, date: '2026-11-12', method: 'Überweisung'});
+r = ctx.api_docPay_(invNr, {amount: gross - 100, date: '2026-11-12', method: 'Überweisung'});
 assert.strictEqual(r.doc.status, 'Bezahlt');
 assert.strictEqual(ctx.leadObj_(ctx.findLead_(LEAD).values).status, 'Erledigt');
 console.log('ok payments: partial then full, invoice paid, request done');
 
 // --- cancellation: Storno with negative lines and its own number; original unchanged but marked
-const stNr = ctx.api_docCancel(invNr, 'Falsche Anschrift');
+const stNr = ctx.api_docCancel_(invNr, 'Falsche Anschrift');
 assert.strictEqual(stNr, 'RE-' + r.doc.date.slice(0, 4) + '-0002');
-const st = ctx.api_doc(stNr).doc, orig = ctx.api_doc(invNr).doc;
+const st = ctx.api_doc_(stNr).doc, orig = ctx.api_doc_(invNr).doc;
 near(st.totals.gross, -orig.totals.gross);
 assert.strictEqual(st.ref, invNr); assert.strictEqual(orig.status, 'Storniert'); assert.strictEqual(orig.cancelledBy, stNr);
 assert.deepStrictEqual(orig.lines.map(l => l.qty), st.lines.map(l => -l.qty));
-assert.throws(() => ctx.api_docCancel(invNr), /bereits storniert/);
+assert.throws(() => ctx.api_docCancel_(invNr), /bereits storniert/);
 console.log('ok cancellation: ' + stNr + ' mirrors ' + invNr + ' with negative amounts');
 
 // --- deposit then final invoice deducts it
-nr = ctx.api_docNew('deposit', LEAD);
-r = ctx.api_doc(nr);
+nr = ctx.api_docNew_('deposit', LEAD);
+r = ctx.api_doc_(nr);
 r.doc.lines = [{title: 'Abschlag 30 %', detail: 'auf Angebot ' + offerNr, qty: 1, unit: 'Pausch.', price: 300, vat: 19, disc: 0, labour: false}];
-r = ctx.api_docIssue(r.doc);
-const finNr = ctx.api_docCopy(r.doc.nr, 'final');
-const fin = ctx.api_doc(finNr).doc;
+r = ctx.api_docIssue_(r.doc);
+const finNr = ctx.api_docCopy_(r.doc.nr, 'final');
+const fin = ctx.api_doc_(finNr).doc;
 near(fin.deposit, 300); assert.strictEqual(fin.type, 'final');
 console.log('ok deposit invoice ' + r.doc.nr + ', final invoice draft deducts 300 €');
 
 // --- list for the overview
-const list = ctx.api_docs().docs;
+const list = ctx.api_docs_().docs;
 assert(list.length >= 5 && list.some(x => x.status === 'Storniert') && list.some(x => x.status === 'Entwurf'));
 // small business: no VAT on the document
-ctx.api_companySave({small: 'ja'});
-nr = ctx.api_docNew('offer', LEAD);
-r = ctx.api_doc(nr);
-html = ctx.api_docPreview(r.doc);
+ctx.api_companySave_({small: 'ja'});
+nr = ctx.api_docNew_('offer', LEAD);
+r = ctx.api_doc_(nr);
+html = ctx.api_docPreview_(r.doc);
 assert(/§ 19 UStG/.test(html) && !/zzgl\. Umsatzsteuer/.test(html));
-ctx.api_companySave({small: 'nein'});
+ctx.api_companySave_({small: 'nein'});
 console.log('ok overview list; small-business documents carry the § 19 note and no VAT');
 
 // --- pre-agreement without a price: the Jobcenter pays; PDF to the customer and the office; the offer goes to the payer
@@ -165,8 +166,8 @@ assert(office && /Vorvereinbarung$/.test(office.subject) && office.attachments.l
 const prow = sheets['Anfragen'].data.find(r => r[0] === pv.id), H = sheets['Anfragen'].data[0];
 assert(/^Jobcenter: Jobcenter Essen, Standort Altenessen · Az\. 123A456789 · jc@example\.de$/.test(prow[H.indexOf('Kostenträger')]));
 assert(/^V-A-\d+ zugestimmt am /.test(prow[H.indexOf('Vorvereinbarung')]));
-nr = ctx.api_docNew('offer', pv.id);
-r = ctx.api_doc(nr);
+nr = ctx.api_docNew_('offer', pv.id);
+r = ctx.api_doc_(nr);
 assert.strictEqual(r.doc.to.company, 'Jobcenter Essen, Standort Altenessen'); assert.strictEqual(r.doc.to.email, 'jc@example.de');
 assert(/Leistungsempfänger: Herr Demir, Altenessener Str\. 10/.test(r.doc.ref) && /123A456789/.test(r.doc.ref) && /Vorvereinbarung V-A-/.test(r.doc.ref), r.doc.ref);
 assert(!/Guten Tag Herr Demir/.test(r.doc.intro), 'letter to the office, not to the customer');
@@ -174,6 +175,6 @@ assert(!/Guten Tag Herr Demir/.test(r.doc.intro), 'letter to the office, not to 
 const self = post(Object.assign({}, preLead, {state: Object.assign({}, preState, {payer: {kind: 0, name: 'x'}, pre: false})}));
 assert(self.ok && !self.pre);
 assert.strictEqual(sheets['Anfragen'].data.find(x => x[0] === self.id)[H.indexOf('Kostenträger')], 'Selbstzahler');
-assert.strictEqual(ctx.api_doc(ctx.api_docNew('offer', self.id)).doc.to.name, 'Herr Demir');
+assert.strictEqual(ctx.api_doc_(ctx.api_docNew_('offer', self.id)).doc.to.name, 'Herr Demir');
 console.log('ok pre-agreement: needs e-mail, no price, items once, PDF to customer and office, offer addressed to the Jobcenter');
 console.log('ALL OK');

@@ -1,7 +1,7 @@
 /* Runs backend/admin-script/Admin.js against the mocked sheet.  Usage: node backend/test/admin.js */
 const assert = require('assert');
 const M = require('./mock');
-const {ctx, sheets} = M;
+const {ctx, sheets, cache} = M;
 
 // sheet with two requests, created through the website API
 M.load('apps-script', ['Estimator.js', 'Shared.js', 'Code.js', 'Website.js']);
@@ -27,18 +27,51 @@ const shown = [];
 ctx.HtmlService = {createTemplateFromFile: name => ({evaluate: () => { shown.push(name); const o = {setTitle: () => o, addMetaTag: () => o}; return o; }})};
 M.load('admin-script', ['Admin.js']);
 
-// access
+// access: login with username and password from the "Benutzer" tab, every call through api()
 ctx.doGet(); assert.strictEqual(shown.pop(), 'Index');
-user = 'stranger@example.com';
-ctx.doGet(); assert.strictEqual(shown.pop(), 'NoAccess');
-assert.throws(() => ctx.api_bootstrap(), /Kein Zugriff/);
-user = 'info.stabilumzug@gmail.com';   // the owner always gets in
-ctx.doGet(); assert.strictEqual(shown.pop(), 'Index');
-user = 'office@test';
-console.log('ok access: editors and owner in, others get the no-access page');
+assert.strictEqual(typeof ctx.api_bootstrap, 'undefined', 'admin functions are private');
+assert.strictEqual(typeof ctx.api_bootstrap_, 'function');
+const us = ctx.usersSheet_();
+assert.strictEqual(us.getRange(1, 1, 1, 7).getValues()[0].join('|'), ctx.USER_COLS.join('|'));
+us.appendRow(['office', 'Office Test', 'ja', 'geheim123', '', '', '']);
+us.appendRow(['alt', 'Ehemalig', 'nein', 'geheim123', '', '', '']);
+us.appendRow(['kurz', 'Kurz', 'ja', 'abc', '', '', '']);
+assert.strictEqual(ctx.login('office', 'falsch1234').error, 'login');
+let lg = ctx.login(' Office ', 'geheim123');
+assert(lg.ok && /^[0-9a-f]{64}$/.test(lg.token) && lg.name === 'Office Test', JSON.stringify(lg));
+let urow = us.getRange(2, 1, 1, 7).getValues()[0];
+assert.strictEqual(urow[3], '', 'typed password cleared'); assert(urow[4].length > 20 && urow[5].length === 32, 'hash and salt stored');
+assert(urow[4].indexOf('geheim') < 0);
+assert(ctx.login('office', 'geheim123').ok, 'second login from the hash');
+assert.strictEqual(ctx.login('alt', 'geheim123').error, 'login', 'inactive user');
+assert.strictEqual(ctx.login('kurz', 'abc').error, 'login', 'too short password is not accepted');
+assert.strictEqual(us.getRange(4, 4).getValue(), '', 'short password cleared too');
+assert.strictEqual(ctx.login('niemand', 'geheim123').error, 'login', 'unknown user: same answer');
+// lockout after 5 wrong tries
+for (let i = 0; i < 4; i++) ctx.login('office', 'x' + i + 'xxxxxxx');
+assert.strictEqual(ctx.login('office', 'falsch999').error, 'locked');
+assert.strictEqual(ctx.login('office', 'geheim123').error, 'locked', 'locked even with the right password');
+cache['admfail_office'] = undefined; delete cache['admfail_office'];
+const ltok = lg.token;
+const bootA = ctx.api(ltok, 'api_bootstrap', []);
+assert.strictEqual(bootA.me, 'Office Test');
+assert.throws(() => ctx.api('0'.repeat(64), 'api_bootstrap', []), /LOGIN/);
+assert.throws(() => ctx.api('', 'api_bootstrap', []), /LOGIN/);
+assert.throws(() => ctx.api(ltok, 'login', []), /Unbekannte/);
+assert.throws(() => ctx.api(ltok, 'api_bootstrap_', []), /Unbekannte/);
+assert.throws(() => ctx.api(ltok, 'constructor', []), /Unbekannte/);
+assert.throws(() => ctx.api_bootstrap_(), /LOGIN/, 'private functions need a session too');
+us.getRange(2, 3).setValue('nein');
+assert.throws(() => ctx.api(ltok, 'api_bootstrap', []), /LOGIN/, 'deactivated in the sheet: out at once');
+us.getRange(2, 3).setValue('ja');
+lg = ctx.login('office', 'geheim123'); assert(lg.ok);
+ctx.logout(lg.token);
+assert.throws(() => ctx.api(lg.token, 'api_bootstrap', []), /LOGIN/, 'logged out');
+console.log('ok login: hashed passwords, inactive users, lockout, sessions, logout, only api() reaches the data');
+ctx.CURRENT_ = {user: 'office', name: 'Office Test'};   // direct calls below act as the logged-in user
 
 // list
-const boot = JSON.parse(JSON.stringify(ctx.api_bootstrap()));
+const boot = JSON.parse(JSON.stringify(ctx.api_bootstrap_()));
 assert.strictEqual(boot.leads.length, 2);
 assert.strictEqual(boot.leads[0].id, quick.id, 'newest first');
 assert.deepStrictEqual(boot.statuses, ['Neu', 'In Arbeit', 'Angebot raus', 'Gebucht', 'Erledigt', 'Verloren']);
@@ -49,44 +82,44 @@ assert.strictEqual(boot.leads[0].service, 'Entrümpelung (Kurzformular)');
 console.log('ok list:', boot.leads.map(l => l.id + ' ' + l.service + ' ' + l.status).join(' | '));
 
 // detail with suggested quote
-let d = JSON.parse(JSON.stringify(ctx.api_lead(planner.id)));
+let d = JSON.parse(JSON.stringify(ctx.api_lead_(planner.id)));
 assert(!d.quote.saved && d.quote.lines.length === 8 && d.items.length === 2);
 assert.strictEqual(d.quote.lines[5][0], 'Halteverbotszone');
-const dq = JSON.parse(JSON.stringify(ctx.api_lead(quick.id)));
+const dq = JSON.parse(JSON.stringify(ctx.api_lead_(quick.id)));
 assert.strictEqual(dq.quote.lines[0][0], 'Arbeit');
 assert.strictEqual(dq.quote.lines[0][2], 0, 'short form: quantities to fill in');
 console.log('ok detail: planner suggestion', d.quote.lines.length, 'lines, range ±' + d.quote.range + ' %; short form gets placeholders');
 
 // status, owner, notes (+ audit, formula guard)
 const auditBefore = sheets['Protokoll'].data.length;
-const up = ctx.api_update(planner.id, {status: 'In Arbeit', owner: 'Ibo', notes: '=Klavier im 3. OG', bogus: 'x'});
+const up = ctx.api_update_(planner.id, {status: 'In Arbeit', owner: 'Ibo', notes: '=Klavier im 3. OG', bogus: 'x'});
 assert.strictEqual(up.status, 'In Arbeit'); assert.strictEqual(up.owner, 'Ibo'); assert.strictEqual(up.notes, "'=Klavier im 3. OG");
 assert.strictEqual(sheets['Protokoll'].data.length - auditBefore, 3);
-ctx.api_update(planner.id, {status: 'Unsinn'});
-assert.strictEqual(ctx.api_lead(planner.id).lead.status, 'In Arbeit', 'unknown status ignored');
+ctx.api_update_(planner.id, {status: 'Unsinn'});
+assert.strictEqual(ctx.api_lead_(planner.id).lead.status, 'In Arbeit', 'unknown status ignored');
 console.log('ok update: status/owner/notes saved, 3 audit rows');
 
 // save quote
 const lines = d.quote.lines.map(l => l.slice()); lines[0][2] = 10; lines.push(['Klavier', 'Pauschale', 1, 'Stk.', 150]);
-const saved = ctx.api_saveQuote(planner.id, lines);
+const saved = ctx.api_saveQuote_(planner.id, lines);
 const expect = Math.max(390, Math.round(lines.reduce((a, l) => a + l[2] * l[4], 0) * 100) / 100);
 assert.strictEqual(saved.version, 1); assert.strictEqual(saved.total, expect);
-d = JSON.parse(JSON.stringify(ctx.api_lead(planner.id)));
+d = JSON.parse(JSON.stringify(ctx.api_lead_(planner.id)));
 assert(d.quote.saved && d.quote.version === 1 && d.quote.lines.length === 9 && d.lead.total === expect);
-assert.strictEqual(ctx.api_saveQuote(planner.id, lines).version, 2);
-assert.throws(() => ctx.api_saveQuote(planner.id, []), /Ungültige/);
+assert.strictEqual(ctx.api_saveQuote_(planner.id, lines).version, 2);
+assert.throws(() => ctx.api_saveQuote_(planner.id, []), /Ungültige/);
 console.log('ok quote: v1 total', saved.total, '€, v2 saved, empty rejected');
 
 // customer link + send
-const link = ctx.api_customerLink(planner.id);
+const link = ctx.api_customerLink_(planner.id);
 assert(/^https:\/\/www\.stabilumzug\.de\/mein-umzug\/\?id=A-\d+&k=[0-9a-f]{32}$/.test(link), link);
-assert.strictEqual(ctx.api_customerLink(planner.id), link, 'same link every time');
-const sent = ctx.api_sendQuote(planner.id, 'Hallo Fam. Yilmaz,\nIhr Angebot: 900 €', 'wa');
+assert.strictEqual(ctx.api_customerLink_(planner.id), link, 'same link every time');
+const sent = ctx.api_sendQuote_(planner.id, 'Hallo Fam. Yilmaz,\nIhr Angebot: 900 €', 'wa');
 assert(sent.wa.startsWith('https://wa.me/49201123456?text=Hallo%20Fam.%20Yilmaz%2C%0AIhr'), sent.wa);
 assert(sent.mail.startsWith('mailto:y@example.de?subject='));
-const after = ctx.api_lead(planner.id).lead;
+const after = ctx.api_lead_(planner.id).lead;
 assert.strictEqual(after.status, 'Angebot raus'); assert(after.quoteSent);
-assert(ctx.api_sendQuote(quick.id, 'x', 'wa').wa.startsWith('https://wa.me/491715550000?'), '+49 number');
+assert(ctx.api_sendQuote_(quick.id, 'x', 'wa').wa.startsWith('https://wa.me/491715550000?'), '+49 number');
 console.log('ok send: WhatsApp/e-mail links, status Angebot raus, customer link', link.replace(/k=.*/, 'k=…'));
 // customer area (website API; doGet is the admin's in this shared sandbox, so call portal_ directly)
 const tok = link.split('k=')[1];
@@ -101,7 +134,7 @@ assert.strictEqual(postA({action: 'accept', id: planner.id, k: tok}).error, 'con
 assert.strictEqual(postA({action: 'accept', id: planner.id, k: 'f'.repeat(32), confirm: true}).error, 'not_found');
 const mailsBefore = M.mails.length;
 assert.strictEqual(postA({action: 'accept', id: planner.id, k: tok, confirm: true}).status, 'Gebucht');
-assert.strictEqual(ctx.api_lead(planner.id).lead.status, 'Gebucht');
+assert.strictEqual(ctx.api_lead_(planner.id).lead.status, 'Gebucht');
 assert.strictEqual(M.mails.length, mailsBefore + 1, 'office notified');
 assert(postA({action: 'accept', id: planner.id, k: tok, confirm: true}).already);
 console.log('ok portal: token-protected view without notes, accept needs confirmation, booked once, office mailed');
