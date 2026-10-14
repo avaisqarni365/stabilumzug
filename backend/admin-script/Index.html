@@ -81,6 +81,8 @@ table{width:100%;border-collapse:collapse}
 .qt .input{min-height:36px;padding:6px 8px;font-size:14px}
 .qt .n{width:64px;text-align:right}
 .qt .u{width:54px}
+/* desktop: the texts get the room, Basis the most */
+@media (min-width:641px){.qt{width:100%;border-collapse:collapse}.qt td:nth-child(1){width:24%}.qt td:nth-child(1) .input,.qt td:nth-child(2) .input{width:100%}}
 .qt .x{border:0;background:transparent;cursor:pointer;font-size:18px;line-height:1;padding:6px;color:var(--ink2)}
 .total{display:flex;justify-content:space-between;align-items:baseline;padding:12px 0;border-bottom:2px solid var(--ink);font-weight:700}
 .total b{font-size:28px;font-variant-numeric:tabular-nums}
@@ -89,6 +91,7 @@ textarea.input{min-height:120px;resize:vertical;line-height:1.5}
 .toast.err{background:var(--fill)}
 .loading{padding:40px 0;color:var(--ink2)}
 .cal-m{font-size:20px;margin:24px 0 8px}
+.nw{white-space:nowrap}
 .detail.busy .side{opacity:.55;pointer-events:none}
 .ktag{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:2px 6px;margin-right:8px;vertical-align:1px;border:1px solid currentColor}
 .k-auftrag{color:var(--ink)}.k-flexibel{color:#8a5a00}.k-termin{color:#c2410c}
@@ -303,7 +306,7 @@ body.locked .top nav,body.locked .top .me{display:none}
   }
   function rowHtml(l, withDate) {
     return '<a class="row" href="#/a/' + encodeURIComponent(l.id) + '"><span class="id">' + esc(l.id) + '</span><span>' + esc(l.name || '–') +
-      '<small>' + esc(svc(l)) + ' · ' + esc(route(l)) + (withDate ? ' · ' + day(l.date) : ' · ' + dt(l.received)) + '</small></span>' + badge(l.status) + '</a>';
+      '<small>' + esc(svc(l)) + ' · ' + esc(route(l)) + ' · <span class="nw">' + (withDate ? day(l.date) : dt(l.received)) + '</span></small></span>' + badge(l.status) + '</a>';
   }
 
   /* ---------- list ---------- */

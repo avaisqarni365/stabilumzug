@@ -94,7 +94,7 @@ function leadObj_(v) {
   var g = function (n) { return v[LEAD_COLS.indexOf(n)]; };
   return {
     id: String(g('ID')), received: iso_(g('Eingang')), status: String(g('Status') || STATUS[0]), owner: String(g('Zuständig') || ''),
-    total: g('Angebot €') === '' ? null : Number(g('Angebot €')), name: String(g('Name') || ''), phone: String(g('Telefon') || ''),
+    total: g('Angebot €') === '' ? null : Number(g('Angebot €')), name: String(g('Name') || ''), phone: String(g('Telefon') || '').replace(/^'/, ''),
     email: String(g('E-Mail') || ''), channel: String(g('Kontaktweg') || ''), from: String(g('Von') || ''), to: String(g('Nach') || ''),
     kmFamily: String(g('km (Familie)') || ''), kmMaps: g('km (Maps)') === '' ? null : Number(g('km (Maps)')), minutes: g('Fahrzeit min') === '' ? null : Number(g('Fahrzeit min')),
     date: day_(g('Termin')), household: String(g('Haushalt') || ''), accOld: String(g('Zugang Auszug') || ''), accNew: String(g('Zugang Einzug') || ''),
