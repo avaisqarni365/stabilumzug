@@ -1214,3 +1214,19 @@ details.fs-card > summary:focus-visible{outline:2px solid var(--red);outline-off
 /* booking: hint when the free times take long (cold server) */
 .bk-slow{margin:10px 0 0;font-size:14px;color:var(--ink2);text-align:left}
 .bk-slow a{font-weight:700;white-space:nowrap}
+
+/* ---------- city pages on small phones ---------- */
+@media (max-width:420px){.tiles.svc-four .svc-tile h3{font-size:.88rem;letter-spacing:-.01em}}
+@media (max-width:360px){
+  /* "Wohnungsauflösung" does not fit half of a 320 px screen: the four tiles become rows, photo left */
+  .tiles.svc-four{grid-template-columns:minmax(0,1fr);gap:0}
+  .tiles.svc-four .svc-tile{display:grid;grid-template-columns:96px minmax(0,1fr);gap:2px 12px;align-items:center;padding:10px 0;border-left:0}
+  .tiles.svc-four .svc-tile .ti{grid-row:1/3;margin:0;aspect-ratio:4/3}
+  .tiles.svc-four .svc-tile .ti img{height:100%;object-fit:cover}
+  .tiles.svc-four .svc-tile h3{font-size:.95rem;margin:0}
+  .tiles.svc-four .svc-tile .link-arrow{padding-top:0;font-size:14px}
+  .fs-dl div{grid-template-columns:minmax(104px,40%) minmax(0,1fr)}
+  .fs-dl dt{letter-spacing:.02em}
+}
+/* smallest phones: "Kostenloses Angebot" in the bottom bar on one line */
+@media (max-width:360px){.actionbar a{font-size:14px;padding:0 10px}.actionbar .ab-plan::after{display:none}.actionbar .ab-plan{justify-content:center;white-space:nowrap}}
