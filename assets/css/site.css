@@ -1255,3 +1255,7 @@ details.fs-card > summary:focus-visible{outline:2px solid var(--red);outline-off
 .toc-fold > summary::after{margin-right:4px}
 /* booking bar: label and time each on one line */
 .bk-bar small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.05em}
+/* tablets in landscape (861–1099 px): both hero buttons fit beside the van, side by side */
+@media (min-width:861px) and (max-width:1099px){.hero .actions .button{padding-inline:12px;font-size:14.5px;gap:8px}}
+/* smallest phones: the four hero facts with a little more air */
+@media (max-width:360px){.hero .facts b{font-size:.95rem}.hero .facts li{padding-right:4px}.hero .facts li + li{padding-left:5px}}
