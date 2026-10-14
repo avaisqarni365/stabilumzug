@@ -112,5 +112,8 @@ http.createServer((req, res) => {
     });
     return;
   }
-  res.writeHead(200, {'Content-Type': 'text/html; charset=utf-8'}); res.end(page(req.url));
+  // ?shot=1: already signed in as the preview user (for headless browser screenshots)
+  let html = page(req.url);
+  if (/[?&]shot=1/.test(req.url)) html = html.replace('<head>', '<head><script>sessionStorage.setItem("su-admin", ' + JSON.stringify(ctx.login(PREVIEW_USER, PREVIEW_PASS).token) + ')</script>');
+  res.writeHead(200, {'Content-Type': 'text/html; charset=utf-8'}); res.end(html);
 }).listen(8090, '127.0.0.1', () => console.log('admin preview on http://localhost:8090'));
