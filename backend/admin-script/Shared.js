@@ -147,6 +147,16 @@ function clip_(s, n) { return String(s == null ? '' : s).replace(/[\u0000-\u001f
 function cell_(s, n) { s = clip_(s, n); return /^[=+\-@]/.test(s) ? "'" + s : s; }
 function iso_(v) { return v instanceof Date ? v.toISOString() : (v == null ? '' : String(v)); }
 /* Move date: a calendar day. Sheets turns "2026-11-07" into a Date at local midnight – format it in Berlin time, not UTC. */
+/* Wished moving date as text: a fixed day ("2026-11-07") or "flexibel" with the wished window ("flexibel 01.11.2026–15.11.2026"). */
+function moveDate_(f1, long) {
+  f1 = f1 || {};
+  var ok = function (x) { return /^\d{4}-\d{2}-\d{2}$/.test(String(x || '')); }, de = function (x) { return x.split('-').reverse().join('.'); };
+  if (f1.dateMode === 'fixed' && ok(f1.date)) return long ? de(f1.date) : f1.date;
+  var a = ok(f1.dateFrom) ? f1.dateFrom : '', b = ok(f1.dateTo) ? f1.dateTo : '';
+  if (a && b && b < a) { var x = a; a = b; b = x; }
+  var w = a && b ? (long ? 'zwischen ' + de(a) + ' und ' + de(b) : de(a) + '–' + de(b)) : a ? 'ab ' + de(a) : b ? 'bis ' + de(b) : '';
+  return long ? 'flexibel' + (w ? ', ' + w : ', nach Absprache') : 'flexibel' + (w ? ' ' + w : '');
+}
 function day_(v) { return v instanceof Date ? Utilities.formatDate(v, 'Europe/Berlin', 'yyyy-MM-dd') : (v == null ? '' : String(v)); }
 /* Decimal number in German notation for texts the customer reads ("4,6 Std."). */
 function de_(x, d) { return String(round_(x, d)).replace('.', ','); }

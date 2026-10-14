@@ -308,7 +308,7 @@ p.uf-small,.uf-how .uf-small,.uf-card .uf-small{text-align:justify}
   .uf-s0 .uf-strip2 > div{padding:14px 0}
 
   /* step 1: from and to side by side, distance beside the route button, date beside household */
-  .uf-s1 > .field:nth-child(2),.uf-s1 > .field:nth-child(4),.uf-s1 > .field:nth-child(6){grid-column:1/7}
+  .uf-s1 > .field:nth-child(2),.uf-s1 > .field:nth-child(4),.uf-s1 > .uf-when{grid-column:1/7}
   .uf-s1 > .field:nth-child(3),.uf-s1 > .uf-route,.uf-s1 > .field:nth-child(7){grid-column:7/-1}
   .uf-s1 > .uf-route{align-self:end}
   /* step 2: move-out and move-in next to each other */
@@ -335,3 +335,9 @@ p.uf-small,.uf-how .uf-small,.uf-card .uf-small{text-align:justify}
 /* short step texts in the four-column row: left-aligned (no wide word gaps) */
 .uf-how .uf-small,.uf-how li,.uf-card .uf-small{text-align:left}
 .uf-body > p.uf-small:has(button){text-align:left}
+
+/* step 1: moving date – fixed day or a wished window (earliest / latest) */
+.uf-when{display:flex;flex-direction:column;gap:14px;min-width:0}
+.uf-range{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.uf-range label{display:flex;flex-direction:column;gap:4px;min-width:0}
+.uf-range .input{min-width:0;width:100%}

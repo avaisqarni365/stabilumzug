@@ -45,7 +45,7 @@
   function fresh() {
     return {
       v: 1, ref: mkRef(), step: 0,
-      f1: {from: '', to: '', km: '', dateMode: 'flex', date: '', hh: 1},
+      f1: {from: '', to: '', km: '', dateMode: 'flex', date: '', dateFrom: '', dateTo: '', hh: 1},
       acc: {old: {floor: 0, lift: 3, park: 3}, 'new': {floor: 0, lift: 3, park: 3}}, hvz: false,
       rooms: ['living', 'bedroom', 'kitchen', 'bath'].map(function (r) { return {r: r, sqm: ''}; }),
       inv: {}, vsel: {}, customs: [],
@@ -64,6 +64,7 @@
       if (!d || d.v !== 1) return null;
       var f = fresh();
       for (var k in f) if (d[k] === undefined) d[k] = f[k];
+      for (var k2 in f.f1) if (d.f1[k2] === undefined) d.f1[k2] = f.f1[k2];
       return d;
     } catch (e) { return null; }
   }
@@ -176,7 +177,18 @@
       var d = new Date(S.f1.date + 'T12:00:00');
       if (!isNaN(d)) return d.toLocaleDateString(loc, {weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric'});
     }
-    return t.f1.flex;
+    var w = windowText();
+    return w ? t.f1.flex + ' · ' + w : t.f1.flex;
+  }
+  /* flexible move: the wished time window ("01.11.–15.11.2026", "ab 01.11.2026", "bis 15.11.2026") */
+  function today() { var d = new Date(); return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
+  function windowText() {
+    var dd = function (iso) { var d = new Date(iso + 'T12:00:00'); return isNaN(d) ? '' : d.toLocaleDateString(loc, {day: '2-digit', month: '2-digit', year: 'numeric'}); };
+    var a = S.f1.dateFrom ? dd(S.f1.dateFrom) : '', b = S.f1.dateTo ? dd(S.f1.dateTo) : '';
+    if (a && b) return a + ' – ' + b;
+    if (a) return t.f1.fromDay + ' ' + a;
+    if (b) return t.f1.toDay + ' ' + b;
+    return '';
   }
 
   /* ---------- small builders ---------- */
@@ -222,8 +234,13 @@
       field(t.f1.from, '<input class="input" id="uf-from" data-bind="f1.from" value="' + esc(f.from) + '" placeholder="' + esc(t.f1.fromPh) + '" autocomplete="off">', 'uf-from') +
       field(t.f1.to, '<input class="input" id="uf-to" data-bind="f1.to" value="' + esc(f.to) + '" placeholder="' + esc(t.f1.toPh) + '" autocomplete="off">', 'uf-to') +
       '<div class="field"><label for="uf-km">' + esc(t.f1.km) + '</label><input class="input uf-short" id="uf-km" data-bind="f1.km" value="' + esc(f.km) + '" inputmode="decimal" placeholder="20" aria-describedby="uf-km-h"><div class="uf-hint" id="uf-km-h">' + esc(t.f1.kmHint) + '</div></div>' + routeBox() +
-      groupField(t.f1.date, seg('dm', [t.f1.fixed, t.f1.flex], f.dateMode === 'fixed' ? 0 : 1, 'f1.dateMode', t.f1.date)) +
-      (f.dateMode === 'fixed' ? field(t.f1.dateLabel, '<input class="input uf-short" type="date" id="uf-date" data-bind="f1.date" value="' + esc(f.date) + '">', 'uf-date') : '') +
+      '<div class="uf-when">' + groupField(t.f1.date, seg('dm', [t.f1.fixed, t.f1.flex], f.dateMode === 'fixed' ? 0 : 1, 'f1.dateMode', t.f1.date)) +
+      (f.dateMode === 'fixed' ? field(t.f1.dateLabel, '<input class="input uf-short" type="date" id="uf-date" data-bind="f1.date" min="' + today() + '" value="' + esc(f.date) + '">', 'uf-date')
+        // flexible: a wished time window, both ends optional
+        : '<div class="field" role="group" aria-label="' + esc(t.f1.window) + '"><span class="uf-label">' + esc(t.f1.window) + '</span><div class="uf-range">' +
+          '<label><span class="uf-small">' + esc(t.f1.earliest) + '</span><input class="input" type="date" id="uf-df" data-bind="f1.dateFrom" min="' + today() + '" value="' + esc(f.dateFrom) + '"></label>' +
+          '<label><span class="uf-small">' + esc(t.f1.latest) + '</span><input class="input" type="date" id="uf-dt" data-bind="f1.dateTo" min="' + esc(f.dateFrom || today()) + '" value="' + esc(f.dateTo) + '"></label>' +
+          '</div><div class="uf-hint">' + esc(t.f1.windowHint) + '</div></div>') + '</div>' +
       groupField(t.f1.hh, seg('hh', t.f1.hhOpts, f.hh, 'f1.hh', t.f1.hh));
   }
 
