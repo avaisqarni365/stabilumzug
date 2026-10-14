@@ -89,8 +89,8 @@ def quote_page(lang):
     body = page_head(key, lang, t("Jetzt kostenloses Angebot anfordern", "Request your free quote now", lang),
         t("Kurz ausfüllen – wir melden uns innerhalb von 24 Stunden mit Ihrem persönlichen, unverbindlichen Angebot. Lieber direkt sprechen? Rufen Sie an oder schreiben Sie per WhatsApp.",
           "Fill in briefly – we reply within 24 hours with your personal, non-binding quote. Prefer to talk? Call or message us on WhatsApp.", lang),
-        kicker=t("Kostenlos und unverbindlich", "Free and non-binding", lang), photo="keys.jpg",
-        alt=t("Schlüssel für das neue Zuhause", "Keys to the new home", lang))
+        kicker=t("Kostenlos und unverbindlich", "Free and non-binding", lang), photo="protect-home.jpg",
+        alt=t("Team von Stabil Umzug schützt Boden und Türrahmen vor dem Umzug", "Stabil Umzug crew protecting the floor and door frame before the move", lang))
     body += ('<section class="section"><div class="container">%s<div class="contact-grid"><div>%s</div><div>%s</div></div></div></section>' % (quick_contact(lang), quote_form(key, lang), contact_aside(lang, key)))
     return dict(key=key, lang=lang, quote=True,
         title=t("Kostenloses Angebot: Umzug, Entrümpelung, Transport | Stabil Umzug Essen", "Free quote: moves, clear-outs, transport | Stabil Umzug Essen", lang),
@@ -157,7 +157,7 @@ LINK_RE = __import__("re").compile(r"\[\[([a-z]+)\|([^\]]+)\]\]")
 def inline(text, key, lang):
     return LINK_RE.sub(lambda m: '<a href="%s">%s</a>' % (link(key, SVC.get(m.group(1), m.group(1)), lang), m.group(2)), esc(text))
 
-PHOTO = {"moves": "loading-boxes.jpg", "clearance": "empty-room.jpg", "dissolution": "boxes-window.jpg",
+PHOTO = {"moves": "loading-boxes.jpg", "clearance": "empty-room.jpg", "dissolution": "packing.jpg",
          "transport": "sofa-transport.jpg", "extras": "kitchen-assembly.jpg"}
 
 ROUTE_SERVICES = ("moves", "transport")
