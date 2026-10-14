@@ -639,7 +639,7 @@
     root.innerHTML =
       '<div class="uf-top"><div class="uf-prog" aria-hidden="true">' + cells + '</div>' +
       '<div class="uf-metarow"><span class="uf-kicker">' + esc(kicker) + '</span><span class="uf-saved" id="uf-saved" aria-live="polite">' + (S.step ? savedHtml() : '') + '</span></div></div>' +
-      '<div class="uf-body' + (S.step === 0 ? ' uf-body0' : '') + (focusHead ? ' uf-enter' : '') + '">' + SCREENS[S.step]() + remoteBox() + '</div>' +
+      '<div class="uf-body uf-s' + S.step + (S.step === 0 ? ' uf-body0' : '') + (focusHead ? ' uf-enter' : '') + '">' + SCREENS[S.step]() + remoteBox() + '</div>' +
       '<div class="uf-foot">' + footer() + '</div>' +
       '<div class="uf-sr" aria-live="polite" id="uf-live"></div>';
     if (window.StabilPhotos) window.StabilPhotos.mountAll(root);
