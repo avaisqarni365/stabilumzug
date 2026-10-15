@@ -13,6 +13,7 @@
   var root = document.createElement('div');
   root.id = 'su-chat-widget';
   root.innerHTML = 
+    '<div class="su-chat-backdrop" id="su-chat-backdrop" hidden></div>' +
     '<button class="su-chat-fab" id="su-chat-fab" aria-label="' + (de ? 'KI-Umzugsberater öffnen' : 'Open AI Moving Assistant') + '">' +
       '<span class="pulse" aria-hidden="true"></span>' +
       '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/></svg>' +
@@ -46,6 +47,7 @@
 
   var fab = document.getElementById('su-chat-fab');
   var box = document.getElementById('su-chat-box');
+  var backdrop = document.getElementById('su-chat-backdrop');
   var closeBtn = document.getElementById('su-chat-close');
   var msgs = document.getElementById('su-chat-msgs');
   var input = document.getElementById('su-chat-in');
@@ -58,6 +60,7 @@
   function toggle(open) {
     isOpen = typeof open === 'boolean' ? open : !isOpen;
     box.hidden = !isOpen;
+    if (backdrop) backdrop.hidden = !isOpen;
     fab.setAttribute('aria-expanded', String(isOpen));
     if (isOpen) {
       if (!hasGreeted) initWelcome();
@@ -67,6 +70,7 @@
 
   fab.addEventListener('click', function () { toggle(); });
   closeBtn.addEventListener('click', function () { toggle(false); });
+  if (backdrop) backdrop.addEventListener('click', function () { toggle(false); });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && isOpen) toggle(false); });
 
   function esc(s) {
