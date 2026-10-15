@@ -1371,8 +1371,12 @@ details.fs-card > summary:focus-visible{outline:2px solid var(--red);outline-off
 .su-chat-send:hover{background:var(--logo-orange)}
 .su-chat-send svg{width:16px;height:16px;fill:currentColor}
 
-@media (max-width:600px){
-  .su-chat-fab{bottom:72px;right:14px;padding:9px 14px;font-size:13px}
-  .su-chat-box{bottom:0;right:0;width:100vw;height:85vh;border-radius:16px 16px 0 0}
+@media (max-width:760px){
+  .su-chat-fab{bottom:calc(72px + env(safe-area-inset-bottom,0px));right:12px;padding:8px 14px;font-size:13px}
+  .su-chat-box{bottom:0;right:0;left:0;width:100%;height:88vh;height:88dvh;max-height:calc(100dvh - 20px);border-radius:18px 18px 0 0;z-index:1001}
+}
+@media (max-width:360px){
+  .su-chat-fab{padding:6px 10px;font-size:12px;gap:6px}
+  .su-chat-fab .icon{width:16px;height:16px}
 }
 
