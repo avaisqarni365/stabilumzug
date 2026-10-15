@@ -114,7 +114,7 @@ textarea.input{min-height:120px;resize:vertical;line-height:1.5}
 /* phones: menu as a 3 × 2 grid instead of a row wider than the screen; 44 px tap targets */
 @media (max-width:640px){
   .top{padding:10px 14px;position:relative}   /* scrolls away: the two-row menu would cover a fifth of the screen */
-  .top nav{order:3;width:100%;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:2px;border-top:1px solid rgba(243,242,242,.15);padding-top:6px}
+  .top nav{order:3;width:100%;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:2px;border-top:1px solid rgba(243,242,242,.15);padding-top:6px}
   .top nav a{min-height:44px;display:flex;align-items:center;justify-content:center;padding:6px 4px;font-size:14px}
   .top .me{gap:4px}
   .top .me a{min-height:44px;display:inline-flex;align-items:center;padding:0 8px}
@@ -162,10 +162,12 @@ body.locked .top nav,body.locked .top .me{display:none}
   <nav aria-label="Admin">
     <a href="#/" data-nav="home">Übersicht</a>
     <a href="#/anfragen" data-nav="list">Anfragen</a>
+    <a href="#/planer" data-nav="planner">Planer</a>
     <a href="#/kalender" data-nav="cal">Kalender</a>
     <a href="#/termine" data-nav="appts">Termine</a>
     <a href="#/belege" data-nav="docs">Belege</a>
     <a href="#/statistik" data-nav="stats">Statistik</a>
+    <a href="#/hilfe" data-nav="help">Hilfe</a>
   </nav>
   <div class="me"><span id="me-name"></span><a href="#" id="sheet-link" target="_blank" rel="noopener">Tabelle</a><a href="<?= siteUrl ?>" target="_blank" rel="noopener">Website</a><a href="#" id="logout">Abmelden</a></div>
 </header>
@@ -265,6 +267,8 @@ body.locked .top nav,body.locked .top .me{display:none}
     syncUrl(h);
     if (window.SUDocs && window.SUDocs.route(h)) return;   // Angebote und Rechnungen (BelegeUi.html)
     if (window.SUAppts && window.SUAppts.route(h)) return;   // Termine und Statistik (TermineUi.html)
+    if (window.SUPlaner && window.SUPlaner.route(h)) return; // Umzugsplaner für Inhaber (PlanerUi.html)
+    if (window.SUHilfe && window.SUHilfe.route(h)) return;   // Admin-Handbuch & Hilfe (HilfeUi.html)
     if (h.indexOf('a/') === 0) return detail(decodeURIComponent(h.slice(2)));
     if (h === 'anfragen') return list();
     if (h === 'kalender') return calendar();
@@ -371,7 +375,9 @@ body.locked .top nav,body.locked .top .me{display:none}
     var items = d.items.length ? '<div class="card"><h2>Gegenstände (' + d.items.reduce(function (a, i) { return a + i.n; }, 0) + ')</h2><table class="tbl items" style="border-top:0"><thead><tr><th>Gegenstand</th><th>Herkunft</th><th class="num">Anz.</th><th class="num">m³</th></tr></thead><tbody>' +
       d.items.map(function (i) { return '<tr style="cursor:default"><td>' + esc(i.name) + (i.size ? ' <span class="muted">' + esc(i.size) + '</span>' : '') + '</td><td class="muted">' + esc(i.source) + '</td><td class="num">' + i.n + '</td><td class="num">' + Number(i.vol).toLocaleString('de-DE') + '</td></tr>'; }).join('') + '</tbody></table></div>' : '';
     var contact = (l.phone ? '<a class="btn small" href="tel:' + esc(l.phone.replace(/\s/g, '')) + '">Anrufen</a><a class="btn small" target="_blank" rel="noopener" href="https://wa.me/' + waNum(l.phone) + '">WhatsApp</a>' : '') +
-      (l.email ? '<a class="btn small" href="mailto:' + esc(l.email) + '">E-Mail</a>' : '');
+      (l.email ? '<a class="btn small" href="mailto:' + esc(l.email) + '">E-Mail</a>' : '') +
+      (l.photosDrive ? '<a class="btn small" target="_blank" rel="noopener" href="' + esc(l.photosDrive) + '">📷 Fotos (Drive)</a>' : '') +
+      '<a class="btn small" href="#/planer?id=' + encodeURIComponent(l.id) + '" title="Im Umzugsplaner bearbeiten oder verfeinern">📐 Im Planer öffnen</a>';
     app.innerHTML = '<a href="#/anfragen" class="muted">← Alle Anfragen</a>' +
       '<div class="h"><div><span class="kicker">' + esc(l.id) + ' · ' + esc(svc(l)) + '</span><h1>' + esc(l.name || '–') + '</h1>' +
       '<div class="muted">' + esc([l.phone, l.email].filter(Boolean).join(' · ')) + (l.channel ? ' · bevorzugt: ' + esc(({whatsapp: 'WhatsApp', email: 'E-Mail', phone: 'Telefon', call: 'Telefon'})[String(l.channel).toLowerCase()] || l.channel) : '') + '</div></div><div class="actions">' + contact + '</div></div>' +
@@ -383,6 +389,8 @@ body.locked .top nav,body.locked .top .me{display:none}
         '<div class="field"><label for="ow">Zuständig</label><input class="input" id="ow" value="' + esc(l.owner) + '" placeholder="Name"></div>' +
         '<div class="field"><label for="nt">Interne Notizen</label><textarea class="input" id="nt" placeholder="Nur für das Büro sichtbar">' + esc(l.notes) + '</textarea></div>' +
         '<button class="btn primary" id="save-meta">Speichern</button></div>' +
+        contractHtml() +
+        handoverHtml() +
         sendHtml() +
         '<div class="card" id="lead-docs"></div>' +
       '</aside></div>';
@@ -418,6 +426,97 @@ body.locked .top nav,body.locked .top .me{display:none}
     return t;
   }
 
+  /* contract, e-signature and e-pdf options */
+  function contractHtml() {
+    var l = S.cur.lead, c = l.contract || {};
+    if (c.signed) {
+      return '<div class="card" id="contract-card" style="border-left:4px solid #1f6b3a">' +
+        '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">' +
+          '<h2 style="margin:0">Vertrag &amp; Signatur</h2><span class="badge" style="background:#d1fae5;color:#065f46">✓ Signiert</span>' +
+        '</div>' +
+        '<p class="muted" style="margin:0 0 8px;font-size:13px">Kunde hat den Vertrag digital unterzeichnet:</p>' +
+        '<dl class="facts" style="margin:0 0 12px">' +
+          (c.signer ? '<div><dt>Unterzeichner</dt><dd>' + esc(c.signer) + '</dd></div>' : '') +
+          (c.signedAt ? '<div><dt>Zeitpunkt</dt><dd>' + dt(c.signedAt) + '</dd></div>' : '') +
+        '</dl>' +
+        '<div class="actions" style="flex-direction:column;gap:6px">' +
+          (c.sigDriveUrl ? '<a class="btn small" target="_blank" rel="noopener" href="' + esc(c.sigDriveUrl) + '" style="width:100%;text-align:center">✍️ Signatur ansehen (Drive)</a>' : '') +
+          '<a class="btn small primary" href="#/neu/invoice/' + encodeURIComponent(l.id) + '" style="width:100%;text-align:center">Rechnung erstellen →</a>' +
+          '<a class="btn small" href="#/neu/offer/' + encodeURIComponent(l.id) + '" style="width:100%;text-align:center">📄 PDF-Vertrag ansehen / erstellen</a>' +
+        '</div>' +
+      '</div>';
+    }
+    return '<div class="card" id="contract-card">' +
+      '<h2>Vertrags-Optionen</h2>' +
+      '<p class="muted" style="margin:0 0 10px;font-size:13px">Wählen Sie, wie der Vertrag an den Kunden gesendet werden soll:</p>' +
+      
+      '<div style="background:#f8fafc;border:1px solid var(--line);border-radius:6px;padding:10px;margin-bottom:10px">' +
+        '<b style="font-size:13px;display:block;margin-bottom:4px;color:var(--navy,#17304f)">1. Digitaler E-Signatur-Vertrag</b>' +
+        '<p class="muted" style="margin:0 0 8px;font-size:12px">Kunde prüft &amp; signiert digital auf Smartphone/PC (§ 312j / § 356(4) BGB rechtskonform).</p>' +
+        '<div class="actions" style="gap:6px">' +
+          '<button class="btn small" id="copy-portal-link" style="flex:1">🔗 Link kopieren</button>' +
+          (l.phone ? '<button class="btn small" id="wa-portal-link" style="background:#25d366;color:#fff" title="Signatur-Link per WhatsApp senden">📲 WhatsApp</button>' : '') +
+        '</div>' +
+      '</div>' +
+
+      '<div style="background:#f8fafc;border:1px solid var(--line);border-radius:6px;padding:10px">' +
+        '<b style="font-size:13px;display:block;margin-bottom:4px;color:var(--navy,#17304f)">2. Formaler PDF-Vertrag (E-PDF)</b>' +
+        '<p class="muted" style="margin:0 0 8px;font-size:12px">Offizielles PDF-Dokument mit Briefkopf, USt-Ausweis, § 35a Lohnanteil und Unterschriftsfeld.</p>' +
+        '<div class="actions">' +
+          '<a class="btn small primary" href="#/neu/offer/' + encodeURIComponent(l.id) + '" style="width:100%;text-align:center">📄 PDF-Vertrag erstellen &amp; senden →</a>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }
+
+  var HANDOVER_DEFAULTS = [
+    {k: 'hvz', t: 'Halteverbotszone (HVZ) aufgestellt & protokolliert'},
+    {k: 'truck', t: 'Fahrzeug (3,5t / 7,5t) & Equipment bereit (Decken, Gurte, Rollwagen)'},
+    {k: 'team', t: 'Team eingeteilt (Fahrer + Helfer) & Zeiten gebrieft'},
+    {k: 'boxes', t: 'Umzugskartons / Packmaterial vorab geliefert'},
+    {k: 'assembly', t: 'Möbel- & Küchenmontage geprüft / Werkzeug komplett'},
+    {k: 'predamage', t: 'Vorschäden bei Auszug dokumentiert & fotografiert'},
+    {k: 'disposal', t: 'Entrümpelung / Sperrmüll Entsorgungsnachweis'},
+    {k: 'keys', t: 'Schlüssel- & Wohnungsübergabe protokolliert'},
+    {k: 'payment', t: 'Zahlung abgewickelt (Barquittung / EC / Überweisung)'},
+    {k: 'signature', t: 'Abnahmeunterschrift vom Kunden eingeholt'}
+  ];
+
+  /* Handover / To-Do Checklist for the owner (Ibrahim Abdelaal) */
+  function handoverHtml() {
+    var l = S.cur.lead, h = l.handover || {};
+    var checkedCount = 0;
+    HANDOVER_DEFAULTS.forEach(function (it) { if (h[it.k]) checkedCount++; });
+    var pct = Math.round((checkedCount / HANDOVER_DEFAULTS.length) * 100);
+
+    var rows = HANDOVER_DEFAULTS.map(function (it) {
+      var isChecked = !!h[it.k];
+      return '<label style="display:flex;align-items:flex-start;gap:8px;font-size:12.5px;line-height:1.35;cursor:pointer;margin-bottom:6px">' +
+        '<input type="checkbox" class="ho-chk" data-k="' + it.k + '"' + (isChecked ? ' checked' : '') + ' style="margin-top:2px;accent-color:var(--navy,#17304f)">' +
+        '<span>' + esc(it.t) + '</span>' +
+      '</label>';
+    }).join('');
+
+    return '<div class="card" id="handover-card">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">' +
+        '<h2 style="margin:0">Übergabe an Inhaber</h2>' +
+        '<span class="badge" id="ho-badge">' + checkedCount + '/' + HANDOVER_DEFAULTS.length + ' (' + pct + '%)</span>' +
+      '</div>' +
+      '<p class="muted" style="margin:0 0 10px;font-size:12.5px">To-Do-Checkliste zur Einsatzvorbereitung und Übergabe an Inhaber Ibrahim Abdelaal.</p>' +
+      '<div style="max-height:220px;overflow-y:auto;border:1px solid var(--soft,#e5e7eb);padding:8px 10px;border-radius:4px;background:#fafafa;margin-bottom:10px">' +
+        rows +
+      '</div>' +
+      '<div class="field" style="margin-bottom:10px">' +
+        '<label for="ho-note" style="font-size:12px;font-weight:600">Besonderheiten / Hinweise</label>' +
+        '<textarea class="input" id="ho-note" placeholder="z. B. Zufahrt eng, Parken im Hof, Schlüssel liegt bei Nachbarin" style="min-height:50px;font-size:12px">' + esc(h.note || '') + '</textarea>' +
+      '</div>' +
+      '<div class="actions" style="gap:6px">' +
+        '<button class="btn small primary" id="save-handover" style="flex:1">Speichern</button>' +
+        '<button class="btn small" id="wa-handover" style="background:#25d366;color:#fff" title="Checkliste per WhatsApp an Inhaber senden">📲 An Inhaber (WhatsApp)</button>' +
+      '</div>' +
+    '</div>';
+  }
+
   /* message to the customer */
   function sendHtml() {
     var l = S.cur.lead;
@@ -432,12 +531,12 @@ body.locked .top nav,body.locked .top .me{display:none}
     var first = (l.name || '').split(' ')[0];
     if (en) return ['Hello ' + (l.name || '') + ',', '', 'thank you for your request at Stabil Umzug (' + l.id + ').', '',
       'Our quote for your ' + svc(l).toLowerCase() + (date ? ' on ' + date : '') + ':'].concat(lines.map(function (x) { return '– ' + x[0] + (x[1] ? ' (' + x[1] + ')' : '') + ': ' + eur(Math.round(x[2] * x[4] * 100) / 100); }))
-      .concat(['', 'Total price: ' + eur(total), '', 'The quote is valid for 14 days. If everything suits you, just reply "Yes" and we will reserve your date.'])
-      .concat(link ? ['', 'Your quote online: ' + link] : []).concat(['', 'Questions? Call or WhatsApp 0163 9688190.', '', 'Kind regards', 'Ibrahim Abdelaal', 'Stabil Umzug · Karlstraße 32 · 45329 Essen']).join('\n');
+      .concat(['', 'Total price: ' + eur(total), '', 'The quote is valid for 14 days. If everything suits you, just reply "Yes" or sign online to reserve your date.'])
+      .concat(link ? ['', 'Review & sign your contract online (E-Sign): ' + link + '#sign'] : []).concat(['', 'Questions? Call or WhatsApp 0163 9688190.', '', 'Kind regards', 'Ibrahim Abdelaal', 'Stabil Umzug · Karlstraße 32 · 45329 Essen']).join('\n');
     return ['Hallo ' + (l.name || first) + ',', '', 'vielen Dank für Ihre Anfrage bei Stabil Umzug (' + l.id + ').', '',
       'Unser Angebot für Ihren Auftrag „' + svc(l) + '“' + (date ? ' am ' + date : '') + ':'].concat(lines.map(function (x) { return '– ' + x[0] + (x[1] ? ' (' + x[1] + ')' : '') + ': ' + eur(Math.round(x[2] * x[4] * 100) / 100); }))
-      .concat(['', 'Gesamtpreis: ' + eur(total), '', 'Das Angebot gilt 14 Tage. Wenn alles passt, antworten Sie einfach mit „Ja“ – dann reservieren wir Ihren Termin.'])
-      .concat(link ? ['', 'Ihr Angebot online: ' + link] : []).concat(['', 'Bei Fragen erreichen Sie uns unter 0163 9688190 (Telefon und WhatsApp).', '', 'Viele Grüße', 'Ibrahim Abdelaal', 'Stabil Umzug · Karlstraße 32 · 45329 Essen']).join('\n');
+      .concat(['', 'Gesamtpreis: ' + eur(total), '', 'Das Angebot gilt 14 Tage. Wenn alles passt, antworten Sie einfach mit „Ja“ oder signieren Sie direkt online – dann reservieren wir Ihren Termin fest.'])
+      .concat(link ? ['', 'Angebot prüfen & direkt digital unterzeichnen: ' + link + '#sign'] : []).concat(['', 'Bei Fragen erreichen Sie uns unter 0163 9688190 (Telefon und WhatsApp).', '', 'Viele Grüße', 'Ibrahim Abdelaal', 'Stabil Umzug · Karlstraße 32 · 45329 Essen']).join('\n');
   }
 
   function bindDetail() {
@@ -474,6 +573,84 @@ body.locked .top nav,body.locked .top .me{display:none}
     };
     document.getElementById('send-wa').addEventListener('click', function () { send('wa'); });
     document.getElementById('send-mail').addEventListener('click', function () { send('mail'); });
+    var copyBtn = document.getElementById('copy-portal-link');
+    if (copyBtn) {
+      copyBtn.addEventListener('click', function () {
+        if (!link) { toast('Portal-Link wird noch geladen …', true); return; }
+        var signLink = link + '#sign';
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(signLink).then(function () { toast('Signatur-Link kopiert!'); }).catch(function () { prompt('Signatur-Link kopieren:', signLink); });
+        } else {
+          prompt('Signatur-Link kopieren:', signLink);
+        }
+      });
+    }
+
+    var waPortalBtn = document.getElementById('wa-portal-link');
+    if (waPortalBtn) {
+      waPortalBtn.addEventListener('click', function () {
+        if (!link) { toast('Portal-Link wird noch geladen …', true); return; }
+        var signLink = link + '#sign';
+        var msg = 'Hallo ' + (l.name || '') + ',\n\nhier ist Ihr persönlicher Link zum Angebot und zur digitalen Vertragsunterzeichnung bei Stabil Umzug (' + l.id + '):\n\n' + signLink + '\n\nBitte prüfen und direkt digital auf dem Smartphone signieren. Bei Fragen sind wir jederzeit erreichbar!';
+        window.open('https://wa.me/' + waNum(l.phone) + '?text=' + encodeURIComponent(msg), '_blank', 'noopener');
+      });
+    }
+
+    var saveHoBtn = document.getElementById('save-handover');
+    if (saveHoBtn) {
+      saveHoBtn.addEventListener('click', function () {
+        saveHoBtn.disabled = true;
+        var hState = {note: (document.getElementById('ho-note') ? document.getElementById('ho-note').value.trim() : '')};
+        document.querySelectorAll('.ho-chk').forEach(function (chk) {
+          hState[chk.getAttribute('data-k')] = chk.checked;
+        });
+        run('api_update', l.id, {handover: hState})
+          .then(function (nl) {
+            saveHoBtn.disabled = false;
+            S.cur.lead = nl;
+            patchLead(nl);
+            toast('Übergabe-Checkliste gespeichert.');
+            var done = 0;
+            HANDOVER_DEFAULTS.forEach(function (it) { if (hState[it.k]) done++; });
+            var b = document.getElementById('ho-badge');
+            if (b) b.textContent = done + '/' + HANDOVER_DEFAULTS.length + ' (' + Math.round(done / HANDOVER_DEFAULTS.length * 100) + '%)';
+          })
+          .catch(function (err) { saveHoBtn.disabled = false; fail(err); });
+      });
+    }
+
+    var waHoBtn = document.getElementById('wa-handover');
+    if (waHoBtn) {
+      waHoBtn.addEventListener('click', function () {
+        var hState = {note: (document.getElementById('ho-note') ? document.getElementById('ho-note').value.trim() : '')};
+        var done = 0, lines = [];
+        document.querySelectorAll('.ho-chk').forEach(function (chk) {
+          var k = chk.getAttribute('data-k');
+          var text = chk.parentNode.textContent.trim();
+          if (chk.checked) {
+            done++;
+            lines.push('✓ ' + text);
+          } else {
+            lines.push('☐ ' + text);
+          }
+        });
+        var dateStr = isDate(l.date) ? day(l.date) : (l.date || 'flexibel');
+        var waMsg = [
+          'Stabil Umzug · Übergabe Auftrag ' + l.id,
+          'Kunde: ' + (l.name || '–') + ' (' + (l.phone || l.email || '–') + ')',
+          'Termin: ' + dateStr,
+          'Strecke: ' + route(l),
+          'Fahrzeug: ' + (l.vehicle || '3,5t') + ' | Team: ' + (l.crew || '2-3') + ' Personen',
+          'Angebot: ' + eur(l.total),
+          '',
+          'Checkliste (' + done + '/' + HANDOVER_DEFAULTS.length + ' erledigt):',
+          lines.join('\n'),
+          hState.note ? '\nHinweis: ' + hState.note : '',
+          '\nAdmin: https://www.stabilumzug.de/admin/?a=' + l.id
+        ].filter(Boolean).join('\n');
+        window.open('https://wa.me/491639688190?text=' + encodeURIComponent(waMsg), '_blank', 'noopener');
+      });
+    }
   }
   function patchLead(p) { S.leads.forEach(function (x) { if (x.id === p.id) for (var k in p) x[k] = p[k]; }); }
 
@@ -524,5 +701,7 @@ body.locked .top nav,body.locked .top .me{display:none}
 </script>
 <?!= include_('BelegeUi') ?>
 <?!= include_('TermineUi') ?>
+<?!= include_('PlanerUi') ?>
+<?!= include_('HilfeUi') ?>
 </body>
 </html>

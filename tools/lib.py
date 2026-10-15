@@ -132,7 +132,7 @@ def footer(key, lang):
         '<footer class="site-footer"><div class="foot-van" aria-hidden="true"><img src="' + prefix_for(key, lang) + 'assets/img/van-branded-640.jpg" alt="" loading="lazy" width="640" height="640"></div><div class="container">'
         '<div class="footer-top">'
         '<div><div class="logo-lockup" role="img" aria-label="Stabil Umzug Essen">' + logo_mark("f") + '<span class="s">Stabil</span><span class="u">Umzug</span><span class="e">Essen</span></div><p>%s</p></div>'
-        '<div><h3>%s</h3><ul><li>%s</li><li>%s</li>%s<li>%s</li><li>%s %s</li></ul></div>'
+        '<div><h3>%s</h3><ul><li>%s</li><li>%s</li>%s<li>%s</li><li>%s, %s %s</li></ul></div>'
         '<div><h3>%s</h3><ul>%s<li><a href="%s">%s</a></li></ul></div>'
         '<div><h3>%s</h3><ul><li><a href="%s">%s</a></li><li><a href="%s">%s</a></li><li><a href="%s">%s</a></li><li><a href="%s">%s</a></li><li><a href="%s">%s</a></li></ul></div>'
         '</div>'
@@ -141,7 +141,7 @@ def footer(key, lang):
     ) % (
         esc(t("Umzüge, Klaviertransporte und Entrümpelungen aus Essen – im Ruhrgebiet und in ganz Deutschland.",
               "Moves, piano transport and clear-outs from Essen – across the Ruhr area and all of Germany.", lang)),
-        t("Kontakt", "Contact", lang), phone, email, wa, ph(SITE["hours"]), ph(SITE["street"]), esc(SITE["city"]),
+        t("Kontakt", "Contact", lang), phone, email, wa, ph(SITE["hours"]), ph(SITE["street"]), esc(SITE["zip"]), esc(SITE["city"]),
         t("Leistungen", "Services", lang), steps, L("quote"), t("Kostenloses Angebot", "Free quote", lang),
         t("Stabil Umzug", "Stabil Umzug", lang),
         L("planner"), t("Umzugsplaner", "Moving planner", lang),
@@ -214,6 +214,8 @@ def render(page):
     if page.get("portal"):
         scripts.append('<script src="%sassets/js/portal.js" defer></script>' % pre)
     scripts.append('<script src="%sassets/js/site.js" defer></script>' % pre)
+    if key != "admin":
+        scripts.append('<script src="%sassets/js/chatbot.js" defer></script>' % pre)
     no_bar = page.get("planner") or key in ("quote", "portal", "booking", "contact")   # the planner has its own footer; the quote page is the bar's target
     return hyphenate(responsive_images((
         '<!doctype html>\n<html lang="%s" data-theme="light">\n<head>\n%s\n</head>\n<body%s>\n'   # always the light brand design

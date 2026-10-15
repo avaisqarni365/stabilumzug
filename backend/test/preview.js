@@ -23,7 +23,7 @@ ctx.HtmlService = {
 const files = [];
 const folder = {getId: () => 'F1', getFoldersByName: () => ({hasNext: () => false}), createFolder: () => folder,
   createFile: b => { files.push(b.name); return {getUrl: () => 'https://drive.google.com/file/' + files.length, getId: () => 'file' + files.length, getBlob: () => b}; }};
-ctx.DriveApp = {createFolder: () => folder, getFolderById: () => folder, getFileById: () => ({getBlob: () => blob('stored.pdf')})};
+ctx.DriveApp = {createFolder: () => folder, getFoldersByName: () => ({hasNext: () => false}), getFolderById: () => folder, getFileById: () => ({getBlob: () => blob('stored.pdf')})};
 const events = [];
 ctx.CalendarApp = {getDefaultCalendar: () => ({createEvent: (t) => { events.push(t); return {getId: () => 'ev' + events.length}; },
   getEventById: () => ({deleteEvent() {}, setTime() {}})})};

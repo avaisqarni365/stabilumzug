@@ -64,6 +64,35 @@ const ctx = {
     base64Encode: s => Buffer.from(s, 'utf8').toString('base64'), Charset: {UTF_8: 1},
     computeHmacSha256Signature: (v, k) => [...require('crypto').createHmac('sha256', Buffer.from(String(k))).update(Buffer.from(String(v))).digest()], sleep: () => {},
     base64Decode: s => { if (!/^[A-Za-z0-9+/=]+$/.test(s)) throw new Error('bad base64'); return [...Buffer.from(s, 'base64')]; },
+    newBlob: (bytes, type, name) => ({
+      data: bytes, bytes: bytes, type: type, name: name,
+      getName: () => name, getContentType: () => type, getBytes: () => bytes, getDataAsString: () => String(bytes)
+    }),
+  },
+  DriveApp: (function () {
+    const folders = {};
+    function MFolder(name) {
+      this.name = name; this.files = []; this.subs = {};
+      this.getName = () => this.name;
+      this.getUrl = () => 'https://drive.google.com/drive/folders/' + encodeURIComponent(this.name);
+      this.getFoldersByName = n => { const list = this.subs[n] ? [this.subs[n]] : []; let i = 0; return {hasNext: () => i < list.length, next: () => list[i++]}; };
+      this.createFolder = n => (this.subs[n] = new MFolder(n));
+      this.createFile = b => {
+        const file = {name: b && b.getName ? b.getName() : 'file', getUrl: () => 'https://drive.google.com/file/d/test-' + encodeURIComponent(this.name) + '/view'};
+        this.files.push(file); return file;
+      };
+    }
+    return {
+      getFoldersByName: n => { const list = folders[n] ? [folders[n]] : []; let i = 0; return {hasNext: () => i < list.length, next: () => list[i++]}; },
+      createFolder: n => (folders[n] = new MFolder(n)),
+      createFile: b => ({getUrl: () => 'https://drive.google.com/file/d/test/view'})
+    };
+  })(),
+  CalendarApp: {
+    getDefaultCalendar: () => ({
+      createEvent: (title, start, end, opt) => ({getId: () => 'ev-' + Math.random().toString(36).slice(2)}),
+      getEventById: id => ({deleteEvent: () => {}})
+    })
   },
   Maps: {DirectionFinder: {Mode: {DRIVING: 'd'}}, newDirectionFinder: () => { const o = {}; ['setOrigin', 'setDestination', 'setMode', 'setRegion', 'setLanguage'].forEach(k => o[k] = () => o); o.getDirections = () => ({routes: [{legs: [{distance: {value: 23400}, duration: {value: 1680}}]}]}); return o; }},
   MailApp: {sendEmail: o => mails.push(o)},

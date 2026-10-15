@@ -1,0 +1,577 @@
+<style>
+/* ---------- Owner Move Planner (Admin Planer) ---------- */
+.pl-wrap{display:grid;grid-template-columns:minmax(0,1.3fr) 340px;gap:28px;align-items:start}
+.pl-side{position:sticky;top:74px}
+.pl-card{background:#fff;border-top:3px solid var(--ink);padding:16px;box-shadow:0 8px 24px -12px rgba(23,48,79,.25);margin-bottom:18px}
+.pl-card.highlight{border-top-color:var(--red)}
+.pl-card h2{font-size:16px;letter-spacing:-.01em;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.pl-preset-bar{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+.pl-btn-p{background:var(--surface);border:1px solid var(--line);padding:6px 10px;font-size:12.5px;font-weight:600;cursor:pointer;border-radius:2px}
+.pl-btn-p:hover{background:var(--tint);border-color:var(--red);color:var(--tint-ink)}
+.pl-room-tabs{display:flex;flex-wrap:wrap;gap:4px;border-bottom:2px solid var(--ink);padding-bottom:6px;margin-bottom:14px}
+.pl-rtab{border:1px solid var(--line);background:transparent;padding:6px 10px;font-size:12px;font-weight:700;cursor:pointer}
+.pl-rtab[aria-selected=true]{background:var(--ink);color:var(--on);border-color:var(--ink)}
+.pl-item-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;max-height:480px;overflow-y:auto;padding-right:4px}
+.pl-item{background:#fafafa;border:1px solid var(--soft);padding:8px 10px;display:flex;flex-direction:column;justify-content:space-between;border-radius:2px}
+.pl-item.has-val{border-color:var(--fill);background:#fff9f6}
+.pl-it-h{font-weight:600;font-size:13px;line-height:1.2;margin-bottom:4px}
+.pl-it-meta{font-size:11px;color:var(--ink2);margin-bottom:8px}
+.pl-it-ctrl{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.pl-cnt{font-weight:700;font-size:14px;min-width:28px;text-align:center;font-variant-numeric:tabular-nums}
+.pl-btn-num{width:32px;height:32px;border:1px solid var(--line);background:#fff;cursor:pointer;font-weight:700;font-size:16px;display:inline-grid;place-items:center;padding:0;line-height:1}
+.pl-btn-num:hover{background:var(--tint);border-color:var(--red)}
+.pl-btn-num:active{transform:scale(.95)}
+.pl-customs-box{margin-top:14px;border-top:1px dashed var(--line);padding-top:10px}
+.pl-c-row{display:grid;grid-template-columns:1fr 70px 60px 32px;gap:6px;align-items:center;margin-bottom:6px}
+.pl-stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:14px;border-bottom:1px solid var(--soft);padding-bottom:12px}
+.pl-stat{padding:8px;background:var(--surface);border-left:3px solid var(--ink)}
+.pl-stat b{display:block;font-size:20px;line-height:1.1;font-variant-numeric:tabular-nums}
+.pl-stat span{font-size:11px;color:var(--ink2);text-transform:uppercase;letter-spacing:.04em}
+.pl-actions-col{display:flex;flex-direction:column;gap:8px}
+.pl-actions-col .btn{width:100%;text-align:center;justify-content:center}
+@media (max-width:1020px){.pl-wrap{grid-template-columns:minmax(0,1fr)}.pl-side{position:static}}
+</style>
+
+<script>
+(function () {
+  'use strict';
+  var U = window.SU;
+  var esc = U.esc, run = U.run, eur = U.eur;
+
+  var PL = {
+    master: null, rates: null, company: null, leads: [],
+    leadId: '', curRoom: 'all', search: '',
+    state: null
+  };
+
+  function defaultState() {
+    return {
+      f1: {from: '', to: '', km: '', date: '', dateMode: 'fixed', hh: 1},
+      acc: {old: {floor: 1, lift: 0, park: 1}, 'new': {floor: 1, lift: 0, park: 1}},
+      hvz: false,
+      contact: {name: '', phone: '', email: '', channel: 'phone', note: ''},
+      inv: {},
+      customs: []
+    };
+  }
+
+  function routePlaner(h) {
+    if (h === 'planer' || h.indexOf('planer?') === 0 || h.indexOf('planer/') === 0) {
+      var leadId = '';
+      var m = h.match(/[?&]id=([^&]+)/);
+      if (m) leadId = decodeURIComponent(m[1]);
+      else if (h.indexOf('planer/') === 0) leadId = decodeURIComponent(h.slice(7));
+      init(leadId);
+      return true;
+    }
+    return false;
+  }
+
+  function init(leadId) {
+    U.setNav('planner');
+    PL.leadId = leadId || '';
+    PL.state = defaultState();
+    U.app.innerHTML = '<p class="loading">Umzugsplaner für Inhaber wird initialisiert …</p>';
+
+    run('api_plannerMaster').then(function (res) {
+      PL.master = res.master;
+      PL.rates = res.rates;
+      PL.company = res.company;
+      PL.leads = res.leads || [];
+
+      if (PL.leadId) {
+        run('api_lead', PL.leadId).then(function (ld) {
+          if (ld && ld.lead) {
+            var l = ld.lead;
+            PL.state.contact.name = l.name || '';
+            PL.state.contact.phone = l.phone || '';
+            PL.state.contact.email = l.email || '';
+            PL.state.contact.note = l.notes || '';
+            PL.state.f1.from = l.from || '';
+            PL.state.f1.to = l.to || '';
+            PL.state.f1.km = l.kmMaps || l.kmFamily || '';
+            PL.state.f1.date = l.date || '';
+            PL.state.hvz = /ja|true|1/i.test(l.hvz);
+            if (ld.state && typeof ld.state === 'object') {
+              if (ld.state.inv) PL.state.inv = ld.state.inv;
+              if (ld.state.acc) PL.state.acc = ld.state.acc;
+              if (ld.state.customs) PL.state.customs = ld.state.customs;
+            }
+          }
+          draw();
+        }).catch(function (e) {
+          U.toast('Konnte Anfrage ' + PL.leadId + ' nicht laden: ' + e, true);
+          draw();
+        });
+      } else {
+        draw();
+      }
+    }).catch(U.fail);
+  }
+
+  function draw() {
+    var s = PL.state;
+    var leadsOpt = '<option value="">-- Neue Planung erstellen --</option>' +
+      PL.leads.map(function (l) {
+        return '<option value="' + esc(l.id) + '"' + (l.id === PL.leadId ? ' selected' : '') + '>' + esc(l.id + ' · ' + (l.name || 'Ohne Name') + ' (' + (l.from || '–') + ' → ' + (l.to || '–') + ')') + '</option>';
+      }).join('');
+
+    var rooms = [
+      ['all', 'Alle Räume'],
+      ['living', 'Wohnzimmer'],
+      ['bedroom', 'Schlafzimmer'],
+      ['kitchen', 'Küche'],
+      ['bath', 'Bad'],
+      ['kids', 'Kinderzimmer'],
+      ['office', 'Büro'],
+      ['cellar', 'Keller / Kartons']
+    ];
+
+    var roomTabsHtml = rooms.map(function (r) {
+      return '<button class="pl-rtab" type="button" data-room="' + r[0] + '" aria-selected="' + (PL.curRoom === r[0]) + '">' + esc(r[1]) + '</button>';
+    }).join('');
+
+    var html = '<div class="h"><div><span class="kicker">Inhaber-Tool</span><h1>Umzugs- &amp; Angebotsplaner</h1><p class="muted" style="margin:2px 0 0">Auftrag am Telefon oder bei Besichtigung erfassen. Berechnet Volumen, LKW &amp; Team und konvertiert mit 1 Klick in Angebot oder Rechnung.</p></div>' +
+      '<div class="actions"><select class="input" id="pl-lead-select" style="min-width:280px" aria-label="Bestehende Anfrage laden">' + leadsOpt + '</select>' +
+      '<button class="btn small" id="pl-reset-btn">Neu leeren</button></div></div>' +
+
+      '<div class="pl-wrap"><div>' +
+
+        '<div class="pl-card"><h2>1. Kunde &amp; Adressen</h2>' +
+          '<div class="f3" style="margin-bottom:10px">' +
+            '<div class="field"><label>Kundenname *</label><input class="input" id="pl-name" value="' + esc(s.contact.name) + '" placeholder="z. B. Herr Müller / Familie Schmidt"></div>' +
+            '<div class="field"><label>Telefon (WhatsApp) *</label><input class="input" id="pl-phone" type="tel" value="' + esc(s.contact.phone) + '" placeholder="z. B. 0171 1234567"></div>' +
+            '<div class="field"><label>E-Mail</label><input class="input" id="pl-email" type="email" value="' + esc(s.contact.email) + '" placeholder="kunde@example.de"></div>' +
+          '</div>' +
+          '<div class="f3">' +
+            '<div class="field"><label>Auszugsadresse (Von)</label><input class="input" id="pl-from" value="' + esc(s.f1.from) + '" placeholder="Straße, PLZ, Ort"></div>' +
+            '<div class="field"><label>Einzugsadresse (Nach)</label><input class="input" id="pl-to" value="' + esc(s.f1.to) + '" placeholder="Straße, PLZ, Ort"></div>' +
+            '<div class="field"><label>Entfernung (km) / Termin</label><div style="display:flex;gap:6px"><input class="input" id="pl-km" type="number" step="any" value="' + esc(s.f1.km) + '" placeholder="km" style="width:70px"><input class="input" id="pl-date" type="date" value="' + esc(s.f1.date) + '" style="flex:1"></div></div>' +
+          '</div>' +
+        '</div>' +
+
+        '<div class="pl-card"><h2>2. Zugang &amp; Logistik</h2>' +
+          '<div class="f2" style="margin-bottom:10px">' +
+            '<div style="background:#fafafa;padding:10px;border:1px solid var(--soft)"><b>Auszug (Alt)</b>' +
+              '<div class="f3" style="margin-top:6px">' +
+                '<div class="field"><label>Etage</label><select class="input" id="pl-acc-old-floor"><option value="0"' + (s.acc.old.floor === 0 ? ' selected' : '') + '>EG</option><option value="1"' + (s.acc.old.floor === 1 ? ' selected' : '') + '>1–2. OG</option><option value="2"' + (s.acc.old.floor === 2 ? ' selected' : '') + '>3–4. OG</option><option value="3"' + (s.acc.old.floor === 3 ? ' selected' : '') + '>5+ OG</option></select></div>' +
+                '<div class="field"><label>Aufzug</label><select class="input" id="pl-acc-old-lift"><option value="0"' + (s.acc.old.lift === 0 ? ' selected' : '') + '>Keiner</option><option value="1"' + (s.acc.old.lift === 1 ? ' selected' : '') + '>Klein</option><option value="2"' + (s.acc.old.lift === 2 ? ' selected' : '') + '>Groß</option></select></div>' +
+                '<div class="field"><label>Laufweg</label><select class="input" id="pl-acc-old-park"><option value="0"' + (s.acc.old.park === 0 ? ' selected' : '') + '>vor Tür</option><option value="1"' + (s.acc.old.park === 1 ? ' selected' : '') + '>&le; 30m</option><option value="2"' + (s.acc.old.park === 2 ? ' selected' : '') + '>&gt; 30m</option></select></div>' +
+              '</div>' +
+            '</div>' +
+            '<div style="background:#fafafa;padding:10px;border:1px solid var(--soft)"><b>Einzug (Neu)</b>' +
+              '<div class="f3" style="margin-top:6px">' +
+                '<div class="field"><label>Etage</label><select class="input" id="pl-acc-new-floor"><option value="0"' + (s.acc['new'].floor === 0 ? ' selected' : '') + '>EG</option><option value="1"' + (s.acc['new'].floor === 1 ? ' selected' : '') + '>1–2. OG</option><option value="2"' + (s.acc['new'].floor === 2 ? ' selected' : '') + '>3–4. OG</option><option value="3"' + (s.acc['new'].floor === 3 ? ' selected' : '') + '>5+ OG</option></select></div>' +
+                '<div class="field"><label>Aufzug</label><select class="input" id="pl-acc-new-lift"><option value="0"' + (s.acc['new'].lift === 0 ? ' selected' : '') + '>Keiner</option><option value="1"' + (s.acc['new'].lift === 1 ? ' selected' : '') + '>Klein</option><option value="2"' + (s.acc['new'].lift === 2 ? ' selected' : '') + '>Groß</option></select></div>' +
+                '<div class="field"><label>Laufweg</label><select class="input" id="pl-acc-new-park"><option value="0"' + (s.acc['new'].park === 0 ? ' selected' : '') + '>vor Tür</option><option value="1"' + (s.acc['new'].park === 1 ? ' selected' : '') + '>&le; 30m</option><option value="2"' + (s.acc['new'].park === 2 ? ' selected' : '') + '>&gt; 30m</option></select></div>' +
+              '</div>' +
+            '</div>' +
+          '</div>' +
+          '<label style="display:flex;align-items:center;gap:8px;font-weight:600;font-size:13px;cursor:pointer">' +
+            '<input type="checkbox" id="pl-hvz"' + (s.hvz ? ' checked' : '') + ' style="accent-color:var(--red);width:18px;height:18px">' +
+            'Halteverbotszone (HVZ) wird benötigt (+ 120 € Pauschale für Schilder &amp; Behörde)' +
+          '</label>' +
+        '</div>' +
+
+        '<div class="pl-card highlight"><h2><span>3. Umzugsgut &amp; Möbel</span>' +
+          '<input class="input" id="pl-search" placeholder="🔍 Möbelstück suchen …" style="width:200px;font-size:12.5px;min-height:34px;padding:4px 8px" value="' + esc(PL.search) + '">' +
+          '</h2>' +
+
+          '<div class="pl-preset-bar">' +
+            '<span class="muted" style="align-self:center;font-size:12px;margin-right:4px">Schnellvorlagen:</span>' +
+            '<button class="pl-btn-p" type="button" data-preset="single">📦 1-Zimmer (~15 m³)</button>' +
+            '<button class="pl-btn-p" type="button" data-preset="couple">🛋️ 2-3 Zimmer (~28 m³)</button>' +
+            '<button class="pl-btn-p" type="button" data-preset="family">🏡 3-4 Zimmer (~45 m³)</button>' +
+            '<button class="pl-btn-p" type="button" data-preset="clear" style="color:var(--fill)">✕ Auf 0 setzen</button>' +
+          '</div>' +
+
+          '<div class="pl-room-tabs">' + roomTabsHtml + '</div>' +
+          '<div class="pl-item-grid" id="pl-items-container"></div>' +
+
+          '<div class="pl-customs-box">' +
+            '<b style="font-size:13px;display:block;margin-bottom:6px">Sondergegenstände (z. B. Klavier, Safe, Side-by-Side)</b>' +
+            '<div id="pl-customs-list"></div>' +
+            '<button class="btn small" type="button" id="pl-add-custom">+ Sondergegenstand hinzufügen</button>' +
+          '</div>' +
+        '</div>' +
+
+      '</div><aside class="pl-side">' +
+
+        '<div class="pl-card" style="border-top-color:var(--red)">' +
+          '<h2>Live-Kalkulation</h2>' +
+          '<div class="pl-stat-grid">' +
+            '<div class="pl-stat"><b id="st-vol">0 m³</b><span>Volumen</span></div>' +
+            '<div class="pl-stat"><b id="st-veh">3,5 t</b><span>Fahrzeug</span></div>' +
+            '<div class="pl-stat"><b id="st-crew">2 Pers.</b><span>Team</span></div>' +
+            '<div class="pl-stat"><b id="st-hours">0 Std.</b><span>Arbeitszeit</span></div>' +
+          '</div>' +
+          '<div style="font-size:13px;line-height:1.6;margin-bottom:14px">' +
+            '<div style="display:flex;justify-content:space-between"><span>Gegenstände:</span><b id="st-items-cnt">0 Stück</b></div>' +
+            '<div style="display:flex;justify-content:space-between"><span>Montageaufwand:</span><b id="st-asm-min">0 min</b></div>' +
+            '<div style="display:flex;justify-content:space-between;border-top:1px solid var(--soft);padding-top:4px;margin-top:4px">' +
+              '<span>Richtpreis ab:</span><b id="st-price" style="font-size:18px;color:var(--fill)">–</b>' +
+            '</div>' +
+          '</div>' +
+
+          '<div class="pl-actions-col">' +
+            '<button class="btn primary" id="act-offer">📄 In Angebot (PDF) umwandeln →</button>' +
+            '<button class="btn" id="act-invoice">🧾 In Rechnung (PDF) umwandeln →</button>' +
+            '<button class="btn" id="act-lead">💾 Als Anfrage speichern</button>' +
+            '<button class="btn" id="act-wa" style="background:#25d366;color:#fff;border-color:#25d366">📲 Kalkulation per WhatsApp senden</button>' +
+          '</div>' +
+        '</div>' +
+
+      '</aside></div>';
+
+    U.app.innerHTML = html;
+    bind();
+    renderItems();
+    recalc();
+  }
+
+  function renderItems() {
+    var cont = document.getElementById('pl-items-container');
+    if (!cont || !PL.master) return;
+
+    var s = PL.state;
+    var filterRoom = PL.curRoom;
+    var q = PL.search.toLowerCase().trim();
+
+    var filtered = PL.master.items.filter(function (it) {
+      if (filterRoom !== 'all' && it.room !== filterRoom && it.room !== 'all') return false;
+      if (!q) return true;
+      var haystack = [it.de, it.en].concat(it.syn || []).join(' ').toLowerCase();
+      return haystack.indexOf(q) >= 0;
+    });
+
+    if (!filtered.length) {
+      cont.innerHTML = '<p class="empty" style="grid-column:1/-1">Keine Möbelstücke für diese Auswahl gefunden.</p>';
+      return;
+    }
+
+    var html = filtered.map(function (it) {
+      var entry = s.inv[it.id] || {vi: 0, by: {}};
+      var curCnt = 0;
+      for (var k in (entry.by || {})) curCnt += entry.by[k] || 0;
+      var curVi = entry.vi || 0;
+
+      var varSelect = '';
+      if (it.vars && it.vars.length) {
+        varSelect = '<select class="input" style="font-size:11px;min-height:24px;padding:1px 4px;margin-bottom:4px" data-vit="' + esc(it.id) + '">' +
+          it.vars.map(function (v, idx) {
+            return '<option value="' + idx + '"' + (idx === curVi ? ' selected' : '') + '>' + esc(v.l) + ' (' + v.v + ' m³)</option>';
+          }).join('') + '</select>';
+      }
+
+      var vol = it.vars ? it.vars[curVi].v : it.v;
+      var hasVal = curCnt > 0;
+
+      return '<div class="pl-item' + (hasVal ? ' has-val' : '') + '" data-id="' + esc(it.id) + '">' +
+        '<div>' +
+          '<div class="pl-it-h">' + esc(it.de) + '</div>' +
+          varSelect +
+          '<div class="pl-it-meta">' + vol + ' m³' + (it.asm || it.dis ? ' · ' + (it.asm + it.dis) + 'm Montage' : '') + '</div>' +
+        '</div>' +
+        '<div class="pl-it-ctrl">' +
+          '<button class="pl-btn-num" type="button" data-act="dec" data-id="' + esc(it.id) + '">−</button>' +
+          '<span class="pl-cnt">' + curCnt + '</span>' +
+          '<button class="pl-btn-num" type="button" data-act="inc" data-id="' + esc(it.id) + '">+</button>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+
+    cont.innerHTML = html;
+  }
+
+  function renderCustoms() {
+    var cList = document.getElementById('pl-customs-list');
+    if (!cList) return;
+    var customs = PL.state.customs || [];
+    if (!customs.length) {
+      cList.innerHTML = '<p class="muted" style="font-size:12px;margin:4px 0 8px">Keine Sondergegenstände.</p>';
+      return;
+    }
+    cList.innerHTML = customs.map(function (cu, idx) {
+      return '<div class="pl-c-row">' +
+        '<input class="input" style="min-height:32px;font-size:12px" data-cu-idx="' + idx + '" data-k="name" value="' + esc(cu.name) + '" placeholder="z. B. Flügel / Safe">' +
+        '<input class="input" type="number" step="any" style="min-height:32px;font-size:12px" data-cu-idx="' + idx + '" data-k="v" value="' + esc(cu.v) + '" placeholder="m³">' +
+        '<input class="input" type="number" min="1" style="min-height:32px;font-size:12px" data-cu-idx="' + idx + '" data-k="n" value="' + esc(cu.n || 1) + '" placeholder="Anz">' +
+        '<button class="x" type="button" data-cu-del="' + idx + '" title="Löschen">×</button>' +
+      '</div>';
+    }).join('');
+  }
+
+  function recalc() {
+    if (!window.Estimator || !PL.master) return;
+    readInputs();
+
+    var est = window.Estimator.estimate(PL.state, PL.master);
+    var R = PL.rates || {hour: 45, veh_sprinter: 120, veh_lkw75: 190, veh_lkw12: 250, km: 0.95, asm_min: 0.75, access: 2.5, hvz: 120, min_price: 390};
+
+    var volDisplay = Math.round(est.vol * 10) / 10 + ' m³';
+    var vehDisplay = est.vehicle === 'sprinter' ? 'Sprinter 3,5t' : (est.vehicle === 'lkw75' ? 'LKW 7,5t' : 'LKW 12t');
+    if (est.trips > 1) vehDisplay += ' (' + est.trips + 'x)';
+
+    var elVol = document.getElementById('st-vol'); if (elVol) elVol.textContent = volDisplay;
+    var elVeh = document.getElementById('st-veh'); if (elVeh) elVeh.textContent = vehDisplay;
+    var elCrew = document.getElementById('st-crew'); if (elCrew) elCrew.textContent = est.crew + ' Pers.';
+    var elHours = document.getElementById('st-hours'); if (elHours) elHours.textContent = Math.round(est.hours * 10) / 10 + ' Std.';
+    var elCnt = document.getElementById('st-items-cnt'); if (elCnt) elCnt.textContent = est.n + ' Stück';
+    var elAsm = document.getElementById('st-asm-min'); if (elAsm) elAsm.textContent = est.asmMin + ' min';
+
+    // Calculate approximate price
+    var km = parseFloat(String(PL.state.f1.km || 20).replace(',', '.'));
+    var days = Math.max(1, Math.ceil(est.hours / 9));
+    var vehRate = R['veh_' + est.vehicle] || R.veh_sprinter;
+    var acc = window.Estimator.accessFactor(PL.state.acc.old) + window.Estimator.accessFactor(PL.state.acc['new']);
+    var price = (est.crew * est.hours * R.hour) +
+      (days * vehRate) +
+      (km * 2 * est.trips * R.km) +
+      (est.asmMin * R.asm_min) +
+      (acc * est.vol * R.access) +
+      (PL.state.hvz ? R.hvz : 0);
+    price = Math.max(R.min_price || 390, Math.round(price));
+
+    var elPrice = document.getElementById('st-price');
+    if (elPrice) elPrice.textContent = eur(price);
+
+    return {est: est, price: price};
+  }
+
+  function readInputs() {
+    var s = PL.state;
+    var q = function (id) { var el = document.getElementById(id); return el ? el.value.trim() : ''; };
+    s.contact.name = q('pl-name');
+    s.contact.phone = q('pl-phone');
+    s.contact.email = q('pl-email');
+    s.f1.from = q('pl-from');
+    s.f1.to = q('pl-to');
+    s.f1.km = q('pl-km');
+    s.f1.date = q('pl-date');
+
+    var oF = document.getElementById('pl-acc-old-floor'); if (oF) s.acc.old.floor = parseInt(oF.value, 10);
+    var oL = document.getElementById('pl-acc-old-lift'); if (oL) s.acc.old.lift = parseInt(oL.value, 10);
+    var oP = document.getElementById('pl-acc-old-park'); if (oP) s.acc.old.park = parseInt(oP.value, 10);
+
+    var nF = document.getElementById('pl-acc-new-floor'); if (nF) s.acc['new'].floor = parseInt(nF.value, 10);
+    var nL = document.getElementById('pl-acc-new-lift'); if (nL) s.acc['new'].lift = parseInt(nL.value, 10);
+    var nP = document.getElementById('pl-acc-new-park'); if (nP) s.acc['new'].park = parseInt(nP.value, 10);
+
+    var hvz = document.getElementById('pl-hvz'); if (hvz) s.hvz = hvz.checked;
+  }
+
+  function bind() {
+    document.getElementById('pl-lead-select').addEventListener('change', function (e) {
+      if (e.target.value) location.hash = '#/planer?id=' + encodeURIComponent(e.target.value);
+      else location.hash = '#/planer';
+    });
+
+    document.getElementById('pl-reset-btn').addEventListener('click', function () {
+      if (confirm('Planer zurücksetzen und neue Planung beginnen?')) {
+        PL.leadId = '';
+        PL.state = defaultState();
+        draw();
+      }
+    });
+
+    document.querySelectorAll('.pl-rtab').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        PL.curRoom = btn.getAttribute('data-room');
+        document.querySelectorAll('.pl-rtab').forEach(function (b) {
+          b.setAttribute('aria-selected', b === btn);
+        });
+        renderItems();
+      });
+    });
+
+    var sInp = document.getElementById('pl-search');
+    if (sInp) {
+      sInp.addEventListener('input', function (e) {
+        PL.search = e.target.value;
+        renderItems();
+      });
+    }
+
+    // Presets
+    document.querySelectorAll('[data-preset]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var p = btn.getAttribute('data-preset');
+        applyPreset(p);
+      });
+    });
+
+    // Item counter actions (+ / -)
+    var itemsBox = document.getElementById('pl-items-container');
+    if (itemsBox) {
+      itemsBox.addEventListener('click', function (e) {
+        var b = e.target.closest('button[data-act]');
+        if (!b) return;
+        var act = b.getAttribute('data-act');
+        var id = b.getAttribute('data-id');
+        var row = b.closest('.pl-item');
+        var cntEl = row.querySelector('.pl-cnt');
+        var cur = parseInt(cntEl.textContent, 10) || 0;
+        if (act === 'inc') cur++;
+        if (act === 'dec' && cur > 0) cur--;
+        cntEl.textContent = cur;
+        if (cur > 0) row.classList.add('has-val');
+        else row.classList.remove('has-val');
+
+        PL.state.inv[id] = PL.state.inv[id] || {vi: 0, by: {}};
+        PL.state.inv[id].by.pick = cur;
+        recalc();
+      });
+
+      itemsBox.addEventListener('change', function (e) {
+        if (e.target.hasAttribute('data-vit')) {
+          var id = e.target.getAttribute('data-vit');
+          PL.state.inv[id] = PL.state.inv[id] || {vi: 0, by: {}};
+          PL.state.inv[id].vi = parseInt(e.target.value, 10) || 0;
+          recalc();
+        }
+      });
+    }
+
+    // Customs
+    document.getElementById('pl-add-custom').addEventListener('click', function () {
+      PL.state.customs.push({name: 'Sondergut', v: 0.5, n: 1, l: 100, b: 60, h: 80});
+      renderCustoms();
+      recalc();
+    });
+
+    var cList = document.getElementById('pl-customs-list');
+    if (cList) {
+      cList.addEventListener('input', function (e) {
+        var inp = e.target;
+        var idx = parseInt(inp.getAttribute('data-cu-idx'), 10);
+        var k = inp.getAttribute('data-k');
+        if (PL.state.customs[idx]) {
+          PL.state.customs[idx][k] = k === 'name' ? inp.value : parseFloat(inp.value) || 0;
+          recalc();
+        }
+      });
+      cList.addEventListener('click', function (e) {
+        var delBtn = e.target.closest('[data-cu-del]');
+        if (delBtn) {
+          var idx = parseInt(delBtn.getAttribute('data-cu-del'), 10);
+          PL.state.customs.splice(idx, 1);
+          renderCustoms();
+          recalc();
+        }
+      });
+    }
+
+    // Form inputs live recalc
+    ['pl-name', 'pl-phone', 'pl-email', 'pl-from', 'pl-to', 'pl-km', 'pl-date',
+     'pl-acc-old-floor', 'pl-acc-old-lift', 'pl-acc-old-park',
+     'pl-acc-new-floor', 'pl-acc-new-lift', 'pl-acc-new-park', 'pl-hvz'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) {
+        el.addEventListener('input', recalc);
+        el.addEventListener('change', recalc);
+      }
+    });
+
+    // Actions
+    document.getElementById('act-offer').addEventListener('click', function () { save('offer'); });
+    document.getElementById('act-invoice').addEventListener('click', function () { save('invoice'); });
+    document.getElementById('act-lead').addEventListener('click', function () { save('lead'); });
+    document.getElementById('act-wa').addEventListener('click', sendWhatsApp);
+  }
+
+  function applyPreset(name) {
+    if (name === 'clear') {
+      PL.state.inv = {};
+      PL.state.customs = [];
+    } else {
+      var p = PL.master && PL.master.presets && PL.master.presets[name];
+      if (!p) { U.toast('Vorlage nicht gefunden', true); return; }
+      PL.state.inv = {};
+      Object.keys(p).forEach(function (id) {
+        PL.state.inv[id] = {vi: p[id][1] || 0, by: {pick: p[id][0] || 0}};
+      });
+    }
+    renderItems();
+    renderCustoms();
+    recalc();
+    U.toast('Schnellvorlage angewendet.');
+  }
+
+  function save(target) {
+    readInputs();
+    var s = PL.state;
+    if (!s.contact.name) { U.toast('Bitte Kundenname angeben.', true); return; }
+
+    var btn = document.getElementById('act-' + target);
+    if (btn) btn.disabled = true;
+
+    U.toast('Plan wird gespeichert …');
+    var payload = {
+      leadId: PL.leadId,
+      contact: s.contact,
+      f1: s.f1,
+      acc: s.acc,
+      hvz: s.hvz,
+      rooms: s.rooms,
+      inv: s.inv,
+      customs: s.customs
+    };
+
+    run('api_plannerSave', payload, target).then(function (res) {
+      if (btn) btn.disabled = false;
+      if (!res || !res.ok) throw new Error((res && res.error) || 'Fehler beim Speichern');
+
+      PL.leadId = res.leadId;
+      if (res.type === 'offer' || res.type === 'invoice') {
+        U.toast((res.type === 'offer' ? 'Angebot' : 'Rechnung') + ' ' + res.docNr + ' vorbereitet!');
+        location.hash = '#/beleg/' + encodeURIComponent(res.docNr);
+      } else {
+        U.toast('Anfrage ' + res.leadId + ' gespeichert.');
+        location.hash = '#/a/' + encodeURIComponent(res.leadId);
+      }
+    }).catch(function (err) {
+      if (btn) btn.disabled = false;
+      U.fail(err);
+    });
+  }
+
+  function sendWhatsApp() {
+    readInputs();
+    var s = PL.state;
+    var calc = recalc();
+    var est = calc.est;
+
+    var waPhone = U.waNum(s.contact.phone);
+    if (!waPhone) {
+      U.toast('Bitte zuerst eine Telefonnummer des Kunden eintragen.', true);
+      return;
+    }
+
+    var vehText = est.vehicle === 'sprinter' ? 'Transporter 3,5 t' : 'LKW 7,5 t';
+    if (est.trips > 1) vehText += ' (' + est.trips + ' Fahrten)';
+
+    var msg = [
+      'Guten Tag ' + (s.contact.name || '') + ',',
+      '',
+      'vielen Dank für das freundliche Gespräch. Hier sind die Eckdaten aus Ihrer Umzugsplanung bei Stabil Umzug:',
+      '',
+      '• Strecke: ' + (s.f1.from || '–') + ' → ' + (s.f1.to || '–') + (s.f1.km ? ' (' + s.f1.km + ' km)' : ''),
+      '• Geplantes Volumen: ca. ' + Math.round(est.vol * 10) / 10 + ' m³ (' + est.n + ' Teile)',
+      '• Empfohlenes Fahrzeug: ' + vehText,
+      '• Team & Zeit: ' + est.crew + ' Personen · ca. ' + Math.round(est.hours * 10) / 10 + ' Stunden',
+      '• Halteverbotszone: ' + (s.hvz ? 'Ja (wird durch uns eingerichtet)' : 'Nein'),
+      '• Unverbindlicher Richtpreis: ' + eur(calc.price),
+      '',
+      'Wir erstellen Ihnen gern das verbindliche Angebot oder kommen zur kostenlosen Vor-Ort-Besichtigung vorbei.',
+      '',
+      'Viele Grüße',
+      PL.company.owner + ' · ' + PL.company.name,
+      'Karlstraße 32 · 45329 Essen · Tel. ' + PL.company.phone
+    ].join('\n');
+
+    window.open('https://wa.me/' + waPhone + '?text=' + encodeURIComponent(msg), '_blank', 'noopener');
+  }
+
+  window.SUPlaner = {route: routePlaner, init: init};
+})();
+</script>

@@ -76,20 +76,40 @@ function photos_(b) {
   }
   tok.n += blobs.length;
   cache.put('up_' + id, JSON.stringify(tok), 7200);
+
+  var driveFolderUrl = '';
+  if (typeof DriveApp !== 'undefined') {
+    try {
+      var rootFolder = ensureDriveFolder_('Stabil Umzug - Kundenfotos');
+      if (rootFolder) {
+        var leadFolder = ensureDriveFolder_(id, rootFolder);
+        if (leadFolder) {
+          for (var fi = 0; fi < blobs.length; fi++) {
+            leadFolder.createFile(blobs[fi]);
+          }
+          driveFolderUrl = leadFolder.getUrl();
+        }
+      }
+    } catch (err) { console.error('Drive photo upload error:', err); }
+  }
+
   var note = clip_(b.note, 300), hit = findLead_(id), name = hit ? hit.values[LEAD_COLS.indexOf('Name')] : '';
   if (hit) {
     var col = LEAD_COLS.indexOf('Notizen') + 1, old = String(hit.values[col - 1] || '');
-    sheet_(TAB.leads).getRange(hit.row, col).setValue(cell_((old ? old + '\n' : '') + 'Fotos: ' + tok.n + ' per E-Mail an das Büro' + (note ? ' – ' + note : ''), 2000));
+    var driveText = driveFolderUrl ? ' (Google Drive: ' + driveFolderUrl + ')' : '';
+    sheet_(TAB.leads).getRange(hit.row, col).setValue(cell_((old ? old + '\n' : '') + 'Fotos: ' + tok.n + ' per E-Mail erhalten' + (driveFolderUrl ? ' und in Google Drive gespeichert' + driveText : '') + (note ? ' – ' + note : ''), 2000));
   }
   var to = config_('notify_email') || Session.getEffectiveUser().getEmail();
   if (to) {
     try {
       MailApp.sendEmail({to: to, subject: 'Fotos zu Anfrage ' + id + (name ? ' – ' + name : '') + ' (' + blobs.length + ')',
-        body: [blobs.length + ' Foto(s) zur Anfrage ' + id + ' über die Website.', note ? 'Hinweis des Kunden: ' + note : '', '',
-               adminLink_(id), 'Tabelle: ' + SpreadsheetApp.getActive().getUrl()].join('\n'), attachments: blobs});
+        body: [blobs.length + ' Foto(s) zur Anfrage ' + id + ' über die Website.',
+               driveFolderUrl ? 'Google Drive Ordner: ' + driveFolderUrl : '',
+               note ? 'Hinweis des Kunden: ' + note : '', '',
+               adminLink_(id), 'Tabelle: ' + SpreadsheetApp.getActive().getUrl()].filter(Boolean).join('\n'), attachments: blobs});
     } catch (err) { console.error(err); return {ok: false, error: 'mail'}; }
   }
-  return {ok: true, n: tok.n};
+  return {ok: true, n: tok.n, driveUrl: driveFolderUrl};
 }
 
 /* ------------------------------------------------------------------ pre-agreement without a price (Vorvereinbarung)

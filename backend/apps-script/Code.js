@@ -50,8 +50,9 @@ function doPost(e) {
       case 'photos': return json(photos_(body));
       case 'hit': return json(hit_(body));
       case 'saveDraft': return json(saveDraft_(body));
-      case 'accept': return json(accept_(String(body.id || ''), String(body.k || ''), body.confirm === true));
+      case 'accept': return json(accept_(String(body.id || ''), String(body.k || ''), body.confirm === true, body.sig, body.signer));
       case 'resend': return json(resend_(String(body.email || ''), String(body.lang || 'de')));
+      case 'chat': return json(aiChat_(body));
       default: return json({ok: false, error: 'unknown_action'});
     }
   } catch (err) {
@@ -201,12 +202,7 @@ function saveQuick_(b) {
   return {ok: true, id: id, up: photoToken_(id)};
 }
 
-function nextId_() {
-  var props = PropertiesService.getScriptProperties();
-  var n = Number(props.getProperty('NEXT_ID') || 2601);
-  props.setProperty('NEXT_ID', String(n + 1));
-  return 'A-' + n;
-}
+// nextId_() lives in Shared.js
 
 function notifyOffice_(id, name, phone, email, s, est, route, payer, pdf) {
   var to = config_('notify_email') || Session.getEffectiveUser().getEmail();
@@ -245,16 +241,22 @@ function portal_(id, k) {
   var q = latestQuote_(id), lines = [];
   if (q) q.lines.forEach(function (l) { var a = Math.round(l[2] * l[4] * 100) / 100; if (a > 0) lines.push({pos: l[0], basis: l[1], amount: a}); });
   var name = String(g('Name') || '');
+  var jsonMeta = {};
+  try { jsonMeta = JSON.parse(v[JSON_COL - 1] || '{}'); } catch (e) {}
+  var contract = jsonMeta.contract || null;
   return {
     ok: true, id: id, name: name, service: String(g('Leistung') || 'Umzug').replace(/ \((Planer|Kurzformular)\)$/, ''),
     status: String(g('Status') || STATUS[0]), date: day_(g('Termin')), from: String(g('Von') || ''), to: String(g('Nach') || ''),
     lang: String(g('Sprache') || 'DE'), quoteSent: iso_(g('Angebot gesendet')),
-    quote: q ? {version: q.version, lines: lines, total: Number(g('Angebot €')) || quoteTotal_(q.lines, rates_().min_price)} : null
+    quote: q ? {version: q.version, lines: lines, total: Number(g('Angebot €')) || quoteTotal_(q.lines, rates_().min_price)} : null,
+    signedAt: contract ? contract.signedAt : null,
+    signer: contract ? contract.signer : null,
+    signature: contract ? (contract.sigData || contract.sigUrl) : null
   };
 }
 
-/* "Zahlungspflichtig beauftragen": the customer accepts the latest quote. */
-function accept_(id, k, confirm) {
+/* "Zahlungspflichtig beauftragen": the customer accepts and digitally signs the latest quote. */
+function accept_(id, k, confirm, sig, signer) {
   if (!confirm) return {ok: false, error: 'confirm'};
   var lock = LockService.getScriptLock(); lock.waitLock(20000);
   var hit, res;
@@ -265,19 +267,73 @@ function accept_(id, k, confirm) {
     if (status === 'Gebucht' || status === 'Erledigt') return {ok: true, already: true, status: status};
     if (!latestQuote_(id)) return {ok: false, error: 'no_quote'};
     if (status === 'Verloren') return {ok: false, error: 'closed'};
+
+    var now = new Date(), nowIso = iso_(now), nowDe = Utilities.formatDate(now, 'Europe/Berlin', 'dd.MM.yyyy HH:mm');
+    var signerName = clip_(signer || hit.values[leadCol_('Name') - 1] || 'Kunde', 80);
+    var sigUrl = '';
+    if (sig && typeof DriveApp !== 'undefined') {
+      try {
+        var base64Data = String(sig).replace(/^data:image\/\w+;base64,/, '');
+        var bytes = Utilities.base64Decode(base64Data);
+        var folder = ensureDriveFolder_('Stabil Umzug - Verträge');
+        if (folder) {
+          var file = folder.createFile(Utilities.newBlob(bytes, 'image/png', id + '-unterschrift.png'));
+          sigUrl = file.getUrl();
+        }
+      } catch (err) { console.error('Drive save signature err:', err); }
+    }
+
     sheet_(TAB.leads).getRange(hit.row, leadCol_('Status')).setValue('Gebucht');
-    sheet_(TAB.audit).appendRow([new Date(), 'Kunde (Link)', TAB.leads, id + ' · Status', status, 'Gebucht – Angebot online angenommen']);
-    res = {ok: true, status: 'Gebucht'};
+    var colNote = leadCol_('Notizen'), oldNote = String(hit.values[colNote - 1] || '');
+    var signNote = 'Vertrag digital gezeichnet von ' + signerName + ' am ' + nowDe + ' Uhr' + (sigUrl ? ' (Drive: ' + sigUrl + ')' : '');
+    sheet_(TAB.leads).getRange(hit.row, colNote).setValue(cell_((oldNote ? oldNote + '\n' : '') + signNote, 2000));
+
+    var jsonMeta = {};
+    try { jsonMeta = JSON.parse(hit.values[JSON_COL - 1] || '{}'); } catch (e) {}
+    jsonMeta.contract = { signed: true, signedAt: nowIso, signer: signerName, sigUrl: sigUrl, sigData: sig ? String(sig).slice(0, 80000) : '' };
+    sheet_(TAB.leads).getRange(hit.row, JSON_COL).setValue(JSON.stringify(jsonMeta));
+
+    sheet_(TAB.audit).appendRow([now, 'Kunde (' + signerName + ')', TAB.leads, id + ' · Status', status, 'Gebucht – digital unterschrieben']);
+    res = {ok: true, status: 'Gebucht', signedAt: nowIso, signer: signerName, signature: sig || sigUrl};
   } finally { lock.releaseLock(); }
+
   var to = config_('notify_email') || Session.getEffectiveUser().getEmail();
   if (to) {
     var v = hit.values;
     try {
-      MailApp.sendEmail({to: to, subject: 'Auftrag erteilt: ' + id + ' – ' + v[leadCol_('Name') - 1],
-        body: 'Der Kunde hat das Angebot ' + id + ' über „Mein Umzug“ zahlungspflichtig beauftragt.\n\nName: ' + v[leadCol_('Name') - 1] +
-          '\nTelefon: ' + (v[leadCol_('Telefon') - 1] || '—') + '\nAngebot: ' + (v[leadCol_('Angebot €') - 1] || '—') + ' €\n\nBitte Termin bestätigen.\n' + adminLink_(id) + '\n' + ss_().getUrl()});
+      MailApp.sendEmail({to: to, subject: 'Auftrag erteilt (digital signiert): ' + id + ' – ' + signerName,
+        body: 'Der Kunde hat das Angebot ' + id + ' über „Mein Umzug“ rechtsverbindlich digital unterzeichnet.\n\nName: ' + signerName +
+          '\nTelefon: ' + (v[leadCol_('Telefon') - 1] || '—') + '\nE-Mail: ' + (v[leadCol_('E-Mail') - 1] || '—') +
+          '\nAngebot: ' + (v[leadCol_('Angebot €') - 1] || '—') + ' €' + (sigUrl ? '\nUnterschrift in Google Drive: ' + sigUrl : '') +
+          '\n\n' + adminLink_(id) + '\n' + ss_().getUrl()});
     } catch (err) { console.error(err); }
   }
+
+  var custEmail = String(hit.values[leadCol_('E-Mail') - 1] || '');
+  if (custEmail) {
+    try {
+      var en = String(hit.values[leadCol_('Sprache') - 1]) === 'EN';
+      MailApp.sendEmail({
+        to: custEmail,
+        name: 'Stabil Umzug',
+        subject: en ? 'Contract Confirmation ' + id + ' – Stabil Umzug' : 'Auftragsbestätigung ' + id + ' – Stabil Umzug',
+        body: (en ?
+          'Hello ' + signerName + ',\n\nthank you for choosing Stabil Umzug! Your moving contract for request ' + id + ' has been successfully signed and booked.\n\n' +
+          'Agreed price: ' + (hit.values[leadCol_('Angebot €') - 1] || '–') + ' €\n' +
+          'We have reserved your moving date. Our office will contact you directly with any final details.\n\n' +
+          'You can review your contract and moving checklist anytime in your personal portal:\nhttps://www.stabilumzug.de/en/my-move/?id=' + id + '&k=' + k +
+          '\n\nKind regards,\nStabil Umzug · Karlstraße 32 · 45329 Essen · Phone & WhatsApp: 0163 9688190'
+          :
+          'Guten Tag ' + signerName + ',\n\nvielen Dank für Ihr Vertrauen! Ihr Umzugsauftrag zur Anfrage ' + id + ' wurde erfolgreich digital unterzeichnet und verbindlich gebucht.\n\n' +
+          'Vereinbarter Gesamtpreis: ' + (hit.values[leadCol_('Angebot €') - 1] || '–') + ' €\n' +
+          'Ihr Termin ist fest reserviert. Unser Büro bestätigt Ihnen die Details nochmals persönlich.\n\n' +
+          'Ihren Vertragsstatus und Ihre Checkliste finden Sie jederzeit unter:\nhttps://www.stabilumzug.de/mein-umzug/?id=' + id + '&k=' + k +
+          '\n\nViele Grüße\nStabil Umzug · Karlstraße 32 · 45329 Essen · Telefon & WhatsApp: 0163 9688190'
+        )
+      });
+    } catch (err) { console.error('Cust email send err:', err); }
+  }
+
   return res;
 }
 
@@ -619,3 +675,111 @@ function daily() {
   var to = config_('notify_email');
   if (open.length && to) MailApp.sendEmail({to: to, subject: 'Stabil Umzug: ' + open.length + ' offene Anfragen', body: open.join('\n') + '\n\n' + SpreadsheetApp.getActive().getUrl()});
 }
+
+/* ------------------------------------------------------------------ AI Chatbot (Gemini & Intelligent Moving Advisor) */
+function aiChat_(b) {
+  var msg = String(b.message || '').trim();
+  if (!msg) return {ok: false, error: 'empty'};
+  var lang = (b.lang === 'en' || /^[a-zA-Z\s?!,.-]+$/.test(msg) && /\b(hello|hi|quote|price|moving|furniture|apartment)\b/i.test(msg)) ? 'en' : 'de';
+  var apiKey = PropertiesService.getScriptProperties().getProperty('GEMINI_API_KEY');
+
+  // 1. Try Google Gemini API if key is present
+  if (apiKey) {
+    try {
+      var systemInstruction = "Du bist der intelligente, freundliche KI-Umzugsberater von 'Stabil Umzug' (Inhaber: Ibrahim Abdelaal, Karlstraße 32, 45329 Essen, Telefon/WhatsApp: 0163 9688190). " +
+        "Dienstleistungen: Privatumzüge, Firmenumzüge, Entrümpelung, Möbel- und Küchenmontage, Halteverbotszonen, Klaviertransporte. " +
+        "Einsatzgebiet: Essen, Ruhrgebiet und bundesweit. Preise transparent ab 390 €, kostenlose Google Meet Video-Besichtigung oder Vor-Ort-Besichtigung. " +
+        "Antworte hilfsbereit und kompakt auf " + (lang === 'en' ? 'Englisch' : 'Deutsch') + ". " +
+        "Biete dem Kunden an, direkt einen Termin zu buchen oder Inhaber Ibrahim Abdelaal per WhatsApp (0163 9688190) zu kontaktieren.";
+      
+      var url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' + encodeURIComponent(apiKey);
+      var payload = {
+        contents: [
+          { role: 'user', parts: [{ text: systemInstruction + "\n\nKundenfrage: " + msg }] }
+        ],
+        generationConfig: { maxOutputTokens: 400, temperature: 0.7 }
+      };
+      var res = UrlFetchApp.fetch(url, {
+        method: 'post',
+        contentType: 'application/json',
+        payload: JSON.stringify(payload),
+        muteHttpExceptions: true
+      });
+      if (res.getResponseCode() === 200) {
+        var jsonRes = JSON.parse(res.getContentText());
+        var candidate = jsonRes.candidates && jsonRes.candidates[0];
+        if (candidate && candidate.content && candidate.content.parts && candidate.content.parts[0]) {
+          return {
+            ok: true,
+            reply: candidate.content.parts[0].text,
+            action: 'gemini',
+            ownerPhone: '491639688190'
+          };
+        }
+      }
+    } catch (err) {
+      console.error('Gemini API call failed, falling back to local engine:', err);
+    }
+  }
+
+  // 2. Built-in moving consultant response engine
+  var lower = msg.toLowerCase();
+  var reply = '', actionType = 'info', quick = [];
+
+  if (lang === 'en') {
+    if (/volume|m3|cubic|size|room|sqm|qm|apartment/i.test(lower)) {
+      reply = "A good rule of thumb is 0.3 to 0.4 m³ per square metre (e.g. 60 m² ≈ 18–24 m³). Our 3.5t van holds up to 20 m³, while larger moves use our 7.5t truck.\n\nWould you like to book a free 15-min Google Meet video inspection so we can verify your volume?";
+      actionType = 'appointment';
+      quick = ['Book Video Survey', 'WhatsApp to Owner', 'Open Moving Planner'];
+    } else if (/cost|price|quote|how much|rate|flat/i.test(lower)) {
+      reply = "Our moving packages start at 390 € for small jobs. Typical 2-3 room moves with team and truck range from 600 € to 1.200 € with no hidden fees.\n\nYou can message owner Ibrahim Abdelaal directly on WhatsApp for an immediate quote!";
+      actionType = 'whatsapp';
+      quick = ['WhatsApp to Owner', 'Book Video Survey', 'Open Moving Planner'];
+    } else if (/appointment|visit|survey|meet|video|booking/i.test(lower)) {
+      reply = "We offer free 30-minute Google Meet video surveys or on-site visits across Essen and the Ruhr area. We inspect your home and send a fixed quote within 24 hours.";
+      actionType = 'appointment';
+      quick = ['Book Video Survey', 'Book On-Site Visit', 'Call Office'];
+    } else {
+      reply = "Hello! I am your digital moving assistant from Stabil Umzug in Essen. I can estimate your volume, answer questions, or schedule a Google Meet video survey.";
+      quick = ['Cost & Prices', 'Calculate Volume', 'Book Appointment', 'WhatsApp to Owner'];
+    }
+  } else {
+    if (/volumen|m3|kubik|größe|zimmer|qm|m²|wohnung|wie viel/i.test(lower)) {
+      reply = "Als Faustformel gilt: ca. 0,3 bis 0,4 m³ Umzugsvolumen pro m² Wohnfläche (z. B. 60 m² Wohnung ≈ ca. 18–24 m³). Ein 3,5t Transporter fasst rund 15–20 m³, für größere Umzüge nutzen wir unseren 7,5t Lkw.\n\nMöchten Sie eine kostenlose Video-Besichtigung per Google Meet buchen?";
+      actionType = 'appointment';
+      quick = ['Google Meet Termin buchen', 'WhatsApp an Inhaber', 'Umzugsplaner öffnen'];
+    } else if (/kosten|preis|kostet|wie viel|angebot|pauschal|stundensatz/i.test(lower)) {
+      reply = "Bei Stabil Umzug erhalten Sie faire Festpreise ohne versteckte Kosten. Kleinere Transporte starten ab 390 €. Typische 2–3 Zimmer Umzüge mit Team und Lkw liegen meist bei 600 € bis 1.250 € (inkl. Haftpflichtversicherung und § 35a EStG Steuervorteil).\n\nSie können Inhaber Ibrahim Abdelaal auch direkt per WhatsApp schreiben!";
+      actionType = 'whatsapp';
+      quick = ['WhatsApp an Inhaber', 'Kostenlose Besichtigung', 'Online-Planer'];
+    } else if (/termin|besichtigung|video|meet|zeit|buchen|vor ort/i.test(lower)) {
+      reply = "Sie können jederzeit eine kostenlose Besichtigung buchen: Bequem per Google Meet Videokonferenz (15–30 Min. per Smartphone) oder persönlich vor Ort in Essen und Umgebung. Danach erhalten Sie Ihr Festpreisangebot innerhalb von 24 Stunden.";
+      actionType = 'appointment';
+      quick = ['Video-Termin buchen', 'Vor-Ort-Termin buchen', 'Inhaber anrufen'];
+    } else if (/halteverbot|parken|genehmigung|zone|schild/i.test(lower)) {
+      reply = "Wir kümmern uns um die komplette Genehmigung der Halteverbotszone (HVZ) inklusive Aufstellen der Schilder (mindestens 4 Tage vor Umzug) für 120 € pro Adresse. So kann der Lkw direkt vor Ihrer Tür parken.";
+      actionType = 'info';
+      quick = ['Halteverbot anfragen', 'Termin buchen', 'WhatsApp an Inhaber'];
+    } else if (/küche|montage|aufbau|abbau|schrank|möbelaufbau/i.test(lower)) {
+      reply = "Unser erfahrenes Team übernimmt den fachgerechten Ab- und Aufbau Ihrer Möbel sowie Küchenmontagen (inkl. Arbeitsplatten-Zuschnitt und Anschlüsse).";
+      actionType = 'info';
+      quick = ['Küchenmontage anfragen', 'WhatsApp an Inhaber', 'Termin buchen'];
+    } else if (/jobcenter|arbeitsamt|amt|kostenübernahme|bg/i.test(lower)) {
+      reply = "Wir arbeiten regelmäßig mit dem Jobcenter und Sozialamt zusammen. Wir erstellen Ihnen eine kostenlose Vorvereinbarung und ein normgerechtes Angebot zur Kostenübernahme.";
+      actionType = 'info';
+      quick = ['Jobcenter-Angebot anfragen', 'WhatsApp an Inhaber', 'Besichtigung buchen'];
+    } else {
+      reply = "Guten Tag! Ich bin Ihr digitaler Umzugsberater von Stabil Umzug in Essen. Wie kann ich Ihnen helfen? Sie können hier Ihr Volumen schätzen, Preise erfahren, eine Video-Besichtigung per Google Meet buchen oder direkt per WhatsApp mit Inhaber Ibrahim Abdelaal schreiben.";
+      quick = ['Preise & Kosten', 'Volumen berechnen', 'Termin buchen', 'WhatsApp an Inhaber'];
+    }
+  }
+
+  return {
+    ok: true,
+    reply: reply,
+    action: actionType,
+    quickReplies: quick,
+    ownerPhone: '491639688190'
+  };
+}
+

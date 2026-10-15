@@ -201,6 +201,14 @@ function moveDate_(f1, long) {
   return long ? 'flexibel' + (w ? ', ' + w : ', nach Absprache') : 'flexibel' + (w ? ' ' + w : '');
 }
 function day_(v) { return v instanceof Date ? Utilities.formatDate(v, 'Europe/Berlin', 'yyyy-MM-dd') : (v == null ? '' : String(v)); }
+
+/* Generates the next lead ID (A-2601, A-2602, …) from script properties. */
+function nextId_() {
+  var props = PropertiesService.getScriptProperties();
+  var n = Number(props.getProperty('NEXT_ID') || 2601);
+  props.setProperty('NEXT_ID', String(n + 1));
+  return 'A-' + n;
+}
 /* Decimal number in German notation for texts the customer reads ("4,6 Std."). */
 function de_(x, d) { return String(round_(x, d)).replace('.', ','); }
 function round_(x, d) { var f = Math.pow(10, d == null ? 1 : d); return Math.round(x * f) / f; }
@@ -378,16 +386,26 @@ function latestQuote_(id) {
 
 /* ------------------------------------------------------------------ appointment e-mails (website and admin) */
 
+function ensureDriveFolder_(name, parent) {
+  if (typeof DriveApp === 'undefined') return null;
+  var p = parent || DriveApp;
+  if (!p || typeof p.getFoldersByName !== 'function') return (p && p.createFolder) ? p.createFolder(name) : null;
+  var it = p.getFoldersByName(name);
+  if (it && it.hasNext && it.hasNext()) return it.next();
+  return p.createFolder ? p.createFolder(name) : null;
+}
+
 /* E-mails about an appointment. kind: booked (customer + office), cancelled or moved (customer). Shared by the admin. */
 function apptMails_(a, kind, note) {
   var T = APPT_TYPES[a.type] || {de: a.type, en: a.type, min: a.min};
   var en = a.lang === 'EN', when = (en ? a.date.split('-').reverse().join('/') : dayDeLong_(a.date)) + (en ? ', ' : ', ') + a.time + (en ? '' : ' Uhr');
-  var where = a.type === 'visit' ? a.address : a.type === 'video' ? (en ? 'Video call (WhatsApp)' : 'Videoanruf (WhatsApp)') : (en ? 'Phone call' : 'Telefon');
+  var meetLink = a.meetUrl || (a.type === 'video' ? 'https://meet.google.com' : '');
+  var where = a.type === 'visit' ? a.address : a.type === 'video' ? (en ? 'Google Meet / WhatsApp Video' : 'Google Meet / WhatsApp-Video') : (en ? 'Phone call' : 'Telefon');
   var how = {
     visit: en ? 'We come to ' + a.address + ', look at everything that needs to be moved and give you a fixed quote afterwards. Takes about 60 minutes, free of charge.'
       : 'Wir kommen zu Ihnen (' + a.address + '), sehen uns alles an, was umziehen soll, und schicken Ihnen danach ein verbindliches Angebot. Dauer etwa 60 Minuten, kostenlos.',
-    video: en ? 'We call you by WhatsApp video on ' + a.phone + '. Walk us through your rooms with your phone – about 30 minutes, free of charge.'
-      : 'Wir rufen Sie per WhatsApp-Video unter ' + a.phone + ' an. Sie zeigen uns die Räume mit dem Handy – etwa 30 Minuten, kostenlos.',
+    video: en ? 'We connect by Google Meet video call (' + (meetLink || 'Google Meet') + ') or by WhatsApp video on ' + a.phone + '. Walk us through your rooms with your phone – about 30 minutes, free of charge.'
+      : 'Wir verbinden uns per Google Meet (' + (meetLink || 'Google Meet') + ') oder per WhatsApp-Video unter ' + a.phone + '. Sie zeigen uns die Räume mit dem Handy – etwa 30 Minuten, kostenlos.',
     call: en ? 'We call you on ' + a.phone + ' and answer your questions about your move.' : 'Wir rufen Sie unter ' + a.phone + ' an und beantworten Ihre Fragen rund um den Umzug.'
   }[a.type] || '';
   var sign = en ? '\n\nKind regards\nStabil Umzug · Karlstraße 32 · 45329 Essen · 0163 9688190' : '\n\nViele Grüße\nStabil Umzug · Karlstraße 32 · 45329 Essen · 0163 9688190';
@@ -417,6 +435,9 @@ function apptMails_(a, kind, note) {
     var office = String(config_('notify_email') || Session.getEffectiveUser().getEmail() || '');
     if (office) mail.replyTo = office;
     MailApp.sendEmail(mail);
+    if (kind === 'booked') {
+      apptCalendarSync_(a);
+    }
     if (kind === 'booked' && office) {
       MailApp.sendEmail({to: office, subject: 'Neuer Termin ' + a.nr + ': ' + T.de + ' ' + when + ' – ' + a.name, attachments: [Utilities.newBlob(ics_(a, T.de + ': ' + a.name, where, how), 'text/calendar', 'termin-' + a.nr + '.ics')],
         body: ['Neuer Termin über die Website', '', T.de + ' · ' + when + ' (' + a.min + ' min)', 'Name: ' + a.name, 'Telefon: ' + a.phone, 'E-Mail: ' + a.email,
@@ -424,4 +445,36 @@ function apptMails_(a, kind, note) {
           '', 'Die Kalenderdatei ist angehängt (in Gmail: „Zu Kalender hinzufügen“).', 'Tabelle: ' + ss_().getUrl()].join('\n')});
     }
   } catch (err) { console.error(err); }
+}
+
+function apptCalendarSync_(a) {
+  if (typeof CalendarApp === 'undefined') return '';
+  try {
+    var cal = CalendarApp.getDefaultCalendar();
+    if (!cal) return '';
+    var start = new Date(a.date + 'T' + a.time + ':00');
+    if (isNaN(start.getTime())) return '';
+    var end = new Date(start.getTime() + (Number(a.min) || 30) * 60000);
+    var T = APPT_TYPES[a.type] || {de: a.type, en: a.type};
+    var where = a.type === 'visit' ? (a.address || 'Kundenadresse') : (a.type === 'video' ? 'Google Meet / WhatsApp Video' : 'Telefon: ' + a.phone);
+    var desc = [
+      'Termin: ' + T.de + ' (' + (a.min || 30) + ' min)',
+      'Kunde: ' + a.name,
+      'Telefon: ' + a.phone,
+      'E-Mail: ' + a.email,
+      'Adresse: ' + (a.address || '—'),
+      'Umzug nach: ' + (a.to || '—'),
+      a.message ? 'Nachricht: ' + a.message : '',
+      a.type === 'video' ? 'Google Meet: https://meet.google.com' : '',
+      'Terminnummer: ' + a.nr + ' · Anfrage: ' + (a.lead || '—')
+    ].filter(Boolean).join('\n');
+    var ev = cal.createEvent('Stabil Umzug: ' + T.de + ' – ' + a.name, start, end, {
+      location: where,
+      description: desc
+    });
+    return ev ? ev.getId() : '';
+  } catch (err) {
+    console.error('Calendar sync error:', err);
+    return '';
+  }
 }

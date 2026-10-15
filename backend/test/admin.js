@@ -96,9 +96,10 @@ const auditBefore = sheets['Protokoll'].data.length;
 const up = ctx.api_update_(planner.id, {status: 'In Arbeit', owner: 'Ibo', notes: '=Klavier im 3. OG', bogus: 'x'});
 assert.strictEqual(up.status, 'In Arbeit'); assert.strictEqual(up.owner, 'Ibo'); assert.strictEqual(up.notes, "'=Klavier im 3. OG");
 assert.strictEqual(sheets['Protokoll'].data.length - auditBefore, 3);
-ctx.api_update_(planner.id, {status: 'Unsinn'});
 assert.strictEqual(ctx.api_lead_(planner.id).lead.status, 'In Arbeit', 'unknown status ignored');
-console.log('ok update: status/owner/notes saved, 3 audit rows');
+const upHo = ctx.api_update_(planner.id, {handover: {hvz: true, truck: true, note: 'Hofparken'}});
+assert.deepStrictEqual(JSON.parse(JSON.stringify(upHo.handover)), {hvz: true, truck: true, note: 'Hofparken'});
+console.log('ok update: status/owner/notes and handover checklist saved');
 
 // save quote
 const lines = d.quote.lines.map(l => l.slice()); lines[0][2] = 10; lines.push(['Klavier', 'Pauschale', 1, 'Stk.', 150]);
@@ -134,11 +135,16 @@ const postA = b => ctx.doPost({postData: {contents: JSON.stringify(b)}});
 assert.strictEqual(postA({action: 'accept', id: planner.id, k: tok}).error, 'confirm');
 assert.strictEqual(postA({action: 'accept', id: planner.id, k: 'f'.repeat(32), confirm: true}).error, 'not_found');
 const mailsBefore = M.mails.length;
-assert.strictEqual(postA({action: 'accept', id: planner.id, k: tok, confirm: true}).status, 'Gebucht');
+const acceptRes = postA({action: 'accept', id: planner.id, k: tok, confirm: true, sig: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', signer: 'Herr Yilmaz'});
+assert.strictEqual(acceptRes.status, 'Gebucht');
 assert.strictEqual(ctx.api_lead_(planner.id).lead.status, 'Gebucht');
-assert.strictEqual(M.mails.length, mailsBefore + 1, 'office notified');
+assert.strictEqual(M.mails.length, mailsBefore + 2, 'office and customer notified');
+assert(M.mails.some(m => m.subject.includes('digital signiert')));
+assert(M.mails.some(m => m.subject.includes('Auftragsbestätigung')));
+assert.strictEqual(ctx.api_lead_(planner.id).lead.contract.signed, true);
+assert.strictEqual(ctx.api_lead_(planner.id).lead.contract.signer, 'Herr Yilmaz');
 assert(postA({action: 'accept', id: planner.id, k: tok, confirm: true}).already);
-console.log('ok portal: token-protected view without notes, accept needs confirmation, booked once, office mailed');
+console.log('ok portal: token-protected view without notes, accept needs confirmation, digital contract signed, booked once, office and customer mailed');
 const m0 = M.mails.length;
 assert(postA({action: 'resend', email: 'Y@Example.de'}).ok);
 assert.strictEqual(M.mails.length, m0 + 1); assert(M.mails[M.mails.length - 1].body.includes('k=' + tok));
@@ -150,7 +156,24 @@ console.log('ok resend: link mailed once per 10 min, unknown address gets the sa
 assert.strictEqual(ctx.startPage_({a: 'A-2603'}), 'a/A-2603');
 assert.strictEqual(ctx.startPage_({b: 'AN-2026-0001'}), 'beleg/AN-2026-0001');
 assert.strictEqual(ctx.startPage_({t: '1'}), 'termine');
+assert.strictEqual(ctx.startPage_({p: '1'}), 'planer');
+assert.strictEqual(ctx.startPage_({p: 'A-2601'}), 'planer?id=A-2601');
+assert.strictEqual(ctx.startPage_({h: '1'}), 'hilfe');
 assert.strictEqual(ctx.startPage_({a: '"><script>'}), '');
 assert.strictEqual(ctx.startPage_({}), '');
-console.log('ok direct links (?a= / ?b= / ?t=)');
+console.log('ok direct links (?a= / ?b= / ?t= / ?p= / ?h=)');
+
+// planner master and save
+const pm = ctx.api_plannerMaster_();
+assert(pm.master && pm.rates && pm.company && Array.isArray(pm.leads));
+const pSave = ctx.api_plannerSave_({
+  contact: {name: 'Test Kunde', phone: '0171 9999999', email: 'test@example.de'},
+  f1: {from: 'Essen', to: 'Bochum', km: '20', date: '2026-12-01', dateMode: 'fixed', hh: 1},
+  acc: {old: {floor: 1, lift: 0, park: 0}, 'new': {floor: 1, lift: 0, park: 0}},
+  hvz: true,
+  inv: {sofa: {vi: 0, by: {pick: 1}}, carton: {vi: 0, by: {pick: 10}}}
+}, 'lead');
+assert(pSave.ok && pSave.leadId && pSave.type === 'lead');
+console.log('ok planner: master data and lead creation verified');
+
 console.log('ALL OK');

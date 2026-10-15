@@ -19,12 +19,13 @@ function doGet(e) {
     .addMetaTag('viewport', 'width=device-width, initial-scale=1');
 }
 
-/* Direct links: ?a=A-2603 opens the request, ?b=AN-2026-0001 the document, ?t=1 the appointments. Only safe values pass. */
 function startPage_(p) {
   p = p || {};
   if (/^A-\d{1,8}$/.test(p.a || '')) return 'a/' + p.a;
   if (/^[A-Z]{1,3}-[A-Za-z0-9-]{4,24}$/.test(p.b || '')) return 'beleg/' + p.b;
   if (p.t) return 'termine';
+  if (p.p) return 'planer' + (/^A-\d{1,8}$/.test(p.p) ? '?id=' + p.p : '');
+  if (p.h) return 'hilfe';
   return '';
 }
 
@@ -105,7 +106,10 @@ function leadObj_(v) {
     ref: String(g('Referenz') || ''), service: String(g('Leistung') || 'Umzug (Planer)'), notes: String(g('Notizen') || ''),
     quoteSent: iso_(g('Angebot gesendet')), hasToken: !!g('Kundentoken'),
     payer: String(g('Kostenträger') || ''), pre: String(g('Vorvereinbarung') || ''),
-    payerData: (function () { try { return JSON.parse(g('Daten (JSON)') || '{}').payer || null; } catch (e) { return null; } })()
+    payerData: (function () { try { return JSON.parse(g('Daten (JSON)') || '{}').payer || null; } catch (e) { return null; } })(),
+    contract: (function () { try { return JSON.parse(g('Daten (JSON)') || '{}').contract || null; } catch (e) { return null; } })(),
+    handover: (function () { try { return JSON.parse(g('Daten (JSON)') || '{}').handover || null; } catch (e) { return null; } })(),
+    photosDrive: (function () { var n = String(g('Notizen') || ''); var m = n.match(/Google Drive:\s*(https:\/\/[^\s\)]+)/); return m ? m[1] : ''; })()
   };
 }
 
@@ -153,14 +157,14 @@ function api_lead_(id) {
     .filter(function (r) { return String(r[0]) === String(id); })
     .map(function (r) { return {name: String(r[2]), size: String(r[3]), n: Number(r[4]) || 0, source: String(r[5]), vol: Number(r[7]) || 0}; });
   var R = rates_(), saved = latestQuote_(id), draft;
+  var s = null;
+  try { s = JSON.parse(hit.values[JSON_COL - 1] || '{}'); } catch (err) {}
   if (saved) draft = {version: saved.version, lines: saved.lines, saved: true};
   else {
-    var s = null;
-    try { s = JSON.parse(hit.values[JSON_COL - 1] || '{}'); } catch (err) {}
     var master = masterFromSheet_(), q = quoteLines_(s, hit.values, master, R);   // read the catalog once
     draft = {version: 0, lines: q.lines, saved: false, range: q.est ? Math.round(master.rules.range[q.est.conf] * 100) : null};
   }
-  return {lead: lead, items: items, quote: draft, minPrice: R.min_price};
+  return {lead: lead, items: items, quote: draft, minPrice: R.min_price, state: s};
 }
 
 /* Status, owner and notes. Every change is written to the Protokoll tab. */
@@ -180,6 +184,14 @@ function api_update_(id, patch) {
       sh.getRange(hit.row, col).setValue(val);
       audit.appendRow([now, email, TAB.leads, id + ' · ' + fields[k], k === 'notes' ? '(Notiz)' : old, k === 'notes' ? '(Notiz geändert)' : val]);
     });
+    if (patch.handover !== undefined) {
+      var jsonCol = leadCol_('Daten (JSON)');
+      var jsonMeta = {};
+      try { jsonMeta = JSON.parse(hit.values[jsonCol - 1] || '{}'); } catch (e) {}
+      jsonMeta.handover = patch.handover;
+      sh.getRange(hit.row, jsonCol).setValue(JSON.stringify(jsonMeta));
+      audit.appendRow([now, email, TAB.leads, id + ' · Übergabeliste', '', 'Checkliste aktualisiert']);
+    }
   } finally { lock.releaseLock(); }
   return api_lead_(id).lead;
 }
@@ -240,3 +252,132 @@ function waNumber_(phone) {
 }
 
 function include_(name) { return HtmlService.createHtmlOutputFromFile(name).getContent(); }
+
+/* ------------------------------------------------------------------ Owner Planner (api_plannerMaster, api_plannerSave) */
+
+/* Data for the owner planner: master catalog items and rules, rates, company info, and quick lead selector. */
+function api_plannerMaster_() {
+  guard_();
+  var master = masterFromSheet_();
+  var r = rates_();
+  var c = company_();
+  var leads = allLeads_().map(function (l) {
+    return {id: l.id, name: l.name, phone: l.phone, email: l.email, from: l.from, to: l.to, date: l.date, service: l.service};
+  });
+  return {master: master, rates: r, company: c, leads: leads};
+}
+
+/* Saves a move plan from the owner planner and converts it to a lead, offer, or invoice. */
+function api_plannerSave_(plan, target) {
+  var email = guard_();
+  var lock = LockService.getScriptLock();
+  lock.waitLock(25000);
+  var leadId = (plan && plan.leadId) || '';
+  var isNew = !leadId;
+  try {
+    ensureLeadHeader_();
+    var master = masterFromSheet_();
+    var R = rates_();
+    var s = {
+      f1: plan.f1 || {from: '', to: '', km: '', date: '', dateMode: 'fixed', hh: 1},
+      acc: plan.acc || {old: {floor: 0, lift: 3, park: 3}, 'new': {floor: 0, lift: 3, park: 3}},
+      hvz: !!plan.hvz,
+      rooms: plan.rooms || [],
+      inv: plan.inv || {},
+      customs: plan.customs || []
+    };
+    var est = Estimator.estimate(s, master);
+    var now = new Date();
+    var c = plan.contact || {};
+    var name = cell_(c.name || 'Kunde (Planer)', 80);
+    var phone = cell_(c.phone || '', 40);
+    var emailAddr = cell_(c.email || '', 120);
+    var kmMaps = Number(s.f1.km) || 0;
+    var accStr = function (a) { return a ? FLOORS[a.floor] + ', ' + LIFTS[a.lift] + ', ' + PARKS[a.park] : ''; };
+    var dateStr = moveDate_(s.f1);
+    var roomsStr = (s.rooms || []).map(function (r) { return (ROOM_DE[r.r] || clip_(r.r, 20)) + (String(r.sqm || '').trim() ? ' ' + clip_(r.sqm, 6) + ' m²' : ''); }).join(', ');
+    var byId = {};
+    master.items.forEach(function (it) { byId[it.id] = it; });
+
+    if (isNew) {
+      leadId = nextId_();
+      sheet_(TAB.leads).appendRow([
+        leadId, now, STATUS[0], email, '', name, phone, emailAddr, clip_(c.channel || 'phone', 20),
+        cell_(s.f1.from), cell_(s.f1.to), clip_(s.f1.km, 8), kmMaps || '', '',
+        dateStr, HH[s.f1.hh] || '', accStr(s.acc.old), accStr(s.acc['new']), s.hvz ? 'ja' : 'nein', cell_(roomsStr, 300),
+        est.n, round_(est.volLow), round_(est.volHigh), Math.round(est.kgMin) + '–' + Math.round(est.kgMax),
+        VEH_DE[est.vehicle] + (est.trips > 1 ? ' · ' + est.trips + ' Fahrten' : ''), est.crew, round_(est.hours),
+        {high: 'Hoch', medium: 'Mittel', low: 'Niedrig'}[est.conf], master.version, 'Admin-Planer', 'DE',
+        cell_(c.note || '', 1000), '', now, JSON.stringify(s).slice(0, 45000), 'Umzug (Planer)', '', '', '',
+        '', ''
+      ]);
+      sheet_(TAB.audit).appendRow([now, email, TAB.leads, leadId, '', 'Im Admin-Planer erstellt']);
+    } else {
+      var hit = findLead_(leadId);
+      if (!hit) throw new Error('Anfrage ' + leadId + ' nicht gefunden.');
+      var sh = sheet_(TAB.leads);
+      if (name) sh.getRange(hit.row, leadCol_('Name')).setValue(name);
+      if (phone) sh.getRange(hit.row, leadCol_('Telefon')).setValue(phone);
+      if (emailAddr) sh.getRange(hit.row, leadCol_('E-Mail')).setValue(emailAddr);
+      sh.getRange(hit.row, leadCol_('Von')).setValue(cell_(s.f1.from));
+      sh.getRange(hit.row, leadCol_('Nach')).setValue(cell_(s.f1.to));
+      if (s.f1.km) sh.getRange(hit.row, leadCol_('km (Maps)')).setValue(kmMaps);
+      sh.getRange(hit.row, leadCol_('Termin')).setValue(dateStr);
+      sh.getRange(hit.row, leadCol_('Zugang Auszug')).setValue(accStr(s.acc.old));
+      sh.getRange(hit.row, leadCol_('Zugang Einzug')).setValue(accStr(s.acc['new']));
+      sh.getRange(hit.row, leadCol_('Halteverbot')).setValue(s.hvz ? 'ja' : 'nein');
+      sh.getRange(hit.row, leadCol_('Volumen min m³')).setValue(round_(est.volLow));
+      sh.getRange(hit.row, leadCol_('Volumen max m³')).setValue(round_(est.volHigh));
+      sh.getRange(hit.row, leadCol_('Fahrzeug')).setValue(VEH_DE[est.vehicle] + (est.trips > 1 ? ' · ' + est.trips + ' Fahrten' : ''));
+      sh.getRange(hit.row, leadCol_('Team')).setValue(est.crew);
+      sh.getRange(hit.row, leadCol_('Stunden')).setValue(round_(est.hours));
+      sh.getRange(hit.row, leadCol_('Daten (JSON)')).setValue(JSON.stringify(s).slice(0, 45000));
+      sheet_(TAB.audit).appendRow([now, email, TAB.leads, leadId, '', 'Im Admin-Planer aktualisiert']);
+    }
+
+    // Write / update TAB.items
+    var itemRows = [];
+    Object.keys(s.inv).forEach(function (iid) {
+      var e = s.inv[iid], it = byId[iid];
+      if (!it || !e || !e.by) return;
+      Object.keys(e.by).forEach(function (k) {
+        var n = Math.max(0, Math.min(999, Number(e.by[k]) || 0));
+        if (!n) return;
+        var v = Estimator.itemVol(it, e.vi);
+        itemRows.push([leadId, iid, it.de, it.vars ? it.vars[e.vi || 0].l : '', n, SRC_DE[k] || k, v, round_(n * v, 3)]);
+      });
+    });
+    (s.customs || []).forEach(function (cu) {
+      var n = Math.max(1, Math.min(99, Number(cu.n) || 1)), v = Math.max(0, Math.min(10, Number(cu.v) || 0));
+      itemRows.push([leadId, 'custom', cell_(cu.name, 60), [cu.l, cu.b, cu.h].map(Number).join('×') + ' cm', n, SRC_DE.custom, round_(v, 3), round_(n * v, 3)]);
+    });
+
+    var shItems = sheet_(TAB.items);
+    var itemData = shItems.getDataRange().getValues();
+    for (var i = itemData.length - 1; i >= 1; i--) {
+      if (String(itemData[i][0]) === String(leadId)) shItems.deleteRow(i + 1);
+    }
+    if (itemRows.length) {
+      shItems.getRange(shItems.getLastRow() + 1, 1, itemRows.length, ITEM_COLS.length).setValues(itemRows);
+    }
+
+    // Calculate quote lines and write to TAB.quotes
+    var hitLead = findLead_(leadId);
+    var qRes = quoteLines_(s, hitLead ? hitLead.values : [], master, R);
+    writeQuote_(leadId, qRes.lines, master.version, R);
+
+  } finally {
+    lock.releaseLock();
+  }
+
+  // Conversion targets
+  if (target === 'offer') {
+    var docNr = api_docNew_('offer', leadId);
+    return {ok: true, leadId: leadId, docNr: docNr, type: 'offer'};
+  } else if (target === 'invoice') {
+    var docNr = api_docNew_('invoice', leadId);
+    return {ok: true, leadId: leadId, docNr: docNr, type: 'invoice'};
+  }
+
+  return {ok: true, leadId: leadId, type: 'lead'};
+}

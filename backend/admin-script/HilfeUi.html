@@ -1,0 +1,149 @@
+<style>
+/* ---------- Admin Help & Handbook ---------- */
+.help-wrap{display:grid;grid-template-columns:240px minmax(0,1fr);gap:32px;align-items:start}
+.help-nav{position:sticky;top:74px;background:#fff;border-top:3px solid var(--ink);padding:14px;box-shadow:0 8px 24px -12px rgba(23,48,79,.25)}
+.help-nav h3{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink2);margin-bottom:8px}
+.help-nav a{display:block;padding:7px 10px;text-decoration:none;font-weight:600;font-size:13.5px;color:var(--ink);border-radius:2px;margin-bottom:2px}
+.help-nav a:hover{background:var(--surface);color:var(--fill)}
+.help-card{background:#fff;border-top:3px solid var(--ink);padding:22px;margin-bottom:24px;box-shadow:0 8px 24px -12px rgba(23,48,79,.2)}
+.help-card.active-sec{border-top-color:var(--red)}
+.help-card h2{font-size:20px;letter-spacing:-.01em;margin-bottom:12px;color:var(--ink);display:flex;align-items:center;gap:10px}
+.help-card h2 .num-badge{background:var(--red);color:#fff;font-size:12px;padding:2px 8px;font-weight:700}
+.help-card h3{font-size:15px;margin:16px 0 6px;color:var(--ink)}
+.help-card p{line-height:1.6;margin:0 0 10px;font-size:14px}
+.help-card ul,.help-card ol{margin:0 0 14px 20px;padding:0;line-height:1.6;font-size:14px}
+.help-card li{margin-bottom:4px}
+.help-box{background:var(--surface);border-left:4px solid var(--fill);padding:12px 14px;margin:12px 0 16px;font-size:13.5px}
+.help-box.green{background:#f0fdf4;border-left-color:#16a34a;color:#14532d}
+.help-box.blue{background:#eff6ff;border-left-color:#2563eb;color:#1e3a8a}
+.help-pill{display:inline-block;background:var(--ink);color:#fff;font-size:11px;font-weight:700;padding:2px 6px;margin:0 2px;letter-spacing:.04em}
+@media (max-width:900px){.help-wrap{grid-template-columns:minmax(0,1fr)}.help-nav{display:none}}
+</style>
+
+<script>
+(function () {
+  'use strict';
+  var U = window.SU;
+
+  function routeHilfe(h) {
+    if (h === 'hilfe') {
+      render();
+      return true;
+    }
+    return false;
+  }
+
+  function render() {
+    U.setNav('help');
+    var html = '<div class="h"><div><span class="kicker">Dokumentation</span><h1>Admin-Handbuch &amp; Hilfe</h1><p class="muted" style="margin:2px 0 0">Schritt-für-Schritt-Anleitung für Inhaber Ibrahim Abdelaal und das Büroteam von Stabil Umzug.</p></div></div>' +
+
+      '<div class="help-wrap">' +
+        '<nav class="help-nav" aria-label="Inhaltsverzeichnis">' +
+          '<h3>Handbuch</h3>' +
+          '<a href="#sec-planer">1. Inhaber-Planer</a>' +
+          '<a href="#sec-belege">2. Angebote &amp; Rechnungen</a>' +
+          '<a href="#sec-hybrid">3. Hybrider Vertrag &amp; E-Sign</a>' +
+          '<a href="#sec-handover">4. Einsatz-Übergabe</a>' +
+          '<a href="#sec-google">5. Google Workspace</a>' +
+          '<a href="#sec-faq">6. Häufige Fragen (FAQ)</a>' +
+        '</nav>' +
+
+        '<div>' +
+
+          '<section class="help-card active-sec" id="sec-planer">' +
+            '<h2><span class="num-badge">1</span> Inhaber-Planer (Telefon &amp; Vor-Ort)</h2>' +
+            '<p>Der integrierte <b>Planer</b> dient der schnellen Erfassung von Umzügen bei eingehenden Telefonaten oder bei der Besichtigung vor Ort mit Smartphone oder Tablet.</p>' +
+            '<h3>Schnellstart bei Anruf</h3>' +
+            '<ol>' +
+              '<li><b>Kunden- &amp; Streckendaten eingeben:</b> Name, Telefonnummer, Auszugs- und Einzugsort eintragen.</li>' +
+              '<li><b>Schnellvorlage wählen:</b> Klicken Sie auf <span class="help-pill">1-Zimmer</span>, <span class="help-pill">2-3 Zimmer</span> oder <span class="help-pill">3-4 Zimmer</span>. Das System setzt sofort realistische Durchschnittsmengen ein.</li>' +
+              '<li><b>Möbelstücke verfeinern:</b> In den Raum-Tabs (Wohnen, Schlafen, Küche etc.) per <b>+</b> und <b>−</b> gezielt anpassen oder nach Möbeln suchen.</li>' +
+              '<li><b>Live-Kalkulation prüfen:</b> Rechts sehen Sie sofort das errechnete Volumen ($m^3$), das empfohlene Fahrzeug (3,5t oder 7,5t), die Teamstärke, Arbeitsstunden und den Richtpreis.</li>' +
+            '</ol>' +
+            '<div class="help-box blue">' +
+              '<b>1-Klick Konvertierung:</b><br>' +
+              '• <b>In Angebot (PDF) umwandeln:</b> Erstellt einen offiziellen GoBD-Angebotsentwurf mit allen Positionen, Preisen und Lohnaufteilung.<br>' +
+              '• <b>In Rechnung (PDF) umwandeln:</b> Erstellt direkt eine Rechnung für erledigte Aufträge mit § 14 UStG Angaben.<br>' +
+              '• <b>Kalkulation per WhatsApp:</b> Sendet dem Kunden eine saubere Zusammenfassung mit Volumen, LKW und Richtpreis direkt aufs Smartphone.' +
+            '</div>' +
+          '</section>' +
+
+          '<section class="help-card" id="sec-belege">' +
+            '<h2><span class="num-badge">2</span> Angebote &amp; Rechnungen (GoBD-konform)</h2>' +
+            '<p>Alle Belege werden rechtskonform nach deutschem Steuerrecht (§ 14 UStG, § 35a EStG und GoBD) verarbeitet.</p>' +
+            '<h3>Die Belegarten &amp; Nummernkreise</h3>' +
+            '<ul>' +
+              '<li><b>Angebot (<span class="help-pill">AN-2026-XXXX</span>):</b> Unverbindliches Angebot mit 14 Tagen Gültigkeit. Kann vor dem Ausstellen beliebig angepasst werden.</li>' +
+              '<li><b>Rechnung (<span class="help-pill">RE-2026-XXXX</span>):</b> Offizielle Rechnung mit fortlaufender Jahresnummer. Nach dem Ausstellen unveränderlich festgeschrieben.</li>' +
+              '<li><b>Abschlags- &amp; Schlussrechnung:</b> Verrechnet geleistete Anzahlungen automatisch in der Schlussrechnung.</li>' +
+              '<li><b>Stornorechnung:</b> Falls eine ausgestellte Rechnung korrigiert werden muss, wird sie per Storno mit negativen Beträgen ausgeglichen. Eine ausgestellte Rechnung wird niemals gelöscht!</li>' +
+            '</ul>' +
+            '<div class="help-box green">' +
+              '<b>Steuerbonus für Privatkunden (§ 35a EStG):</b><br>' +
+              'Alle Arbeits- und Montagekosten werden auf den PDFs automatisch als steuerbegünstigte Lohnleistungen ausgewiesen. Der Privatkunde kann <b>20 %</b> dieser Kosten direkt in seiner Steuererklärung geltend machen.' +
+            '</div>' +
+          '</section>' +
+
+          '<section class="help-card" id="sec-hybrid">' +
+            '<h2><span class="num-badge">3</span> Hybrider Vertragsabschluss (E-Sign &amp; PDF)</h2>' +
+            '<p>Stabil Umzug nutzt das hybride Vertragsmodell, um maximale Geschwindigkeit mit behördlicher Akzeptanz zu verbinden:</p>' +
+            '<h3>Wie der Kunde signiert</h3>' +
+            '<ol>' +
+              '<li><b>Der 1-Klick-Link (<span class="help-pill">link#sign</span>):</b> Der Kunde erhält per WhatsApp oder E-Mail seinen geschützten Zugangslink. Auf dem Smartphone öffnet sich das Signaturfeld.</li>' +
+              '<li><b>Digitale Unterschrift:</b> Der Kunde prüft den Festpreis, akzeptiert die AGB und den Widerrufsverzicht (§ 356 Abs. 4 BGB) und unterschreibt mit dem Finger.</li>' +
+              '<li><b>Automatische Buchung:</b> Der Status springt automatisch auf <b>„Gebucht“</b>, der Google Kalender trägt den Umzug ein und das Signaturzertifikat wird in Google Drive gespeichert.</li>' +
+              '<li><b>Für Jobcenter &amp; Ämter:</b> Kunden, die eine Kostenübernahme benötigen, erhalten das offizielle PDF mit Briefkopf, Stempel- und Unterschriftszeile.</li>' +
+            '</ol>' +
+          '</section>' +
+
+          '<section class="help-card" id="sec-handover">' +
+            '<h2><span class="num-badge">4</span> Einsatz-Übergabe &amp; Team-Checkliste</h2>' +
+            '<p>Sobald ein Auftrag gebucht ist, schaltet das System in den Einsatzmodus. Auf der Detailseite jeder Anfrage finden Sie die <b>Übergabe an Inhaber</b>.</p>' +
+            '<h3>Die 10 To-Do-Punkte für den Umzugstag</h3>' +
+            '<ul>' +
+              '<li>1. Halteverbotszone (HVZ) aufgestellt &amp; protokolliert</li>' +
+              '<li>2. Fahrzeug (3,5t / 7,5t) &amp; Equipment bereit (Decken, Gurte, Rollwagen)</li>' +
+              '<li>3. Team eingeteilt (Fahrer + Helfer) &amp; Zeiten gebrieft</li>' +
+              '<li>4. Umzugskartons / Packmaterial vorab geliefert</li>' +
+              '<li>5. Möbel- &amp; Küchenmontage geprüft / Werkzeug komplett</li>' +
+              '<li>6. Vorschäden bei Auszug dokumentiert &amp; fotografiert</li>' +
+              '<li>7. Entrümpelung / Sperrmüll Entsorgungsnachweis</li>' +
+              '<li>8. Schlüssel- &amp; Wohnungsübergabe protokolliert</li>' +
+              '<li>9. Zahlung abgewickelt (Barquittung / EC / Überweisung)</li>' +
+              '<li>10. Abnahmeunterschrift vom Kunden eingeholt</li>' +
+            '</ul>' +
+            '<p>Mit dem Button <b>„📲 An Inhaber (WhatsApp)“</b> wird die vollständige Liste mit aktuellem Status sofort an Ibrahim Abdelaal gesendet.</p>' +
+          '</section>' +
+
+          '<section class="help-card" id="sec-google">' +
+            '<h2><span class="num-badge">5</span> Google Workspace Integration</h2>' +
+            '<p>Das System ist direkt mit dem Google Workspace Standard-Konto (<code>info.stabilumzug@gmail.com</code> / <code>info@stabilumzug.de</code>) synchronisiert:</p>' +
+            '<ul>' +
+              '<li><b>Google Kalender:</b> Alle Termine (Besichtigungen, Video-Calls, feste Umzugstage) werden automatisch als Kalendereinträge angelegt.</li>' +
+              '<li><b>Google Meet:</b> Bei Video-Besichtigungen wird automatisch ein sicherer Google Meet Link für das WhatsApp-Video-Gespräch bereitgestellt.</li>' +
+              '<li><b>2 TB Google Drive Cloud-Speicher:</b> Alle erstellten PDFs (Angebote, Rechnungen), signierten Verträge und Kunden-Möbelfotos werden geordnet in Drive abgelegt.</li>' +
+              '<li><b>Gmail E-Mail-Versand:</b> Dokumente und Angebote werden direkt über Ihren autorisierten Google-Postausgang versendet.</li>' +
+            '</ul>' +
+          '</section>' +
+
+          '<section class="help-card" id="sec-faq">' +
+            '<h2><span class="num-badge">6</span> Häufige Fragen (FAQ) &amp; Praxistipps</h2>' +
+            '<h3>Was mache ich, wenn ein Kunde am Telefon keine E-Mail hat?</h3>' +
+            '<p>Tragen Sie einfach nur den Namen und die Mobilfunknummer ein. Senden Sie das Angebot oder den Signatur-Link direkt per <b>WhatsApp</b>. Die digitale Unterschrift funktioniert komplett ohne E-Mail auf jedem Smartphone!</p>' +
+
+            '<h3>Wie gewähre ich einem Kunden einen Rabatt?</h3>' +
+            '<p>Öffnen Sie den Belegentwurf und tragen Sie unter <b>Summen</b> einen Gesamtrabatt in % oder in Euro ein. Der Rabatt wird steuerlich sauber auf alle Positionen anteilig verteilt.</p>' +
+
+            '<h3>Wie rechne ich mit dem Jobcenter oder Sozialamt ab?</h3>' +
+            '<p>Wählen Sie bei der Angebotserstellung den Kunden als <b>Firma / Kostenträger</b> aus und tragen Sie als Referenz die BG-Nummer oder das Aktenzeichen ein. Das PDF wird formal korrekt an das Jobcenter adressiert und nennt den Kunden als Leistungsempfänger.</p>' +
+          '</section>' +
+
+        '</div>' +
+      '</div>';
+
+    U.app.innerHTML = html;
+  }
+
+  window.SUHilfe = {route: routeHilfe};
+})();
+</script>

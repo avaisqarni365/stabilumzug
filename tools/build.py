@@ -52,11 +52,14 @@ def build_master_data():
 def main():
     urls = []
     for key, fn in BUILDERS.items():
+        is_indexable = False
         for lang in ("de", "en"):
             page = fn(lang)
             write(lib.path_of(key, lang) + "index.html", render(page))
             if not page.get("noindex"):
-                urls.append(key)
+                is_indexable = True
+        if is_indexable:
+            urls.append(key)
     # 404 page (absolute asset paths so it works at any depth)
     body = pages2.not_found()
     html = ('<!doctype html><html lang="de" data-theme="light"><head><meta charset="utf-8"><meta name="color-scheme" content="light"><meta name="viewport" content="width=device-width, initial-scale=1">'

@@ -468,7 +468,7 @@ fieldset.lock .input{background:#fff}
   function mailBox() {
     var d = D.cur.doc, c = D.company, t = d.totals, offer = d.type === 'offer', name = TYPES[d.type];
     var body = 'Guten Tag ' + (d.to.name || '') + ',\n\n' + (offer
-      ? 'vielen Dank für Ihre Anfrage. Im Anhang finden Sie unser Angebot ' + d.nr + ' über ' + eur2(t.toPay) + ', gültig bis ' + dDe(d.validUntil) + '.\n\nWenn Ihnen das Angebot zusagt, antworten Sie einfach auf diese E-Mail oder per WhatsApp – dann reservieren wir Ihren Termin.'
+      ? 'vielen Dank für Ihre Anfrage. Im Anhang finden Sie unser offizielles Angebot ' + d.nr + ' als PDF über ' + eur2(t.toPay) + ', gültig bis ' + dDe(d.validUntil) + '.\n\nSie können das Angebot direkt online prüfen und digital auf dem Smartphone/PC unterzeichnen:\n' + (c.portalUrl || 'https://www.stabilumzug.de/mein-umzug/') + (d.lead ? '?id=' + encodeURIComponent(d.lead) + '#sign' : '') + '\n\nAlternativ können Sie das beigefügte PDF unterschrieben per E-Mail oder WhatsApp an uns zurücksenden – dann reservieren wir Ihren Termin fest.'
       : 'vielen Dank für Ihren Auftrag. Im Anhang finden Sie die ' + name + ' ' + d.nr + ' über ' + eur2(t.toPay) + '.\n\nBitte überweisen Sie den Betrag bis zum ' + dDe(d.due) + (c.iban ? ' auf ' + c.iban : '') + ' mit dem Verwendungszweck ' + d.nr + '.') +
       '\n\nBei Fragen erreichen Sie uns unter ' + c.phone + '.\n\nMit freundlichen Grüßen\n' + c.owner + '\n' + c.name + ' · ' + c.street + ' · ' + c.city;
     var m = modal('<div class="bar"><b>' + esc(name) + ' per E-Mail senden</b><button class="btn small" data-close>Schließen</button></div>' +

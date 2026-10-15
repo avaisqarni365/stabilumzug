@@ -177,4 +177,20 @@ assert(self.ok && !self.pre);
 assert.strictEqual(sheets['Anfragen'].data.find(x => x[0] === self.id)[H.indexOf('Kostenträger')], 'Selbstzahler');
 assert.strictEqual(ctx.api_doc_(ctx.api_docNew_('offer', self.id)).doc.to.name, 'Herr Demir');
 console.log('ok pre-agreement: needs e-mail, no price, items once, PDF to customer and office, offer addressed to the Jobcenter');
+
+// --- owner planner converts directly to offer
+const plOffer = ctx.api_plannerSave_({
+  contact: {name: 'Planer Kunde', phone: '0171 1111111', email: 'planer@example.de'},
+  f1: {from: 'Karlstr. 32, Essen', to: 'Bochum', km: '15', date: '2026-12-10', dateMode: 'fixed', hh: 1},
+  acc: {old: {floor: 1, lift: 0, park: 0}, new: {floor: 2, lift: 1, park: 0}},
+  hvz: true,
+  inv: {sofa: {vi: 1, by: {pick: 1}}, table: {vi: 0, by: {pick: 1}}, carton: {vi: 0, by: {pick: 25}}}
+}, 'offer');
+assert(plOffer.ok && plOffer.docNr && plOffer.type === 'offer');
+const plDoc = ctx.api_doc_(plOffer.docNr);
+assert.strictEqual(plDoc.doc.status, 'Entwurf');
+assert.strictEqual(plDoc.doc.to.name, 'Planer Kunde');
+assert(plDoc.doc.lines.length >= 4);
+console.log('ok planner conversion: plan saved and converted directly to offer draft', plOffer.docNr);
+
 console.log('ALL OK');

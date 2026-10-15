@@ -169,15 +169,13 @@ def imprint(lang):
             ("Anschrift", "Address", "%s, %s %s" % (SITE["street"], SITE["zip"], SITE["city"])), ("Telefon", "Phone", SITE["phone"]), ("E-Mail", "Email", SITE["email"]),
             ("USt-IdNr.", "VAT ID", SITE["vat_id"]), ("Register", "Register", SITE["register"])]
     tbl = "<table>%s</table>" % "".join("<tr><th scope='row'>%s</th><td>%s</td></tr>" % (esc(t(a, b, lang)), ph(c)) for a, b, c in rows if str(c).strip())
-    flag = '<p class="legal-flag">%s</p>' % t("Vorlage nach § 5 DDG. Vor der Veröffentlichung vollständig ausfüllen und rechtlich prüfen lassen.", "Template under § 5 DDG. Complete it and have it reviewed legally before publishing.", lang)
-    body += sec(flag + '<div class="table-wrap">%s</div>' % tbl)
-    return dict(key=key, lang=lang, title=t("Impressum | Stabil Umzug", "Imprint | Stabil Umzug", lang), desc=t("Impressum von Stabil Umzug, Essen.", "Imprint of Stabil Umzug, Essen.", lang), body=body, noindex=True)
+    body += sec('<div class="table-wrap">%s</div>' % tbl)
+    return dict(key=key, lang=lang, title=t("Impressum | Stabil Umzug", "Imprint | Stabil Umzug", lang), desc=t("Impressum von Stabil Umzug, Essen.", "Imprint of Stabil Umzug, Essen.", lang), body=body)
 
 def privacy(lang):
     key = "privacy"
     title = t("Datenschutz", "Privacy", lang)
     body = page_head(key, lang, title, "", title)
-    flag = '<p class="legal-flag">%s</p>' % t("Vorlage. Vor der Veröffentlichung rechtlich prüfen lassen und die Angaben zum Hosting ergänzen.", "Template. Have it reviewed legally before publishing and add the hosting details.", lang)
     if lang == "de":
         inner = ("<h2>Verantwortlicher</h2><p>%s, %s, %s %s. E-Mail: %s</p>"
                  "<h2>Hosting</h2><p>Diese Website wird bei %s gehostet. Beim Aufruf verarbeitet der Hosting-Anbieter technisch notwendige Daten, etwa die IP-Adresse, in Server-Logfiles.</p>"
@@ -231,8 +229,8 @@ def privacy(lang):
             "Please avoid photographing people or documents. We delete the photos after 6 months if no order follows.</p>"
             "<h2>Appointment booking</h2><p>When you book an appointment, we store its type, day and time as well as your name, phone, email, address and message "
             "in our Google spreadsheet and send a confirmation email to you and to us (Art. 6(1)(b) GDPR). We delete the details after 6 months if no order follows.</p>", lang)
-    body += sec(flag + inner)
-    return dict(key=key, lang=lang, title=t("Datenschutz | Stabil Umzug", "Privacy | Stabil Umzug", lang), desc=t("Datenschutzerklärung von Stabil Umzug.", "Privacy policy of Stabil Umzug.", lang), body=body, noindex=True)
+    body += sec(inner)
+    return dict(key=key, lang=lang, title=t("Datenschutz | Stabil Umzug", "Privacy | Stabil Umzug", lang), desc=t("Datenschutzerklärung von Stabil Umzug.", "Privacy policy of Stabil Umzug.", lang), body=body)
 
 def not_found():
     body = ('<section class="hero on-dark"><div class="container" style="padding-bottom:clamp(48px,7vw,96px)"><div>'
