@@ -391,12 +391,41 @@ body.locked .top nav,body.locked .top .me{display:none}
         '<button class="btn primary" id="save-meta">Speichern</button></div>' +
         contractHtml() +
         handoverHtml() +
+        filesHtml() +
         sendHtml() +
         '<div class="card" id="lead-docs"></div>' +
       '</aside></div>';
     if (d.loading) { app.querySelector('.detail').classList.add('busy'); return; }
     bindDetail();
     if (window.SUDocs) window.SUDocs.leadCard(l, document.getElementById('lead-docs'));
+  }
+
+  /* files & drive storage: customer photos, signature certificates */
+  function filesHtml() {
+    var l = S.cur.lead, c = l.contract || {};
+    return '<div class="card" id="files-card">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">' +
+        '<h2 style="margin:0">Dateien &amp; Cloud (Google Drive)</h2>' +
+        '<span class="badge" style="background:#e0f2fe;color:#0369a1">Drive Cloud</span>' +
+      '</div>' +
+      '<p class="muted" style="margin:0 0 10px;font-size:12.5px">Alle hochgeladenen Fotos, Unterschriften und Dokumente sind dauerhaft in Ihrem Google Drive gesichert.</p>' +
+      '<div style="display:flex;flex-direction:column;gap:8px">' +
+        (l.photosDrive
+          ? '<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;padding:10px;display:flex;align-items:center;justify-content:space-between">' +
+              '<div><b style="font-size:13px;color:#166534">📷 Kundenfotos vorhanden</b><div class="muted" style="font-size:12px">Möbel- &amp; Raumfotos in Drive</div></div>' +
+              '<a class="btn small" target="_blank" rel="noopener" href="' + esc(l.photosDrive) + '" style="background:#166534;color:#fff;font-weight:600">Drive-Ordner öffnen ↗</a>' +
+            '</div>'
+          : '<div style="background:#f8fafc;border:1px dashed var(--soft,#cbd5e1);border-radius:6px;padding:10px;display:flex;align-items:center;justify-content:space-between">' +
+              '<div><b style="font-size:12.5px;color:var(--muted)">📷 Keine Fotos hochgeladen</b><div class="muted" style="font-size:11.5px">Kunde hat keine Fotos im Formular beigefügt</div></div>' +
+            '</div>') +
+        (c.sigDriveUrl
+          ? '<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;padding:10px;display:flex;align-items:center;justify-content:space-between">' +
+              '<div><b style="font-size:13px;color:#1e40af">✍️ Signatur-Zertifikat</b><div class="muted" style="font-size:12px">Unterschrift in Google Drive gespeichert</div></div>' +
+              '<a class="btn small" target="_blank" rel="noopener" href="' + esc(c.sigDriveUrl) + '" style="background:#1e40af;color:#fff;font-weight:600">Signatur öffnen ↗</a>' +
+            '</div>'
+          : '') +
+      '</div>' +
+    '</div>';
   }
 
   /* quote editor */
