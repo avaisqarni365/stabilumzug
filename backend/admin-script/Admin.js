@@ -381,3 +381,9 @@ function api_plannerSave_(plan, target) {
 
   return {ok: true, leadId: leadId, type: 'lead'};
 }
+
+/* 1-click publishing of catalog and master data from admin to GitHub Pages */
+function api_publishWebsite_() {
+  var user = guard_();
+  return publishCatalogCore_(user);
+}

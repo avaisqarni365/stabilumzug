@@ -46,6 +46,7 @@
           '<a href="#sec-handover">4. Einsatz-Übergabe</a>' +
           '<a href="#sec-google">5. Google Workspace</a>' +
           '<a href="#sec-faq">6. Häufige Fragen (FAQ)</a>' +
+          '<a href="#sec-deploy">7. 🚀 1-Klick Deployment</a>' +
         '</nav>' +
 
         '<div>' +
@@ -138,10 +139,39 @@
             '<p>Wählen Sie bei der Angebotserstellung den Kunden als <b>Firma / Kostenträger</b> aus und tragen Sie als Referenz die BG-Nummer oder das Aktenzeichen ein. Das PDF wird formal korrekt an das Jobcenter adressiert und nennt den Kunden als Leistungsempfänger.</p>' +
           '</section>' +
 
+          '<section class="help-card" id="sec-deploy">' +
+            '<h2><span class="num-badge">7</span> 🚀 Live-Katalog &amp; Website synchronisieren (1-Klick Deployment)</h2>' +
+            '<p>Stabil Umzug ist so aufgebaut, dass Sie im laufenden Betrieb <b>keine Entwickler und keine Programmier-Befehle</b> benötigen. Alle Preis- und Katalogänderungen aus der Google Tabelle können Sie mit einem einzigen Klick direkt auf die Website übertragen:</p>' +
+            '<div style="background:#f8fafc;border:1px solid var(--line);border-radius:8px;padding:14px;margin:12px 0">' +
+              '<p style="margin:0 0 10px;font-size:13.5px">Wenn Sie in der Google Tabelle neue Möbelstücke angelegt oder Kubikmeter/Stundensätze angepasst haben, klicken Sie hier, um den Katalog live zu schalten:</p>' +
+              '<button class="btn primary" id="btn-publish-catalog" style="font-size:14px">🚀 Live-Katalog jetzt veröffentlichen</button>' +
+              '<p class="muted" style="margin:8px 0 0;font-size:12px">Aktualisiert automatisch data/master.json und flow-data.js auf GitHub. In ca. 60 Sekunden live auf der Website.</p>' +
+            '</div>' +
+          '</section>' +
+
         '</div>' +
       '</div>';
 
     U.app.innerHTML = html;
+
+    var pubBtn = document.getElementById('btn-publish-catalog');
+    if (pubBtn) {
+      pubBtn.addEventListener('click', function () {
+        pubBtn.disabled = true;
+        pubBtn.textContent = 'Wird auf Website übertragen …';
+        U.run('api_publishWebsite')
+          .then(function (r) {
+            pubBtn.disabled = false;
+            pubBtn.textContent = '🚀 Live-Katalog jetzt veröffentlichen';
+            U.toast('Erfolgreich veröffentlicht: Version ' + r.version + ' (' + r.count + ' Gegenstände). In ca. 60 Sek. live!');
+          })
+          .catch(function (err) {
+            pubBtn.disabled = false;
+            pubBtn.textContent = '🚀 Live-Katalog jetzt veröffentlichen';
+            U.fail(err);
+          });
+      });
+    }
   }
 
   window.SUHilfe = {route: routeHilfe};

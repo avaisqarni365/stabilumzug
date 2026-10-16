@@ -176,4 +176,9 @@ const pSave = ctx.api_plannerSave_({
 assert(pSave.ok && pSave.leadId && pSave.type === 'lead');
 console.log('ok planner: master data and lead creation verified');
 
+// 1-click publishing of catalog and master data from admin to GitHub Pages
+const pubRes = ctx.api_publishWebsite_();
+assert(pubRes.ok && pubRes.version && pubRes.count > 0);
+console.log('ok admin publish: version', pubRes.version, '| items', pubRes.count);
+
 console.log('ALL OK');

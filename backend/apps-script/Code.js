@@ -501,39 +501,14 @@ function quoteSelectedLead() {
 /* ------------------------------------------------------------------ publish catalogue to the website */
 
 function publishCatalog() {
-  var ui = SpreadsheetApp.getUi(), props = PropertiesService.getScriptProperties();
-  var repo = props.getProperty('GITHUB_REPO'), token = props.getProperty('GITHUB_TOKEN'), branch = props.getProperty('GITHUB_BRANCH') || 'main';
-  if (!repo || !token) { ui.alert('GITHUB_REPO und GITHUB_TOKEN fehlen in den Skripteigenschaften (siehe README).'); return; }
-  CacheService.getScriptCache().remove('master');
-  var m = masterFromSheet_();
-  var problems = m.items.filter(function (it) { return !(it.v > 0 || (it.vars && it.vars.length)) || !it.de; }).map(function (it) { return it.id; });
-  if (problems.length) { ui.alert('Bitte prüfen (Volumen oder Name fehlt): ' + problems.join(', ')); return; }
-  var d = new Date(), version = Utilities.formatDate(d, 'Europe/Berlin', 'yyyy.MM.dd-HHmm');
-  m.version = version;
-  var compact = JSON.stringify(m);
-  var files = [
-    ['data/master.json', JSON.stringify(m, null, 1) + '\n'],
-    ['assets/data/master.json', compact + '\n'],
-    ['assets/js/flow-data.js', '/* Generated from data/master.json by tools/build.py (or published from the company sheet). Do not edit. */\nwindow.FLOW_DATA=' + compact + ';\n']
-  ];
-  var user = Session.getActiveUser().getEmail() || 'Tabelle';
-  files.forEach(function (f) { githubPut_(repo, branch, token, f[0], f[1], 'Katalog ' + version + ' aus der Tabelle (' + user + ')'); });
-  setConfig_('master_version', version);
-  CacheService.getScriptCache().remove('master');
-  sheet_(TAB.audit).appendRow([d, user, TAB.catalog, '—', '', 'Veröffentlicht: Version ' + version + ', ' + m.items.length + ' Gegenstände']);
-  ui.alert('Veröffentlicht: Version ' + version + '. Die Website zeigt den neuen Katalog in wenigen Minuten.');
-}
-
-function githubPut_(repo, branch, token, path, content, message) {
-  var url = 'https://api.github.com/repos/' + repo + '/contents/' + path;
-  var headers = {Authorization: 'Bearer ' + token, Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28'};
-  var get = UrlFetchApp.fetch(url + '?ref=' + encodeURIComponent(branch), {headers: headers, muteHttpExceptions: true});
-  var sha = get.getResponseCode() === 200 ? JSON.parse(get.getContentText()).sha : undefined;
-  var res = UrlFetchApp.fetch(url, {
-    method: 'put', headers: headers, contentType: 'application/json', muteHttpExceptions: true,
-    payload: JSON.stringify({message: message, branch: branch, sha: sha, content: Utilities.base64Encode(content, Utilities.Charset.UTF_8)})
-  });
-  if (res.getResponseCode() >= 300) throw new Error('GitHub ' + res.getResponseCode() + ' für ' + path + ': ' + res.getContentText().slice(0, 300));
+  var ui = SpreadsheetApp.getUi();
+  try {
+    var user = Session.getActiveUser().getEmail() || 'Tabelle';
+    var res = publishCatalogCore_(user, ui);
+    ui.alert('Veröffentlicht: Version ' + res.version + '. Die Website zeigt den neuen Katalog in wenigen Minuten.');
+  } catch (err) {
+    if (!ui) throw err;
+  }
 }
 
 /* ------------------------------------------------------------------ setup, menu, triggers */
