@@ -83,9 +83,12 @@ def contact(lang):
     body += ('<section class="section"><div class="container">%s<div class="contact-grid"><div>%s</div><div>%s</div></div></div></section>'
              % (services_mod.quick_contact(lang), services_mod.quote_form(key, lang), services_mod.contact_aside(lang, key)))
     biz = {"@context": "https://schema.org", "@type": "MovingCompany", "name": SITE["company"], "url": SITE["domain"] + "/",
+           "logo": {"@type": "ImageObject", "url": SITE.get("logo_url", SITE["domain"] + "/assets/img/og.png"), "caption": "Stabil Umzug Logo"},
+           "image": SITE.get("brand_images", [SITE["domain"] + "/assets/img/van-branded.jpg"]),
            "telephone": SITE["phone"], "email": SITE["email"],
-           "address": {"@type": "PostalAddress", "streetAddress": SITE["street"], "postalCode": SITE["zip"], "addressLocality": SITE["city"], "addressCountry": "DE"},
-           "openingHoursSpecification": OPENING}
+           "address": {"@type": "PostalAddress", "streetAddress": SITE["street"], "postalCode": SITE["zip"], "addressLocality": SITE["city"], "addressRegion": SITE["region"], "addressCountry": "DE"},
+           "openingHoursSpecification": OPENING,
+           "hasMap": SITE.get("maps_url", "https://maps.google.com/?q=Stabil+Umzug+Karlstra%C3%9Fe+32+45329+Essen")}
     return dict(key=key, lang=lang, quote=True, schema=[biz],
         title=t("Kontakt: Umzugsunternehmen Essen | Stabil Umzug", "Contact: moving company Essen | Stabil Umzug", lang),
         desc=t("Stabil Umzug, Karlstraße 32, 45329 Essen. Telefon und WhatsApp 0163 9688190, Mo–Fr 9–19 Uhr, Sa/So 9–17 Uhr. Kostenloses Angebot in 24 Stunden.",
@@ -332,7 +335,16 @@ def home(lang):
     faq_ld = {"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [
         {"@type": "Question", "name": t(*q, lang), "acceptedAnswer": {"@type": "Answer", "text": t(*a, lang)}} for (q, a) in FAQ]}
     biz = {"@context": "https://schema.org", "@type": "MovingCompany", "name": SITE["company"], "url": SITE["domain"] + "/",
-           "image": SITE["domain"] + "/assets/img/og.png", "logo": SITE["domain"] + "/assets/img/favicon.svg",
+           "logo": {"@type": "ImageObject", "url": SITE.get("logo_url", SITE["domain"] + "/assets/img/og.png"), "caption": "Stabil Umzug Essen Logo"},
+           "image": SITE.get("brand_images", [SITE["domain"] + "/assets/img/van-branded.jpg"]),
+           "photo": [
+               {"@type": "ImageObject", "url": SITE["domain"] + "/assets/img/van-branded.jpg", "caption": "Branded Mercedes Sprinter moving van – Stabil Umzug Essen"},
+               {"@type": "ImageObject", "url": SITE["domain"] + "/assets/img/photos/loading-boxes.jpg", "caption": "Stabil Umzug crew loading boxes in van"},
+               {"@type": "ImageObject", "url": SITE["domain"] + "/assets/img/photos/bed-assembly.jpg", "caption": "Furniture assembly service – Stabil Umzug Essen"},
+               {"@type": "ImageObject", "url": SITE["domain"] + "/assets/img/photos/sofa-transport.jpg", "caption": "Professional sofa and furniture transport in Essen"},
+               {"@type": "ImageObject", "url": SITE["domain"] + "/assets/img/photos/kitchen-assembly.jpg", "caption": "Kitchen assembly service Essen"},
+               {"@type": "ImageObject", "url": SITE["domain"] + "/assets/img/photos/packing.jpg", "caption": "Careful packing of fragile household items"}
+           ],
            "address": {"@type": "PostalAddress", "streetAddress": SITE["street"], "postalCode": SITE["zip"], "addressLocality": SITE["city"],
                        "addressRegion": SITE["region"], "addressCountry": "DE"},
            "openingHoursSpecification": OPENING, "areaServed": ["Essen", "Ruhrgebiet", "Deutschland"], "inLanguage": ["de", "en"],

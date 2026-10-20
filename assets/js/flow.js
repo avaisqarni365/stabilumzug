@@ -49,7 +49,7 @@
       acc: {old: {floor: 0, lift: 3, park: 3}, 'new': {floor: 0, lift: 3, park: 3}}, hvz: false,
       rooms: ['living', 'bedroom', 'kitchen', 'bath'].map(function (r) { return {r: r, sqm: ''}; }),
       inv: {}, vsel: {}, customs: [],
-      mode: 0, q: '', room: 'all', presetSel: null, preset: null, guess: {},
+      mode: 0, q: '', room: 'all', presetSel: null, preset: null, guess: {}, detailOpen: false,
       paste: '', parsed: null, cd: null, src: null,
       contact: {name: '', phone: '', email: '', channel: 0, note: ''}, consent: false, sent: null,
       payer: {kind: 0, name: '', ref: '', email: ''}, pre: false,
@@ -90,23 +90,6 @@
     }
     if (Object.keys(o).length && !S.src) S.src = o;
   })();
-  /* Quick start from the home page hero (?start=1&from=&to=&hh=): fill F1 and open it directly. */
-  (function quickStart() {
-    var p = new URLSearchParams(location.search);
-    if (p.get('start') !== '1') return;
-    var from = (p.get('from') || '').slice(0, 120), to = (p.get('to') || '').slice(0, 120), hh = parseInt(p.get('hh'), 10);
-    if (from) S.f1.from = from;
-    if (to) S.f1.to = to;
-    if (hh >= 0 && hh <= 3) S.f1.hh = hh;
-    var km = parseInt(p.get('km'), 10);   // measured by the route check on the website
-    if (km > 0 && km < 3000) S.f1.km = String(km);
-    if (!S.started) S.started = Date.now();
-    S.step = 1;
-    ['start', 'from', 'to', 'hh', 'km'].forEach(function (k) { p.delete(k); });
-    var q = p.toString();
-    try { history.replaceState(null, '', location.pathname + (q ? '?' + q : '')); } catch (e) {}
-    save();
-  })();
   function srcText() {
     var o = S.src;
     if (!o) return lang === 'de' ? 'direkt' : 'direct';
@@ -133,6 +116,33 @@
   }
   function applySet(set, sign, src) { for (var id in set) add(id, sign * set[id][0], set[id][1], src); }
   var PRESET_KEYS = ['single', 'couple', 'family'];
+
+  /* Quick start from the home page hero (?start=1&from=&to=&hh=): fill F1 and open it directly. */
+  (function quickStart() {
+    var p = new URLSearchParams(location.search);
+    if (p.get('start') !== '1') return;
+    var from = (p.get('from') || '').slice(0, 120), to = (p.get('to') || '').slice(0, 120), hh = parseInt(p.get('hh'), 10);
+    if (from) S.f1.from = from;
+    if (to) S.f1.to = to;
+    if (hh >= 0 && hh <= 3) S.f1.hh = hh;
+    var km = parseInt(p.get('km'), 10);   // measured by the route check on the website
+    if (km > 0 && km < 3000) S.f1.km = String(km);
+    var st = parseInt(p.get('step'), 10);
+    if (st >= 1 && st <= LAST) S.step = st;
+    else S.step = 1;
+    if (p.get('detail') === '1') S.detailOpen = true;
+    var tr = p.get('tier');
+    if (tr && D.presets[tr]) {
+      if (S.preset) applySet(D.presets[S.preset], -1, 'preset');
+      applySet(D.presets[tr], 1, 'preset');
+      S.preset = tr;
+      S.presetSel = PRESET_KEYS.indexOf(tr);
+    }
+    ['start', 'step', 'from', 'to', 'hh', 'km', 'detail', 'tier'].forEach(function (k) { p.delete(k); });
+    var q = p.toString();
+    try { history.replaceState(null, '', location.pathname + (q ? '?' + q : '')); } catch (e) {}
+    save();
+  })();
 
   /* List matching: names and synonyms, longest first; short keys need word boundaries. */
   var SYN = [];
@@ -266,7 +276,8 @@
       }).join('') + '</div>' +
       (addable.length ? '<div class="uf-chips" role="group" aria-label="' + esc(t.f3.add) + '">' + addable.map(function (r) {
         return '<button type="button" class="btn btn-secondary uf-chipbtn" data-act="addRoom" data-r="' + r + '" data-k="addroom-' + r + '">' + ICON.plus + esc(t.rooms[r]) + '</button>';
-      }).join('') + '</div>' : '');
+      }).join('') + '</div>' : '') +
+      '<div class="uf-skip-row"><button type="button" class="btn btn-primary uf-big btn-block" data-act="next" data-k="skip-rooms"><span>' + esc(t.f3.skip || 'Weiter zur Möbelauswahl (Schnell oder Detail)') + '</span><span aria-hidden="true">→</span></button></div>';
   }
 
   function catRows() {
@@ -295,6 +306,57 @@
   }
 
   function f4() {
+    var P = t.f4;
+    var tiers = P.tiers || [
+      {id: 'single', name: 'Kleine Möbel', sub: '1–2 Zimmer · Single / WG', vol: 'ca. 5–10 m³', desc: 'Sofa, Bett, Schrank, Tisch, Stühle, ca. 15 Kartons'},
+      {id: 'couple', name: 'Mittlere Möbel', sub: '2–3 Zimmer · Standard', vol: 'ca. 12–20 m³', desc: 'Großes Sofa, Doppelbett, Schwebetürenschrank, Esstisch, Waschmaschine, ca. 30 Kartons'},
+      {id: 'family', name: 'Große Möbel', sub: '3–4+ Zimmer / Haus', vol: 'ca. 25–35 m³', desc: 'Mehrere Betten, Schränke, Esstisch, Schreibtische, Elektrogeräte, ca. 55 Kartons'}
+    ];
+
+    var cartonItem = S.inv.carton;
+    var cartonCount = cartonItem ? total(cartonItem) : 0;
+    var activeTier = S.preset || null;
+
+    var tierCardsHtml = tiers.map(function (tr) {
+      var isAct = activeTier === tr.id;
+      return '<button type="button" class="uf-tier-card' + (isAct ? ' active' : '') + '" data-act="setTier" data-tier="' + tr.id + '" data-k="tier-' + tr.id + '">' +
+        '<div class="uf-tier-top">' +
+          '<span class="uf-tier-name">' + esc(tr.name) + '</span>' +
+          (isAct ? '<span class="uf-tier-badge">✓ ' + esc(P.selected || 'Ausgewählt') + '</span>' : '<span class="uf-tier-vol">' + esc(tr.vol) + '</span>') +
+        '</div>' +
+        '<div class="uf-tier-sub">' + esc(tr.sub) + '</div>' +
+        '<div class="uf-tier-desc">' + esc(tr.desc) + '</div>' +
+      '</button>';
+    }).join('');
+
+    var cartonAdjustHtml = (activeTier || cartonCount > 0) ? (
+      '<div class="uf-carton-quick">' +
+        '<div class="uf-cq-label"><strong>' + esc(P.cartonsLabel || 'Umzugskartons:') + '</strong> <span class="uf-num">' + cartonCount + ' ' + esc(P.boxes || 'Kartons') + '</span></div>' +
+        '<div class="uf-cq-stepper">' +
+          '<button type="button" class="btn btn-secondary uf-mini" data-act="decCarton" data-k="dec-cartons" aria-label="- 5 Kartons"' + (cartonCount >= 5 ? '' : ' disabled') + '>- 5</button>' +
+          '<button type="button" class="btn btn-secondary uf-mini" data-act="incCarton" data-k="inc-cartons" aria-label="+ 5 Kartons">+ 5</button>' +
+        '</div>' +
+      '</div>'
+    ) : '';
+
+    var fastCtaHtml = (activeTier || Object.keys(S.inv).length > 0) ? (
+      '<div class="uf-fast-action">' +
+        '<button type="button" class="btn btn-primary uf-big btn-block" data-act="fastQuote" data-k="fast-quote">' +
+          '<span>' + esc(P.fastQuoteBtn || '⚡ Schnell zum Angebot (Zusammenfassung)') + '</span><span aria-hidden="true">→</span>' +
+        '</button>' +
+      '</div>'
+    ) : '';
+
+    var fastTrackSection = (
+      '<section class="uf-twoways">' +
+        '<div class="uf-sec-kicker">' + esc(P.fastTrack || '⚡ Schnellauswahl (Grobe Schätzung)') + '</div>' +
+        '<p class="uf-small">' + esc(P.fastTrackSub || 'Wählen Sie Ihre ungefähre Möbelmenge mit 1 Klick – oder öffnen Sie unten die Details:') + '</p>' +
+        '<div class="uf-tier-grid">' + tierCardsHtml + '</div>' +
+        cartonAdjustHtml +
+        fastCtaHtml +
+      '</section>'
+    );
+
     var modes = '<div class="uf-tabs" role="group" aria-label="' + esc(t.f4.title) + '">' + t.f4.modes.map(function (m, i) {
       return '<button type="button" data-act="mode" data-i="' + i + '" data-k="mode-' + i + '" aria-pressed="' + (S.mode === i) + '">' + esc(m) + '</button>';
     }).join('') + '</div>';
@@ -348,7 +410,31 @@
       if (S.customs.length) body += customRows();
       body += '<p class="uf-small">' + esc(t.f4.listNote) + '</p>';
     }
-    return head(t.f4.title, t.f4.lead) + modes + body + photoSlot();
+
+    var totalItemsCount = Object.keys(S.inv).reduce(function (a, id) { return a + total(S.inv[id]); }, 0);
+    var badgeText = totalItemsCount > 0 ? (totalItemsCount + ' ' + esc(t.f5.items)) : esc(P.optional || 'Optional');
+
+    var collapseHtml = (
+      '<details class="uf-detail-collapse"' + (S.detailOpen ? ' open' : '') + '>' +
+        '<summary class="uf-detail-summary">' +
+          '<div class="uf-ds-left">' +
+            '<span class="uf-ds-icon">🔍</span>' +
+            '<div>' +
+              '<div class="uf-ds-title">' + esc(P.detailTitle || 'Detaillierte Möbelliste öffnen (optional)') + '</div>' +
+              '<div class="uf-ds-sub">' + esc(P.detailSub || 'Einzelne Möbelstücke anpassen, Maße ergänzen oder Räume durchsuchen') + '</div>' +
+            '</div>' +
+          '</div>' +
+          '<span class="uf-ds-badge">' + badgeText + '</span>' +
+        '</summary>' +
+        '<div class="uf-detail-body">' +
+          modes +
+          body +
+          photoSlot() +
+        '</div>' +
+      '</details>'
+    );
+
+    return head(t.f4.title, t.f4.lead) + fastTrackSection + collapseHtml;
   }
   function cdVol(cd) { var l = parseFloat(cd.l) || 0, b = parseFloat(cd.b) || 0, h = parseFloat(cd.h) || 0; return l * b * h / 1e6; }
   function customRows() {
@@ -726,6 +812,24 @@
         var li = document.getElementById('uf-rlink');
         if (li) { li.select(); try { navigator.clipboard.writeText(li.value); } catch (err) { document.execCommand('copy'); } }
         flash.remote = t.api.copied; render(); return;
+      case 'setTier':
+        var tier = b.getAttribute('data-tier');
+        if (S.preset) applySet(D.presets[S.preset], -1, 'preset');
+        applySet(D.presets[tier], 1, 'preset');
+        S.preset = tier;
+        S.presetSel = PRESET_KEYS.indexOf(tier);
+        break;
+      case 'incCarton':
+        add('carton', 5, 0, 'preset');
+        break;
+      case 'decCarton':
+        var cItem = S.inv.carton;
+        if (cItem && total(cItem) > 0) {
+          for (var ck = 0; ck < Math.min(5, total(cItem)); ck++) dec('carton');
+        }
+        break;
+      case 'fastQuote':
+        return go(LAST);
       case 'restart':
         if (!window.confirm(t.f8.restartAsk)) return;
         try { localStorage.removeItem(KEY); } catch (err) {}
@@ -734,6 +838,14 @@
     }
     save(); render();
   });
+
+  root.addEventListener('toggle', function (ev) {
+    var el = ev.target;
+    if (el && el.classList && el.classList.contains('uf-detail-collapse')) {
+      S.detailOpen = el.open;
+      save();
+    }
+  }, true);
 
   root.addEventListener('change', function (ev) {
     var el = ev.target;

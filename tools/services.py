@@ -216,6 +216,8 @@ def service_page(skey):
         svc_ld = {"@context": "https://schema.org", "@type": "Service", "name": c["nav"], "serviceType": c["nav"], "description": c["desc"],
                   "areaServed": [{"@type": "City", "name": "Essen"}, {"@type": "Country", "name": "Deutschland"}],
                   "provider": {"@type": "MovingCompany", "name": SITE["company"], "telephone": SITE["phone"],
+                               "logo": {"@type": "ImageObject", "url": SITE.get("logo_url", SITE["domain"] + "/assets/img/og.png")},
+                               "image": SITE.get("brand_images", [SITE["domain"] + "/assets/img/van-branded.jpg"]),
                                "address": {"@type": "PostalAddress", "streetAddress": SITE["street"], "postalCode": SITE["zip"], "addressLocality": SITE["city"], "addressCountry": "DE"}}}
         faq_ld = {"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [
             {"@type": "Question", "name": q, "acceptedAnswer": {"@type": "Answer", "text": LINK_RE.sub(lambda m: m.group(2), a)}} for q, a in c["faq"]]}

@@ -34,7 +34,21 @@ SITE = {
     "maps_url": "https://maps.google.com/?q=Stabil+Umzug+Karlstra%C3%9Fe+32+45329+Essen",
     "google_rating": "5.0",
     "google_reviews_count": 48,
+    "logo_url": "https://www.stabilumzug.de/assets/img/og.png",
+    "brand_images": [
+        "https://www.stabilumzug.de/assets/img/van-branded.jpg",
+        "https://www.stabilumzug.de/assets/img/photos/loading-boxes.jpg",
+        "https://www.stabilumzug.de/assets/img/photos/bed-assembly.jpg",
+        "https://www.stabilumzug.de/assets/img/photos/sofa-transport.jpg",
+        "https://www.stabilumzug.de/assets/img/photos/kitchen-assembly.jpg",
+        "https://www.stabilumzug.de/assets/img/photos/equipment.jpg",
+        "https://www.stabilumzug.de/assets/img/photos/packing.jpg",
+        "https://www.stabilumzug.de/assets/img/og.png",
+    ],
 }
+
+BRAND_IMAGES = SITE["brand_images"]
+LOGO_URL = SITE["logo_url"]
 
 # Price list page (tools/prices_content.py). False = page is built for review at /preise/ but hidden (noindex, not linked).
 PRICES_PUBLISHED = False

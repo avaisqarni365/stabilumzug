@@ -41,9 +41,23 @@ window.FLOW_T = {
    park: 'Parken / Tragweg', parks: ['Vor der Tür', 'bis 30 m', 'über 30 m', '?'],
    hvz: 'Halteverbotszone', hvzHint: 'Wenn der LKW nicht legal vor dem Haus halten kann, beantragen wir eine Zone bei der Stadt. Vorlauf je nach Stadt 1–2 Wochen.'
   },
-  f3: { title: 'Räume der neuen Wohnung', lead: 'Größen helfen bei der Möbelplanung. Leer lassen ist in Ordnung.', sqm: 'm²', add: 'Raum hinzufügen' },
+  f3: { title: 'Räume der neuen Wohnung', lead: 'Größen helfen bei der Möbelplanung. Leer lassen ist in Ordnung.', sqm: 'm²', add: 'Raum hinzufügen', skip: 'Weiter zur Möbelauswahl (Schnell oder Detail)' },
   f4: {
-   title: 'Was zieht mit?', lead: 'Wählen Sie den einfachsten Weg – oder mischen Sie.',
+   title: 'Was zieht mit?', lead: 'Wählen Sie Ihren Weg: Schnell per Klick oder detailliert im Klappmenü.',
+   fastTrack: '⚡ Schnellauswahl (Grobe Schätzung)',
+   fastTrackSub: 'Wählen Sie Ihre ungefähre Möbelmenge mit 1 Klick – oder öffnen Sie unten die Details:',
+   tiers: [
+    {id: 'single', name: 'Kleine Möbel', sub: '1–2 Zimmer · Single / WG', vol: 'ca. 5–10 m³', desc: 'Sofa, Bett, Schrank, Tisch, Stühle, ca. 15 Kartons'},
+    {id: 'couple', name: 'Mittlere Möbel', sub: '2–3 Zimmer · Standard', vol: 'ca. 12–20 m³', desc: 'Großes Sofa, Doppelbett, Schwebetürenschrank, Esstisch, Waschmaschine, ca. 30 Kartons'},
+    {id: 'family', name: 'Große Möbel', sub: '3–4+ Zimmer / Haus', vol: 'ca. 25–35 m³', desc: 'Mehrere Betten, Schränke, Esstisch, Schreibtische, Elektrogeräte, ca. 55 Kartons'}
+   ],
+   selected: 'Ausgewählt',
+   boxes: 'Kartons',
+   cartonsLabel: 'Umzugskartons anpassen:',
+   fastQuoteBtn: '⚡ Schnell zum Angebot (Zusammenfassung)',
+   detailTitle: '🔍 Detaillierte Möbelliste öffnen (optional)',
+   detailSub: 'Einzelne Möbelstücke anpassen, Maße ergänzen oder Räume durchsuchen',
+   optional: 'Optional',
    modes: ['Katalog', 'Vorlage', 'Schnell', 'Liste'],
    search: 'Suchen, z. B. Sofa', all: 'Alle', variant: 'Größe', less: 'weniger', more: 'mehr',
    preset: 'Haushalt wählen – eine typische Liste erscheint und bleibt im Katalog änderbar.',
@@ -162,9 +176,23 @@ window.FLOW_T = {
    park: 'Parking / carry', parks: ['At door', '≤ 30 m', '> 30 m', '?'],
    hvz: 'No-parking zone (Halteverbotszone)', hvzHint: 'If the truck cannot legally stop at the door, we apply to the city for a reserved zone. Lead time 1–2 weeks depending on the city.'
   },
-  f3: { title: 'Rooms of the new home', lead: 'Sizes help with furniture planning. Leaving them empty is fine.', sqm: 'm²', add: 'Add room' },
+  f3: { title: 'Rooms of the new home', lead: 'Sizes help with furniture planning. Leaving them empty is fine.', sqm: 'm²', add: 'Add room', skip: 'Continue to furniture (Fast track or Details)' },
   f4: {
-   title: 'What is moving?', lead: 'Take the easiest route – or mix them.',
+   title: 'What is moving?', lead: 'Choose your way: fast-track in 1 click or detailed via folding panel.',
+   fastTrack: '⚡ Fast Track (Approximate Furniture)',
+   fastTrackSub: 'Select your approximate furniture volume in 1 click – or expand details below:',
+   tiers: [
+    {id: 'single', name: 'Small Furniture', sub: '1–2 rooms · Single / flatshare', vol: 'approx. 5–10 m³', desc: 'Sofa, bed, wardrobe, table, chairs, approx. 15 boxes'},
+    {id: 'couple', name: 'Medium Furniture', sub: '2–3 rooms · Standard flat', vol: 'approx. 12–20 m³', desc: 'Large sofa, double bed, sliding wardrobe, dining table, washing machine, approx. 30 boxes'},
+    {id: 'family', name: 'Large Furniture', sub: '3–4+ rooms / House', vol: 'approx. 25–35 m³', desc: 'Multiple beds, wardrobes, dining table, desks, appliances, approx. 55 boxes'}
+   ],
+   selected: 'Selected',
+   boxes: 'Boxes',
+   cartonsLabel: 'Adjust moving boxes:',
+   fastQuoteBtn: '⚡ Fast-track to quote (Summary)',
+   detailTitle: '🔍 Open detailed furniture list (optional)',
+   detailSub: 'Customise individual furniture, add dimensions or search rooms',
+   optional: 'Optional',
    modes: ['Catalogue', 'Preset', 'Quick', 'List'],
    search: 'Search, e.g. sofa', all: 'All', variant: 'Size', less: 'fewer', more: 'more',
    preset: 'Pick a household – a typical list appears and stays editable in the catalogue.',
