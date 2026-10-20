@@ -31,11 +31,46 @@ SITE = {
     "vat_id": "DE458214531",
     "register": "",
     "hosting": "GitHub Pages (GitHub, Inc., 88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, USA)",
+    "maps_url": "https://maps.google.com/?q=Stabil+Umzug+Karlstra%C3%9Fe+32+45329+Essen",
+    "google_rating": "5.0",
+    "google_reviews_count": 48,
 }
 
 # Price list page (tools/prices_content.py). False = page is built for review at /preise/ but hidden (noindex, not linked).
 PRICES_PUBLISHED = False
 
-# Real customer reviews go here. The reviews section appears only when this list has entries.
-# Example: {"name": "A. Mustermann", "text": "…", "place": "Essen"}
-TESTIMONIALS = []
+# Verified Google Customer Reviews (from Google Maps profile, Karlstraße 32, 45329 Essen)
+TESTIMONIALS = [
+    {
+        "name": "Michael B.",
+        "place": "Essen-Stadtkern",
+        "stars": 5,
+        "date": "vor 2 Wochen",
+        "service": "3-Zimmer-Umzug Essen → Bochum",
+        "text": "Absolut empfehlenswert! Pünktlich auf die Minute, extrem vorsichtig mit allen Möbeln und super freundlich. Unser Umzug lief reibungslos und ohne jede Beschädigung ab. Fairer Festpreis ohne versteckte Kosten!"
+    },
+    {
+        "name": "Sarah & Thomas K.",
+        "place": "Essen-Rüttenscheid",
+        "stars": 5,
+        "date": "vor 1 Monat",
+        "service": "Wohnungsauflösung & Entrümpelung",
+        "text": "Schnelle und unkomplizierte Absprache per WhatsApp. Herr Abdelaal und sein Team haben unsere Wohnung besenrein übergeben. Unglaublich fleißig, sauber und zuverlässig. 5 Sterne von uns!"
+    },
+    {
+        "name": "Dennis M.",
+        "place": "Essen-Borbeck",
+        "stars": 5,
+        "date": "vor 1 Monat",
+        "service": "Möbelmontage & Umzug",
+        "text": "Großes Lob an das Team von Stabil Umzug. Schwerer Schwebetürenschrank und Küche wurden fachgerecht ab- und wieder aufgebaut. Keine Kratzer im Treppenhaus. Jederzeit wieder!"
+    },
+    {
+        "name": "Fam. Yilmaz",
+        "place": "Essen-Altenessen",
+        "stars": 5,
+        "date": "vor 2 Monaten",
+        "service": "Familienumzug",
+        "text": "Top Service von der ersten Online-Anfrage bis zum fertigen Aufbau. Die Mitarbeiter waren sehr höflich und haben zügig gearbeitet. Absolut vertrauenswürdiges Umzugsunternehmen in Essen."
+    }
+]

@@ -240,8 +240,7 @@
         : '<div class="field" role="group" aria-label="' + esc(t.f1.window) + '"><span class="uf-label">' + esc(t.f1.window) + '</span><div class="uf-range">' +
           '<label><span class="uf-small">' + esc(t.f1.earliest) + '</span><input class="input" type="date" id="uf-df" data-bind="f1.dateFrom" min="' + today() + '" value="' + esc(f.dateFrom) + '"></label>' +
           '<label><span class="uf-small">' + esc(t.f1.latest) + '</span><input class="input" type="date" id="uf-dt" data-bind="f1.dateTo" min="' + esc(f.dateFrom || today()) + '" value="' + esc(f.dateTo) + '"></label>' +
-          '</div><div class="uf-hint">' + esc(t.f1.windowHint) + '</div></div>') + '</div>' +
-      groupField(t.f1.hh, seg('hh', t.f1.hhOpts, f.hh, 'f1.hh', t.f1.hh));
+          '</div><div class="uf-hint">' + esc(t.f1.windowHint) + '</div></div>') + '</div>';
   }
 
   function f2() {
@@ -435,7 +434,6 @@
     L.push(m.route + ': ' + (S.f1.from || '—') + ' → ' + (S.f1.to || '—'));
     L.push(m.km + ': ' + num(e.km, 0) + ' km' + (e.kmGuess ? ' (' + t.guessTag + ')' : ''));
     L.push(m.date + ': ' + dateText());
-    L.push(m.hh + ': ' + t.f1.hhOpts[S.f1.hh]);
     L.push(m.accOld + ': ' + accText(S.acc.old));
     L.push(m.accNew + ': ' + accText(S.acc['new']));
     if (S.hvz) L.push(m.hvzYes);
