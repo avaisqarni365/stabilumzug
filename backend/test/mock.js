@@ -96,7 +96,7 @@ const ctx = {
   },
   Maps: {DirectionFinder: {Mode: {DRIVING: 'd'}}, newDirectionFinder: () => { const o = {}; ['setOrigin', 'setDestination', 'setMode', 'setRegion', 'setLanguage'].forEach(k => o[k] = () => o); o.getDirections = () => ({routes: [{legs: [{distance: {value: 23400}, duration: {value: 1680}}]}]}); return o; }},
   MailApp: {sendEmail: o => mails.push(o)},
-  Session: {getEffectiveUser: () => ({getEmail: () => 'info@stabilumzug.de'}), getActiveUser: () => ({getEmail: () => 'office@test'})},
+  Session: {getEffectiveUser: () => ({getEmail: () => 'info.stabilumzug@gmail.com'}), getActiveUser: () => ({getEmail: () => 'office@test'})},
   UrlFetchApp: {fetch: (url, opt) => {
     if (url.startsWith('https://api.github.com/')) {
       if (opt && opt.method === 'put') { puts.push({url, body: JSON.parse(opt.payload)}); return {getResponseCode: () => 201, getContentText: () => '{}'}; }

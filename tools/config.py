@@ -13,7 +13,7 @@ SITE = {
     # Contact details shown in the footer, on the contact page and used by the planner.
     "phone": "0163 9688190",
     "phone_href": "+491639688190",           # digits with country code for the call link, e.g. +4920112345678
-    "email": "info@stabilumzug.de",
+    "email": "info.stabilumzug@gmail.com",
     "whatsapp": "491639688190",             # digits only with country code, e.g. 491701234567 (leave empty to hide)
     # Phase 1: URL of the Google Apps Script web app (ends in /exec). Empty = the planner works without the sheet (WhatsApp/e-mail only).
     "api": "https://script.google.com/macros/s/AKfycbz_7zZfYBWLPdU-jFSh5xRbhfQxRoBJoeeKUDYFZRQSTKxlqWZUphCrcgbLgb1HjwPB/exec",

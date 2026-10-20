@@ -5,8 +5,8 @@
  * Each project defines ss_(), which returns the company spreadsheet.
  */
 
-/* Addresses before the move to Google Workspace (info@stabilumzug.de); replaced by "Einrichten". */
-var OLD_EMAILS = ['info.stabilumzug@gmail.com'];
+/* Addresses before the move to primary email; replaced by "Einrichten". */
+var OLD_EMAILS = ['info@stabilumzug.de'];
 
 var TAB = {
   leads: 'Anfragen', items: 'Gegenstände', quotes: 'Angebote', catalog: 'Katalog', settings: 'Regeln',
@@ -217,7 +217,7 @@ function sheet_(name) { var sh = ss_().getSheetByName(name); if (!sh) throw new 
 var COMPANY_FIELDS = [
   ['name', 'Firmenname', 'Stabil Umzug'], ['owner', 'Inhaber', 'Ibrahim Abdelaal'], ['legal', 'Rechtsform', 'Einzelunternehmen'],
   ['street', 'Straße und Hausnummer', 'Karlstraße 32'], ['city', 'PLZ und Ort', '45329 Essen'],
-  ['phone', 'Telefon', '0163 9688190'], ['email', 'E-Mail', 'info@stabilumzug.de'], ['web', 'Website', 'www.stabilumzug.de'],
+  ['phone', 'Telefon', '0163 9688190'], ['email', 'E-Mail', 'info.stabilumzug@gmail.com'], ['web', 'Website', 'www.stabilumzug.de'],
   ['vat_id', 'USt-IdNr.', 'DE458214531'], ['tax_no', 'Steuernummer', ''],
   ['bank', 'Bank', ''], ['iban', 'IBAN', ''], ['bic', 'BIC', ''],
   ['small', 'Kleinunternehmer nach § 19 UStG (ja/nein)', 'nein'], ['vat', 'Standard-USt-Satz %', 19],

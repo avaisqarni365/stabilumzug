@@ -67,7 +67,7 @@ ctx.flushHits();
 ctx.SHEET_ID = 'sheet'; ctx.PORTAL_URL = 'https://www.stabilumzug.de/mein-umzug/'; ctx.SITE_URL = 'https://www.stabilumzug.de';
 ctx.SpreadsheetApp.openById = () => M.ss;
 M.ss.getEditors = () => [{getEmail: () => 'office@stabilumzug.test'}];
-M.ss.getOwner = () => ({getEmail: () => 'info@stabilumzug.de'});
+M.ss.getOwner = () => ({getEmail: () => 'info.stabilumzug@gmail.com'});
 M.ss.getUrl = () => 'https://docs.google.com/spreadsheets/d/preview';
 M.load('admin-script', ['Admin.js', 'Belege.js', 'Termine.js']);
 // local test user for the login screen (only in this preview, never in the real sheet)

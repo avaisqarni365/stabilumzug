@@ -19,7 +19,7 @@ ctx.PORTAL_URL = 'https://www.stabilumzug.de/mein-umzug/';
 ctx.SITE_URL = 'https://www.stabilumzug.de';
 ctx.SpreadsheetApp.openById = () => M.ss;
 M.ss.getEditors = () => [{getEmail: () => 'office@test'}];
-M.ss.getOwner = () => ({getEmail: () => 'info@stabilumzug.de'});
+M.ss.getOwner = () => ({getEmail: () => 'info.stabilumzug@gmail.com'});
 let user = 'office@test';
 ctx.Session.getActiveUser = () => ({getEmail: () => user});
 ctx.Utilities.formatDate = (d, tz, f) => f === 'yyyy-MM-dd' ? d.toISOString().slice(0, 10) : '2026-10-11';
