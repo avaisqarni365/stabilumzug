@@ -21,7 +21,8 @@
     signerPlaceholder: 'First and last name',
     cOrder: 'I have reviewed the quote and place a legally binding order with Stabil Umzug at the stated price.',
     cWaiver: 'I expressly request and agree that Stabil Umzug begins providing the service before the end of the statutory 14-day cancellation period (§ 356(4) BGB). I understand that I lose my right of withdrawal upon complete performance.',
-    cAgb: 'I accept the Terms and Conditions and acknowledge the Privacy Policy.',
+    cAgb: 'I have read the privacy policy.',
+    optional: 'optional – only if the move is to start within the 14 days',
     acceptBtn: 'Sign contract & place binding order',
     submitting: 'Submitting contract …',
     signedBadge: '✓ Contract digitally signed & binding',
@@ -29,7 +30,7 @@
     printContract: 'Print / Save contract confirmation',
     needSig: 'Please draw your signature in the signature box.',
     needName: 'Please enter your full name.',
-    needConsents: 'Please check all required legal confirmations before signing.',
+    needConsents: 'Please confirm the order and the privacy policy before signing.',
     err: 'That did not work. Please try again or call us.',
     list: 'Your checklist', before: 'days before', after: 'days after', due: 'by',
     tasks: [['hvz', 'Apply for a no-parking zone (we do this if you chose it)', 14], ['bulk', 'Book bulky-waste pickup with the city', 10], ['mail', 'Set up mail forwarding', 7],
@@ -50,7 +51,8 @@
     signerPlaceholder: 'Vor- und Nachname',
     cOrder: 'Ich habe das Angebot geprüft und erteile Stabil Umzug den verbindlichen Auftrag zur Durchführung zu den genannten Konditionen.',
     cWaiver: 'Ich verlange ausdrücklich und stimme zu, dass Stabil Umzug vor Ende der 14-tägigen Widerrufsfrist mit der Ausführung der Dienstleistung beginnt (§ 356 Abs. 4 BGB). Mir ist bekannt, dass ich mein Widerrufsrecht bei vollständiger Erfüllung verliere.',
-    cAgb: 'Ich bestätige die Geltung der AGB und habe die Datenschutzerklärung zur Kenntnis genommen.',
+    cAgb: 'Ich habe die Datenschutzerklärung zur Kenntnis genommen.',
+    optional: 'freiwillig – nur nötig, wenn der Umzug innerhalb der 14 Tage beginnen soll',
     acceptBtn: 'Vertrag verbindlich unterzeichnen & zahlungspflichtig beauftragen',
     submitting: 'Vertrag wird übermittelt …',
     signedBadge: '✓ Vertrag rechtsgültig digital gezeichnet',
@@ -58,7 +60,7 @@
     printContract: 'Vertragsbestätigung drucken / speichern',
     needSig: 'Bitte leisten Sie Ihre digitale Unterschrift im Unterschriftenfeld.',
     needName: 'Bitte tragen Sie Ihren Namen ein.',
-    needConsents: 'Bitte bestätigen Sie alle drei rechtlichen Pflichtangaben vor der Beauftragung.',
+    needConsents: 'Bitte bestätigen Sie den Auftrag und die Datenschutzhinweise.',
     err: 'Das hat nicht geklappt. Bitte erneut versuchen oder anrufen.',
     list: 'Ihre Checkliste', before: 'Tage vorher', after: 'Tage danach', due: 'bis',
     tasks: [['hvz', 'Halteverbotszone beantragen (übernehmen wir, wenn gewählt)', 14], ['bulk', 'Sperrmüll-Termin bei der Stadt', 10], ['mail', 'Nachsendeauftrag stellen', 7],
@@ -154,7 +156,13 @@
         if (hint) hint.style.display = 'block';
       },
       hasSigned: function () { return points > 8; },
-      dataUrl: function () { return points > 8 ? canvas.toDataURL('image/png') : ''; }
+      // small JPEG on white (a phone canvas at full resolution can be several 100 KB)
+      dataUrl: function () {
+        if (points <= 8) return '';
+        var w = Math.min(480, canvas.width), h = Math.round(canvas.height * w / canvas.width), c2 = document.createElement('canvas');
+        c2.width = w; c2.height = h; var x = c2.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, w, h); x.drawImage(canvas, 0, 0, w, h);
+        return c2.toDataURL('image/jpeg', 0.8);
+      }
     };
   }
 
@@ -192,7 +200,7 @@
           '</div>' +
           '<div class="sig-consents">' +
           '<label><input type="checkbox" id="c-order"> <span>' + esc(T.cOrder) + '</span></label>' +
-          '<label><input type="checkbox" id="c-waiver"> <span>' + esc(T.cWaiver) + '</span></label>' +
+          '<label><input type="checkbox" id="c-waiver"> <span>' + esc(T.cWaiver) + ' <em>(' + esc(T.optional) + ')</em></span></label>' +
           '<label><input type="checkbox" id="c-agb"> <span>' + esc(T.cAgb) + '</span></label>' +
           '</div>' +
           '<button class="button primary" id="pa" style="width:100%">' + esc(T.acceptBtn) + '</button>' +
@@ -241,7 +249,7 @@
         var cOrder = document.getElementById('c-order');
         var cWaiver = document.getElementById('c-waiver');
         var cAgb = document.getElementById('c-agb');
-        if (!cOrder.checked || !cWaiver.checked || !cAgb.checked) {
+        if (!cOrder.checked || !cAgb.checked) {   // the waiver (early start) is optional
           pm.textContent = T.needConsents; pm.className = 'msg bad'; return;
         }
 
@@ -259,7 +267,8 @@
             k: k,
             confirm: true,
             sig: sigImg,
-            signer: signer
+            signer: signer,
+            waiver: !!(cWaiver && cWaiver.checked)
           })
         })
           .then(function (r) { return r.json(); })

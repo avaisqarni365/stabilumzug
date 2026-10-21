@@ -173,64 +173,96 @@ def imprint(lang):
     return dict(key=key, lang=lang, title=t("Impressum | Stabil Umzug", "Imprint | Stabil Umzug", lang), desc=t("Impressum von Stabil Umzug, Essen.", "Imprint of Stabil Umzug, Essen.", lang), body=body)
 
 def privacy(lang):
+    """Privacy page. Every section describes what the code actually does (website, backend in backend/apps-script)."""
     key = "privacy"
     title = t("Datenschutz", "Privacy", lang)
     body = page_head(key, lang, title, "", title)
-    if lang == "de":
-        inner = ("<h2>Verantwortlicher</h2><p>%s, %s, %s %s. E-Mail: %s</p>"
-                 "<h2>Hosting</h2><p>Diese Website wird bei %s gehostet. Beim Aufruf verarbeitet der Hosting-Anbieter technisch notwendige Daten, etwa die IP-Adresse, in Server-Logfiles.</p>"
-                 "<h2>Cookies und Besucherzählung</h2><p>Wir setzen keine Cookies und keine Werbe- oder Analysedienste Dritter ein. Schriften und Skripte laden wir von unserer eigenen Domain. "
-                 "Um zu sehen, wie die Website genutzt wird, zählen wir Seitenaufrufe ohne Cookies und ohne IP-Adresse: Bei jedem Aufruf übermittelt Ihr Browser an unser Google-Konto nur die aufgerufene Seite, "
-                 "die Art der Herkunft (z. B. „Google“, „WhatsApp“ oder „direkt“), die Geräteart (Handy, Tablet, Computer) und die Sprache. Wir speichern daraus nur Tagessummen, "
-                 "die keinen Rückschluss auf Sie zulassen, und löschen sie nach 13 Monaten (Art. 6 Abs. 1 lit. f DSGVO).</p>"
-                 "<h2>Umzugsplaner</h2><p>Ihre Eingaben im Planer werden nur in Ihrem Browser verarbeitet und nicht an uns übertragen. Damit Sie später weitermachen können, speichert der Planer Ihren Entwurf im lokalen Speicher Ihres Browsers auf diesem Gerät (keine Cookies). Sie können ihn jederzeit im Planer mit „Entwurf löschen und neu beginnen“ oder über die Browsereinstellungen löschen. Erst wenn Sie die Zusammenfassung selbst per WhatsApp oder E-Mail senden, erhalten wir die darin enthaltenen Angaben, einschließlich der Angabe, über welche Seite oder Kampagne Sie zu uns gekommen sind. Dabei gelten die Datenschutzbestimmungen Ihres E-Mail- oder Messenger-Anbieters.</p>"
-                 "<h2>Kontakt</h2><p>Wenn Sie uns schreiben, verarbeiten wir Ihre Angaben zur Bearbeitung der Anfrage (Art. 6 Abs. 1 lit. b DSGVO).</p>"
-                 "<h2>Ihre Rechte</h2><p>Sie haben Rechte auf Auskunft, Berichtigung, Löschung, Einschränkung, Datenübertragbarkeit und Widerspruch sowie das Recht auf Beschwerde bei einer Aufsichtsbehörde.</p>")
-    else:
-        inner = ("<h2>Controller</h2><p>%s, %s, %s %s. Email: %s</p>"
-                 "<h2>Hosting</h2><p>This website is hosted by %s. When you visit, the host processes technically necessary data, such as the IP address, in server logs.</p>"
-                 "<h2>Cookies and visitor counting</h2><p>We use no cookies and no third-party advertising or analytics services. Fonts and scripts load from our own domain. "
-                 "To see how the website is used, we count page views without cookies and without IP address: on each view your browser sends only the page, "
-                 "the kind of source (e.g. “Google”, “WhatsApp” or “direct”), the device type (phone, tablet, computer) and the language to our Google account. We keep only daily totals "
-                 "that cannot be traced back to you and delete them after 13 months (Art. 6(1)(f) GDPR).</p>"
-                 "<h2>Moving planner</h2><p>Your entries in the planner are processed only in your browser and are not transferred to us. So you can continue later, the planner keeps your draft in your browser's local storage on this device (no cookies). You can delete it at any time with “Delete draft and start over” in the planner or in your browser settings. Only when you send the summary yourself via WhatsApp or email do we receive the details in it, including which page or campaign brought you to us. The privacy terms of your email or messenger provider apply.</p>"
-                 "<h2>Contact</h2><p>If you write to us we process your details to handle the request (Art. 6(1)(b) GDPR).</p>"
-                 "<h2>Your rights</h2><p>You have rights of access, rectification, erasure, restriction, portability and objection, and the right to complain to a supervisory authority.</p>")
-    inner = inner % (ph(SITE["company"]), ph(SITE["street"]), ph(SITE["zip"]), esc(SITE["city"]), ph(SITE["email"]), ph(SITE["hosting"]))
-    if SITE.get("api"):   # Phase 1: planner connected to the company's Google sheet
-        inner += t(
-            "<h2>Anfrage über den Umzugsplaner</h2><p>Wenn Sie im Planer auf „Anfrage senden“ klicken, übermitteln wir Ihre Angaben "
-            "(Kontaktdaten, Adressen, Zugang, Gegenstände und die Angabe, über welche Seite oder Kampagne Sie gekommen sind) an unser Google-Konto "
-            "und speichern sie in einer Google-Tabelle, um Ihnen ein Angebot zu erstellen (Art. 6 Abs. 1 lit. b DSGVO, Ihre Einwilligung nach Art. 6 Abs. 1 lit. a DSGVO). "
-            "Anbieter ist Google Ireland Limited, Gordon House, Barrow Street, Dublin 4, Irland. "
-            "Eine Übermittlung in die USA ist nicht auszuschließen; Google ist nach dem EU-US Data Privacy Framework zertifiziert. "
-            "Wir löschen Anfragen, aus denen kein Auftrag wird, nach 6 Monaten.</p>"
-            "<p>Mit „Entfernung berechnen“ und „Strecke und Karte anzeigen“ werden die beiden eingegebenen Orte über unseren Server an Google Maps übermittelt, um Fahrstrecke, Fahrzeit und eine Karte zu berechnen; Ihr Browser verbindet sich dabei nicht mit Google. "
-            "Für unsere Statistik speichern wir je Berechnung nur Zeitpunkt, Postleitzahl und Ort von Start und Ziel, Entfernung, die aufgerufene Seite und die Kampagne – keine Straße, keine Kontaktdaten – und löschen diese Einträge nach 6 Monaten (Art. 6 Abs. 1 lit. f DSGVO, berechtigtes Interesse an der Planung unseres Angebots). "
-            "Mit „Auf einem anderen Gerät weitermachen“ speichern wir Ihren Entwurf nach Ihrer Einwilligung 30 Tage und löschen ihn danach automatisch. "
-            "Sie können Ihre Einwilligung jederzeit per E-Mail an uns widerrufen.</p>"
-            "<h2>Fotos</h2><p>Mit einer Anfrage können Sie freiwillig Fotos hochladen (Kamera oder Dateien, höchstens 10). Ihr Browser verkleinert sie vor dem Senden; "
-            "wir erhalten sie als Anhang einer E-Mail in unserem Google-Postfach und nutzen sie nur, um Ihren Umzug zu planen und Ihnen ein Angebot zu machen (Art. 6 Abs. 1 lit. b DSGVO). "
-            "Bitte fotografieren Sie möglichst keine Personen oder Dokumente. Wir löschen die Fotos nach 6 Monaten, wenn daraus kein Auftrag wird.</p>"
-            "<h2>Terminbuchung</h2><p>Wenn Sie über „Termin buchen“ einen Termin vereinbaren, speichern wir Art, Tag und Uhrzeit des Termins sowie Name, Telefon, E-Mail, Adresse und Ihre Nachricht "
-            "in unserer Google-Tabelle und senden Ihnen und uns eine Bestätigung per E-Mail (Art. 6 Abs. 1 lit. b DSGVO). Wir löschen die Angaben nach 6 Monaten, wenn daraus kein Auftrag wird.</p>",
-            "<h2>Requests sent through the moving planner</h2><p>When you click “Send request” in the planner, we transfer your details "
-            "(contact details, addresses, access, items and which page or campaign brought you to us) to our Google account and store them in a Google spreadsheet "
-            "to prepare a quote for you (Art. 6(1)(b) GDPR, your consent under Art. 6(1)(a) GDPR). "
-            "The provider is Google Ireland Limited, Gordon House, Barrow Street, Dublin 4, Ireland. "
-            "A transfer to the USA cannot be ruled out; Google is certified under the EU-US Data Privacy Framework. "
-            "We delete requests that do not lead to an order after 6 months.</p>"
-            "<p>“Calculate distance” and “Show route and map” send the two places you entered to Google Maps via our server to calculate distance, drive time and a map; your browser does not connect to Google. "
-            "For our statistics we store, for each calculation, only the time, postcode and town of start and destination, the distance, the page and the campaign – no street, no contact details – and delete these entries after 6 months (Art. 6(1)(f) GDPR, legitimate interest in planning our service). "
-            "“Continue on another device” stores your draft for 30 days with your consent and deletes it automatically afterwards. "
-            "You can withdraw your consent at any time by emailing us.</p>"
-            "<h2>Photos</h2><p>With a request you may upload photos (camera or files, at most 10). Your browser shrinks them before sending; "
-            "we receive them attached to an email in our Google mailbox and use them only to plan your move and prepare a quote (Art. 6(1)(b) GDPR). "
-            "Please avoid photographing people or documents. We delete the photos after 6 months if no order follows.</p>"
-            "<h2>Appointment booking</h2><p>When you book an appointment, we store its type, day and time as well as your name, phone, email, address and message "
-            "in our Google spreadsheet and send a confirmation email to you and to us (Art. 6(1)(b) GDPR). We delete the details after 6 months if no order follows.</p>", lang)
+    api = bool(SITE.get("api"))
+    S = []   # (heading de, heading en, text de, text en)
+    S.append(("Verantwortlicher", "Controller",
+              "%s, %s, %s %s. E-Mail: %s, Telefon: %s." % (ph(SITE["company"]) + " (" + esc(SITE["owner"]) + ")", ph(SITE["street"]), ph(SITE["zip"]), esc(SITE["city"]), ph(SITE["email"]), esc(SITE["phone"])),
+              "%s, %s, %s %s. Email: %s, phone: %s." % (ph(SITE["company"]) + " (" + esc(SITE["owner"]) + ")", ph(SITE["street"]), ph(SITE["zip"]), esc(SITE["city"]), ph(SITE["email"]), esc(SITE["phone"]))))
+    S.append(("Hosting der Website", "Website hosting",
+              "Diese Website wird bei %s gehostet. Beim Aufruf verarbeitet der Anbieter technisch notwendige Daten wie Ihre IP-Adresse, Datum und Uhrzeit in Server-Logfiles, "
+              "um die Seiten auszuliefern und die Sicherheit zu gewährleisten (Art. 6 Abs. 1 lit. f DSGVO)." % ph(SITE["hosting"]),
+              "This website is hosted by %s. When you visit, the host processes technically necessary data such as your IP address, date and time in server logs "
+              "to deliver the pages and keep them secure (Art. 6(1)(f) GDPR)." % ph(SITE["hosting"])))
+    if api:
+        S.append(("Unser Server bei Google", "Our server at Google",
+                  "Für die Funktionen dieser Website (Besucherzählung, Strecke berechnen, Anfragen, Fotos, Terminbuchung, Chat-Assistent, Kundenbereich) betreiben wir ein Programm bei Google (Google Apps Script) "
+                  "und speichern die Angaben in einer Google-Tabelle in unserem Google-Konto. Anbieter ist Google Ireland Limited, Gordon House, Barrow Street, Dublin 4, Irland. "
+                  "Nutzen Sie eine dieser Funktionen, verbindet sich Ihr Browser direkt mit Servern von Google; dabei erhält Google technisch Ihre IP-Adresse. Wir selbst speichern keine IP-Adressen. "
+                  "Eine Übermittlung in die USA ist nicht auszuschließen; Google ist nach dem EU-US Data Privacy Framework zertifiziert.",
+                  "For the functions of this website (visitor counting, route calculation, requests, photos, appointment booking, chat assistant, customer area) we run a program at Google (Google Apps Script) "
+                  "and store the details in a Google spreadsheet in our Google account. The provider is Google Ireland Limited, Gordon House, Barrow Street, Dublin 4, Ireland. "
+                  "When you use one of these functions, your browser connects directly to Google servers, so Google technically receives your IP address. We do not store IP addresses ourselves. "
+                  "A transfer to the USA cannot be ruled out; Google is certified under the EU-US Data Privacy Framework."))
+    S.append(("Cookies und Besucherzählung", "Cookies and visitor counting",
+              "Wir setzen keine Cookies und keine Werbe- oder Analysedienste ein. Schriften und Skripte laden wir von unserer eigenen Domain. "
+              + ("Um zu sehen, wie die Website genutzt wird, sendet Ihr Browser bei jedem Seitenaufruf die aufgerufene Seite, die Art der Herkunft (z. B. „Google“, „WhatsApp“ oder „direkt“), "
+                 "die Geräteart (Handy, Tablet, Computer) und die Sprache an unseren Server bei Google. Wir speichern daraus nur Tagessummen ohne IP-Adresse, die keinen Rückschluss auf Sie zulassen, "
+                 "und löschen sie nach 13 Monaten (Art. 6 Abs. 1 lit. f DSGVO)." if api else ""),
+              "We use no cookies and no advertising or analytics services. Fonts and scripts load from our own domain. "
+              + ("To see how the website is used, your browser sends the page, the kind of source (e.g. “Google”, “WhatsApp” or “direct”), the device type (phone, tablet, computer) "
+                 "and the language to our server at Google on each page view. We keep only daily totals without IP address that cannot be traced back to you, and delete them after 13 months (Art. 6(1)(f) GDPR)." if api else "")))
+    S.append(("Umzugsplaner", "Moving planner",
+              "Ihre Eingaben speichert der Planer zunächst nur im lokalen Speicher Ihres Browsers auf diesem Gerät (keine Cookies), damit Sie später weitermachen können. "
+              "Sie können den Entwurf jederzeit mit „Entwurf löschen und neu beginnen“ oder über die Browsereinstellungen löschen. "
+              + ("Erst wenn Sie auf „Anfrage senden“ klicken, übermitteln wir Ihre Angaben (Kontaktdaten, Adressen, Zugang, Gegenstände und die Seite oder Kampagne, über die Sie gekommen sind) an unseren Server "
+                 "und bearbeiten sie, um Ihnen ein Angebot zu machen (Art. 6 Abs. 1 lit. b DSGVO). Mit „Auf einem anderen Gerät weitermachen“ speichern wir Ihren Entwurf nach Ihrer Einwilligung 30 Tage "
+                 "und löschen ihn danach automatisch (Art. 6 Abs. 1 lit. a DSGVO). " if api else "")
+              + "Senden Sie die Zusammenfassung selbst per WhatsApp oder E-Mail, gelten zusätzlich die Datenschutzbestimmungen Ihres Anbieters.",
+              "The planner first keeps your entries only in your browser's local storage on this device (no cookies) so you can continue later. "
+              "You can delete the draft at any time with “Delete draft and start over” or in your browser settings. "
+              + ("Only when you click “Send request” do we transfer your details (contact details, addresses, access, items and the page or campaign that brought you to us) to our server "
+                 "and process them to prepare a quote (Art. 6(1)(b) GDPR). With “Continue on another device” we store your draft for 30 days with your consent and then delete it automatically (Art. 6(1)(a) GDPR). " if api else "")
+              + "If you send the summary yourself via WhatsApp or email, your provider's privacy terms apply as well."))
+    if api:
+        S.append(("Strecke berechnen", "Route calculation",
+                  "Mit „Entfernung berechnen“ und „Strecke und Karte anzeigen“ übermitteln wir die beiden Orte über unseren Server an Google Maps, um Fahrstrecke, Fahrzeit und eine Karte zu berechnen. "
+                  "Für unsere Statistik speichern wir je Berechnung nur Zeitpunkt, Postleitzahl und Ort von Start und Ziel, Entfernung, Seite und Kampagne – keine Straße, keine Kontaktdaten – "
+                  "und löschen diese Einträge nach 6 Monaten (Art. 6 Abs. 1 lit. f DSGVO).",
+                  "With “Calculate distance” and “Show route and map” we send the two places to Google Maps via our server to calculate distance, drive time and a map. "
+                  "For our statistics we store per calculation only time, postcode and town of start and destination, distance, page and campaign – no street, no contact details – "
+                  "and delete these entries after 6 months (Art. 6(1)(f) GDPR)."))
+        S.append(("Fotos", "Photos",
+                  "Mit einer Anfrage können Sie freiwillig Fotos hochladen (höchstens 10). Ihr Browser verkleinert sie vor dem Senden; wir erhalten sie per E-Mail in unserem Google-Postfach "
+                  "und nutzen sie nur, um Ihren Umzug zu planen (Art. 6 Abs. 1 lit. b DSGVO). Bitte fotografieren Sie möglichst keine Personen oder Dokumente.",
+                  "You can upload photos with a request (up to 10). Your browser shrinks them before sending; we receive them by email in our Google mailbox "
+                  "and use them only to plan your move (Art. 6(1)(b) GDPR). Please avoid photographing people or documents."))
+        S.append(("Terminbuchung", "Appointment booking",
+                  "Buchen Sie einen Termin, speichern wir Art, Tag und Uhrzeit sowie Name, Telefon, E-Mail, Adresse und Ihre Nachricht und senden Ihnen und uns eine Bestätigung per E-Mail (Art. 6 Abs. 1 lit. b DSGVO).",
+                  "When you book an appointment, we store its type, day and time as well as your name, phone, email, address and message and send a confirmation email to you and to us (Art. 6(1)(b) GDPR)."))
+        S.append(("Chat-Assistent", "Chat assistant",
+                  "Der Chat-Assistent beantwortet allgemeine Fragen. Ihre Nachricht geht an unseren Server; wenn dort die KI-Antworten eingeschaltet sind, wird der Text zur Beantwortung an Google (Gemini API) übermittelt. "
+                  "Wir speichern Chat-Nachrichten nicht. Bitte geben Sie im Chat keine Adressen, Telefonnummern oder anderen persönlichen Angaben ein – dafür gibt es Anfrage und Terminbuchung (Art. 6 Abs. 1 lit. f DSGVO).",
+                  "The chat assistant answers general questions. Your message goes to our server; if AI answers are switched on there, the text is sent to Google (Gemini API) to generate the answer. "
+                  "We do not store chat messages. Please do not enter addresses, phone numbers or other personal details in the chat – use the request form or appointment booking for that (Art. 6(1)(f) GDPR)."))
+        S.append(("Kundenbereich „Mein Umzug“", "Customer area “My move”",
+                  "Über Ihren persönlichen Link sehen Sie Stand und Angebot Ihres Umzugs. Bestätigen Sie dort einen Auftrag mit Ihrer Unterschrift, speichern wir Name, Zeitpunkt und das Bild der Unterschrift zu Ihrer Anfrage "
+                  "(Art. 6 Abs. 1 lit. b DSGVO). Abgehakte Punkte der Checkliste speichert nur Ihr Browser auf diesem Gerät. Geben Sie den Link nicht weiter.",
+                  "With your personal link you see the status and quote of your move. If you confirm an order there with your signature, we store the name, time and the image of the signature with your request "
+                  "(Art. 6(1)(b) GDPR). Ticked checklist items are stored only by your browser on this device. Do not share the link."))
+    S.append(("Kontakt", "Contact",
+              "Wenn Sie uns anrufen, per WhatsApp oder per E-Mail schreiben, verarbeiten wir Ihre Angaben, um die Anfrage zu bearbeiten (Art. 6 Abs. 1 lit. b DSGVO). Für WhatsApp gelten zusätzlich die Bestimmungen von WhatsApp.",
+              "If you call us or write via WhatsApp or email, we process your details to handle the request (Art. 6(1)(b) GDPR). WhatsApp's own terms apply as well."))
+    S.append(("Speicherdauer", "Storage period",
+              "Anfragen, Fotos und Termine, aus denen kein Auftrag wird, löschen wir nach 6 Monaten. Bei Aufträgen bewahren wir Angebote, Rechnungen und Buchungsunterlagen so lange auf, "
+              "wie es die gesetzlichen Fristen verlangen (in der Regel 6 bis 10 Jahre nach § 147 AO und § 257 HGB).",
+              "Requests, photos and appointments that do not lead to an order are deleted after 6 months. For orders we keep quotes, invoices and accounting records as long as the law requires "
+              "(usually 6 to 10 years under § 147 AO and § 257 HGB)."))
+    S.append(("Ihre Rechte", "Your rights",
+              "Sie haben das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung, Datenübertragbarkeit und Widerspruch sowie das Recht, eine Einwilligung jederzeit für die Zukunft zu widerrufen. "
+              "Schreiben Sie uns dazu an %s. Sie können sich außerdem bei einer Aufsichtsbehörde beschweren, zum Beispiel bei der Landesbeauftragten für Datenschutz und Informationsfreiheit Nordrhein-Westfalen, "
+              "Kavalleriestraße 2–4, 40213 Düsseldorf." % ph(SITE["email"]),
+              "You have the right of access, rectification, erasure, restriction of processing, data portability and objection, and the right to withdraw consent at any time for the future. "
+              "Write to us at %s. You can also complain to a supervisory authority, for example the State Commissioner for Data Protection and Freedom of Information of North Rhine-Westphalia, "
+              "Kavalleriestraße 2–4, 40213 Düsseldorf, Germany." % ph(SITE["email"])))
+    inner = "".join("<h2>%s</h2><p>%s</p>" % (esc(t(a, b, lang)), t(c, d, lang)) for a, b, c, d in S)
     body += sec(inner)
-    return dict(key=key, lang=lang, title=t("Datenschutz | Stabil Umzug", "Privacy | Stabil Umzug", lang), desc=t("Datenschutzerklärung von Stabil Umzug.", "Privacy policy of Stabil Umzug.", lang), body=body)
+    return dict(key=key, lang=lang, title=t("Datenschutz | Stabil Umzug", "Privacy | Stabil Umzug", lang),
+                desc=t("Datenschutzerklärung von Stabil Umzug: welche Daten die Website verarbeitet, wie lange wir sie speichern und welche Rechte Sie haben.",
+                       "Privacy policy of Stabil Umzug: which data the website processes, how long we keep it and which rights you have.", lang), body=body)
 
 def not_found():
     body = ('<section class="hero on-dark"><div class="container" style="padding-bottom:clamp(48px,7vw,96px)"><div>'
