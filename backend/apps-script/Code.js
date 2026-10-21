@@ -50,7 +50,7 @@ function doPost(e) {
       case 'photos': return json(photos_(body));
       case 'hit': return json(hit_(body));
       case 'saveDraft': return json(saveDraft_(body));
-      case 'accept': return json(accept_(String(body.id || ''), String(body.k || ''), body.confirm === true, body.sig, body.signer));
+      case 'accept': return json(accept_(String(body.id || ''), String(body.k || ''), body.confirm === true, body.sig, body.signer, body.waiver === true));
       case 'resend': return json(resend_(String(body.email || ''), String(body.lang || 'de')));
       case 'chat': return json(aiChat_(body));
       default: return json({ok: false, error: 'unknown_action'});
@@ -256,8 +256,17 @@ function portal_(id, k) {
 }
 
 /* "Zahlungspflichtig beauftragen": the customer accepts and digitally signs the latest quote. */
-function accept_(id, k, confirm, sig, signer) {
+function sigSheet_() {
+  var ss = ss_(), sh = ss.getSheetByName(TAB.signatures);
+  if (!sh) { sh = ss.insertSheet(TAB.signatures); sh.appendRow(['Anfrage', 'Zeitpunkt', 'Name', 'Unterschrift (Bild als Data-URL)']); sh.setFrozenRows(1); }
+  return sh;
+}
+var SIG_MAX = 40000;   // characters of the signature image (data URL); the phone sends a small JPEG
+
+function accept_(id, k, confirm, sig, signer, waiver) {
   if (!confirm) return {ok: false, error: 'confirm'};
+  sig = String(sig || '');
+  if (sig && (!/^data:image\/(png|jpeg);base64,[A-Za-z0-9+\/=]+$/.test(sig) || sig.length > SIG_MAX)) return {ok: false, error: 'sig'};
   var lock = LockService.getScriptLock(); lock.waitLock(20000);
   var hit, res;
   try {
@@ -283,15 +292,16 @@ function accept_(id, k, confirm, sig, signer) {
       } catch (err) { console.error('Drive save signature err:', err); }
     }
 
-    sheet_(TAB.leads).getRange(hit.row, leadCol_('Status')).setValue('Gebucht');
-    var colNote = leadCol_('Notizen'), oldNote = String(hit.values[colNote - 1] || '');
-    var signNote = 'Vertrag digital gezeichnet von ' + signerName + ' am ' + nowDe + ' Uhr' + (sigUrl ? ' (Drive: ' + sigUrl + ')' : '');
-    sheet_(TAB.leads).getRange(hit.row, colNote).setValue(cell_((oldNote ? oldNote + '\n' : '') + signNote, 2000));
-
+    // the signature image has its own tab (a cell holds 50,000 characters; the request JSON already uses up to 45,000)
+    if (sig) sigSheet_().appendRow([id, now, signerName, sig]);
     var jsonMeta = {};
     try { jsonMeta = JSON.parse(hit.values[JSON_COL - 1] || '{}'); } catch (e) {}
-    jsonMeta.contract = { signed: true, signedAt: nowIso, signer: signerName, sigUrl: sigUrl, sigData: sig ? String(sig).slice(0, 80000) : '' };
-    sheet_(TAB.leads).getRange(hit.row, JSON_COL).setValue(JSON.stringify(jsonMeta));
+    jsonMeta.contract = {signed: true, signedAt: nowIso, signer: signerName, sigUrl: sigUrl, sigStored: !!sig, waiver: !!waiver};
+    sheet_(TAB.leads).getRange(hit.row, JSON_COL).setValue(JSON.stringify(jsonMeta).slice(0, 49000));
+    var colNote = leadCol_('Notizen'), oldNote = String(hit.values[colNote - 1] || '');
+    var signNote = 'Vertrag digital gezeichnet von ' + signerName + ' am ' + nowDe + ' Uhr' + (waiver ? ' · vorzeitiger Beginn verlangt (§ 356 Abs. 4 BGB)' : '') + (sigUrl ? ' (Drive: ' + sigUrl + ')' : '');
+    sheet_(TAB.leads).getRange(hit.row, colNote).setValue(cell_((oldNote ? oldNote + '\n' : '') + signNote, 2000));
+    sheet_(TAB.leads).getRange(hit.row, leadCol_('Status')).setValue('Gebucht');   // last: only when everything above is saved
 
     sheet_(TAB.audit).appendRow([now, 'Kunde (' + signerName + ')', TAB.leads, id + ' · Status', status, 'Gebucht – digital unterschrieben']);
     res = {ok: true, status: 'Gebucht', signedAt: nowIso, signer: signerName, signature: sig || sigUrl};
@@ -628,6 +638,35 @@ function onEditAudit(e) {
 }
 
 /* Daily at 07:00: delete expired drafts and remind the office of unanswered requests. */
+/* Privacy promise (Datenschutz page): requests, their items and quotes, and appointments that did not lead to an order
+   are deleted after 6 months. Kept: booked or finished requests and every request with an offer or invoice in "Belege"
+   (statutory retention periods). Returns the number of deleted requests and appointments. */
+function purgeOld_(now) {
+  var cut = now.getTime() - 183 * 864e5, keep = {}, gone = {}, n = 0, m = 0;
+  var docs = ss_().getSheetByName('Belege');
+  if (docs && docs.getLastRow() > 1) docs.getRange(2, 4, docs.getLastRow() - 1, 1).getValues().forEach(function (r) { if (r[0]) keep[String(r[0])] = true; });
+  var sh = sheet_(TAB.leads), v = sh.getDataRange().getValues(), st = leadCol_('Status') - 1, rec = leadCol_('Eingang') - 1;
+  for (var i = 1; i < v.length; i++) if (['Gebucht', 'Erledigt'].indexOf(String(v[i][st])) >= 0) keep[String(v[i][0])] = true;
+  for (var r = v.length - 1; r >= 1; r--) {
+    var id = String(v[r][0]), t = new Date(v[r][rec]).getTime();
+    if (!id || keep[id] || !(t < cut)) continue;
+    gone[id] = true; sh.deleteRow(r + 1); n++;
+  }
+  [TAB.items, TAB.quotes].forEach(function (name) {
+    var s = ss_().getSheetByName(name);
+    if (!s || s.getLastRow() < 2 || !n) return;
+    var d = s.getRange(2, 1, s.getLastRow() - 1, 1).getValues();
+    for (var k = d.length - 1; k >= 0; k--) if (gone[String(d[k][0])]) s.deleteRow(k + 2);
+  });
+  var ap = ss_().getSheetByName(TAB.appts);
+  if (ap && ap.getLastRow() > 1) {
+    var a = ap.getRange(2, 1, ap.getLastRow() - 1, APPT_COLS.length).getValues(), ci = APPT_COLS.indexOf('Eingang'), li = APPT_COLS.indexOf('Anfrage');
+    for (var j = a.length - 1; j >= 0; j--) if (new Date(a[j][ci]).getTime() < cut && !keep[String(a[j][li] || '')]) { ap.deleteRow(j + 2); m++; }
+  }
+  if (n || m) sheet_(TAB.audit).appendRow([now, 'System', TAB.leads, 'Löschung nach 6 Monaten', '', n + ' Anfragen, ' + m + ' Termine']);
+  return {requests: n, appts: m};
+}
+
 function daily() {
   var drafts = sheet_(TAB.drafts), data = drafts.getDataRange().getValues(), now = new Date();
   for (var i = data.length - 1; i >= 1; i--) { if (data[i][3] && new Date(data[i][3]) < now) drafts.deleteRow(i + 1); }
@@ -642,6 +681,7 @@ function daily() {
     var rv = routes.getDataRange().getValues(), cut = new Date(now.getTime() - 183 * 864e5);
     for (var j = rv.length - 1; j >= 1; j--) { if (rv[j][0] && new Date(rv[j][0]) < cut) routes.deleteRow(j + 1); }
   }
+  try { purgeOld_(now); } catch (err) { console.error(err); }
   var leads = sheet_(TAB.leads).getDataRange().getValues().slice(1), open = [];
   leads.forEach(function (r) {
     var age = (now - new Date(r[1])) / 864e5;

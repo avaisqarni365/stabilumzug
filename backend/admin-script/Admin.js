@@ -107,7 +107,7 @@ function leadObj_(v) {
     quoteSent: iso_(g('Angebot gesendet')), hasToken: !!g('Kundentoken'),
     payer: String(g('Kostenträger') || ''), pre: String(g('Vorvereinbarung') || ''),
     payerData: (function () { try { return JSON.parse(g('Daten (JSON)') || '{}').payer || null; } catch (e) { return null; } })(),
-    contract: (function () { try { return JSON.parse(g('Daten (JSON)') || '{}').contract || null; } catch (e) { return null; } })(),
+    contract: (function () { try { var c = JSON.parse(g('Daten (JSON)') || '{}').contract || null; if (c) delete c.sigData; return c; } catch (e) { return null; } })(),
     handover: (function () { try { return JSON.parse(g('Daten (JSON)') || '{}').handover || null; } catch (e) { return null; } })(),
     photosDrive: (function () { var n = String(g('Notizen') || ''); var m = n.match(/Google Drive:\s*(https:\/\/[^\s\)]+)/); return m ? m[1] : ''; })()
   };

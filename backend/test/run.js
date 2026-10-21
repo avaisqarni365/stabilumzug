@@ -157,4 +157,21 @@ console.log('ok admin users: password encrypted on entry, too short ones refused
 // 6. rate limit
 for (let i = 0; i < 70; i++) post({action: 'route', from: 'Essen Hbf', to: 'Bochum Hbf'});
 console.log('ok rate limit:', post({action: 'route', from: 'a b c d', to: 'e f g h'}).error);
+// 6-month deletion: old requests without order go (with their items), booked ones and ones with a document stay
+{ const L = ctx.LEAD_COLS, old = new Date(Date.now() - 200 * 864e5), row = (id, status) => L.map(c => c === 'ID' ? id : c === 'Eingang' ? old : c === 'Status' ? status : '');
+  const leadsBefore = sheets['Anfragen'].data.length;
+  sheets['Anfragen'].data.push(row('A-9001', 'Neu'), row('A-9002', 'Gebucht'), row('A-9003', 'Verloren'));
+  sheets['Gegenstände'].data.push(['A-9001', 'sofa', 'Sofa', '', 1, 'pick', 1, 1]);
+  ctx.SpreadsheetApp.getActive().insertSheet('Belege').appendRow(['Nr', 'Art', 'Status', 'Anfrage']);
+  sheets['Belege'].data.push(['RE-1', 'Rechnung', 'Bezahlt', 'A-9003']);
+  const ap = sheets['Termine']; const ar = ctx.APPT_COLS.map(c => c === 'Nr' ? 'T-9001' : c === 'Eingang' ? old : c === 'Anfrage' ? 'A-9001' : '');
+  if (ap) ap.data.push(ar);
+  const res = ctx.purgeOld_(new Date());
+  const ids = sheets['Anfragen'].data.map(r => r[0]);
+  assert(!ids.includes('A-9001') && ids.includes('A-9002') && ids.includes('A-9003'), ids.join(','));
+  assert(!sheets['Gegenstände'].data.some(r => r[0] === 'A-9001'), 'items of a deleted request go too');
+  assert.strictEqual(sheets['Anfragen'].data.length, leadsBefore + 2, 'recent requests are untouched');
+  if (ap) assert(!ap.data.some(r => r[0] === 'T-9001'), 'old appointment without order goes');
+  console.log('ok 6-month deletion:', JSON.stringify(res)); }
+
 console.log('ALL OK');
