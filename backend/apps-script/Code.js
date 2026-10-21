@@ -653,7 +653,7 @@ function daily() {
 
 /* ------------------------------------------------------------------ AI Chatbot (Gemini & Intelligent Moving Advisor) */
 function aiChat_(b) {
-  var msg = String(b.message || '').trim();
+  var msg = String(b.message || '').trim().slice(0, 1000);   // a question, not a document
   if (!msg) return {ok: false, error: 'empty'};
   var lang = (b.lang === 'en' || /^[a-zA-Z\s?!,.-]+$/.test(msg) && /\b(hello|hi|quote|price|moving|furniture|apartment)\b/i.test(msg)) ? 'en' : 'de';
   var apiKey = PropertiesService.getScriptProperties().getProperty('GEMINI_API_KEY');
@@ -663,11 +663,13 @@ function aiChat_(b) {
     try {
       var systemInstruction = "Du bist der intelligente, freundliche KI-Umzugsberater von 'Stabil Umzug' (Inhaber: Ibrahim Abdelaal, Karlstraße 32, 45329 Essen, Telefon/WhatsApp: 0163 9688190). " +
         "Dienstleistungen: Privatumzüge, Firmenumzüge, Entrümpelung, Möbel- und Küchenmontage, Halteverbotszonen, Klaviertransporte. " +
-        "Einsatzgebiet: Essen, Ruhrgebiet und bundesweit. Preise transparent ab 390 €, kostenlose Google Meet Video-Besichtigung oder Vor-Ort-Besichtigung. " +
+        "Einsatzgebiet: Essen, Ruhrgebiet und NRW. Kostenlose Besichtigung per Video oder vor Ort; das Angebot kommt innerhalb von 24 Stunden. " +
+        "Regeln: Nenne keine Preise, Rabatte, Versicherungsleistungen oder Garantien und erfinde keine Leistungen. Für Preise verweise auf den Umzugsplaner (www.stabilumzug.de/umzugsplaner/) und das persönliche Angebot. " +
         "Antworte hilfsbereit und kompakt auf " + (lang === 'en' ? 'Englisch' : 'Deutsch') + ". " +
         "Biete dem Kunden an, direkt einen Termin zu buchen oder Inhaber Ibrahim Abdelaal per WhatsApp (0163 9688190) zu kontaktieren.";
       
-      var url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' + encodeURIComponent(apiKey);
+      var model = PropertiesService.getScriptProperties().getProperty('GEMINI_MODEL') || 'gemini-2.5-flash';   // the 1.5 models are retired
+      var url = 'https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(model) + ':generateContent?key=' + encodeURIComponent(apiKey);
       var payload = {
         contents: [
           { role: 'user', parts: [{ text: systemInstruction + "\n\nKundenfrage: " + msg }] }
@@ -703,15 +705,15 @@ function aiChat_(b) {
 
   if (lang === 'en') {
     if (/volume|m3|cubic|size|room|sqm|qm|apartment/i.test(lower)) {
-      reply = "A good rule of thumb is 0.3 to 0.4 m³ per square metre (e.g. 60 m² ≈ 18–24 m³). Our 3.5t van holds up to 20 m³, while larger moves use our 7.5t truck.\n\nWould you like to book a free 15-min Google Meet video inspection so we can verify your volume?";
+      reply = "A good rule of thumb is 0.3 to 0.4 m³ per square metre (e.g. 60 m² ≈ 18–24 m³). The moving planner calculates it from your rooms and items.\n\nWould you like to book a free video viewing so we can check your volume?";
       actionType = 'appointment';
       quick = ['Book Video Survey', 'WhatsApp to Owner', 'Open Moving Planner'];
     } else if (/cost|price|quote|how much|rate|flat/i.test(lower)) {
-      reply = "Our moving packages start at 390 € for small jobs. Typical 2-3 room moves with team and truck range from 600 € to 1.200 € with no hidden fees.\n\nYou can message owner Ibrahim Abdelaal directly on WhatsApp for an immediate quote!";
+      reply = "The price depends on volume, floors, access and distance. In the moving planner you see volume, vehicle and crew in about 10 minutes, and your personal quote follows within 24 hours.\n\nYou can also send us a WhatsApp message.";
       actionType = 'whatsapp';
       quick = ['WhatsApp to Owner', 'Book Video Survey', 'Open Moving Planner'];
     } else if (/appointment|visit|survey|meet|video|booking/i.test(lower)) {
-      reply = "We offer free 30-minute Google Meet video surveys or on-site visits across Essen and the Ruhr area. We inspect your home and send a fixed quote within 24 hours.";
+      reply = "We offer free 30-minute Google Meet video surveys or on-site visits across Essen and the Ruhr area. We look at your home and send your quote within 24 hours.";
       actionType = 'appointment';
       quick = ['Book Video Survey', 'Book On-Site Visit', 'Call Office'];
     } else {
@@ -720,23 +722,23 @@ function aiChat_(b) {
     }
   } else {
     if (/volumen|m3|kubik|größe|zimmer|qm|m²|wohnung|wie viel/i.test(lower)) {
-      reply = "Als Faustformel gilt: ca. 0,3 bis 0,4 m³ Umzugsvolumen pro m² Wohnfläche (z. B. 60 m² Wohnung ≈ ca. 18–24 m³). Ein 3,5t Transporter fasst rund 15–20 m³, für größere Umzüge nutzen wir unseren 7,5t Lkw.\n\nMöchten Sie eine kostenlose Video-Besichtigung per Google Meet buchen?";
+      reply = "Als Faustformel gilt: ca. 0,3 bis 0,4 m³ Umzugsvolumen pro m² Wohnfläche (z. B. 60 m² ≈ 18–24 m³). Der Umzugsplaner berechnet es genauer aus Ihren Räumen und Gegenständen.\n\nMöchten Sie eine kostenlose Video-Besichtigung buchen?";
       actionType = 'appointment';
       quick = ['Google Meet Termin buchen', 'WhatsApp an Inhaber', 'Umzugsplaner öffnen'];
     } else if (/kosten|preis|kostet|wie viel|angebot|pauschal|stundensatz/i.test(lower)) {
-      reply = "Bei Stabil Umzug erhalten Sie faire Festpreise ohne versteckte Kosten. Kleinere Transporte starten ab 390 €. Typische 2–3 Zimmer Umzüge mit Team und Lkw liegen meist bei 600 € bis 1.250 € (inkl. Haftpflichtversicherung und § 35a EStG Steuervorteil).\n\nSie können Inhaber Ibrahim Abdelaal auch direkt per WhatsApp schreiben!";
+      reply = "Der Preis hängt von Volumen, Etagen, Zugang und Strecke ab. Im Umzugsplaner sehen Sie in etwa 10 Minuten Volumen, Fahrzeug und Team; Ihr persönliches Angebot bekommen Sie innerhalb von 24 Stunden.\n\nSie können uns auch per WhatsApp schreiben.";
       actionType = 'whatsapp';
       quick = ['WhatsApp an Inhaber', 'Kostenlose Besichtigung', 'Online-Planer'];
     } else if (/termin|besichtigung|video|meet|zeit|buchen|vor ort/i.test(lower)) {
-      reply = "Sie können jederzeit eine kostenlose Besichtigung buchen: Bequem per Google Meet Videokonferenz (15–30 Min. per Smartphone) oder persönlich vor Ort in Essen und Umgebung. Danach erhalten Sie Ihr Festpreisangebot innerhalb von 24 Stunden.";
+      reply = "Sie können jederzeit eine kostenlose Besichtigung buchen: Bequem per Google Meet Videokonferenz (15–30 Min. per Smartphone) oder persönlich vor Ort in Essen und Umgebung. Danach erhalten Sie Ihr Angebot innerhalb von 24 Stunden.";
       actionType = 'appointment';
       quick = ['Video-Termin buchen', 'Vor-Ort-Termin buchen', 'Inhaber anrufen'];
     } else if (/halteverbot|parken|genehmigung|zone|schild/i.test(lower)) {
-      reply = "Wir kümmern uns um die komplette Genehmigung der Halteverbotszone (HVZ) inklusive Aufstellen der Schilder (mindestens 4 Tage vor Umzug) für 120 € pro Adresse. So kann der Lkw direkt vor Ihrer Tür parken.";
+      reply = "Wir kümmern uns um die komplette Genehmigung der Halteverbotszone (HVZ) inklusive Aufstellen der Schilder (mindestens 4 Tage vor dem Umzug); die Kosten stehen in Ihrem Angebot. So kann der Lkw direkt vor Ihrer Tür parken.";
       actionType = 'info';
       quick = ['Halteverbot anfragen', 'Termin buchen', 'WhatsApp an Inhaber'];
     } else if (/küche|montage|aufbau|abbau|schrank|möbelaufbau/i.test(lower)) {
-      reply = "Unser erfahrenes Team übernimmt den fachgerechten Ab- und Aufbau Ihrer Möbel sowie Küchenmontagen (inkl. Arbeitsplatten-Zuschnitt und Anschlüsse).";
+      reply = "Unser erfahrenes Team übernimmt den fachgerechten Ab- und Aufbau Ihrer Möbel sowie den Ab- und Aufbau von Küchen; was genau dazugehört, klären wir bei der Besichtigung.";
       actionType = 'info';
       quick = ['Küchenmontage anfragen', 'WhatsApp an Inhaber', 'Termin buchen'];
     } else if (/jobcenter|arbeitsamt|amt|kostenübernahme|bg/i.test(lower)) {
