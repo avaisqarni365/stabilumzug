@@ -1,0 +1,145 @@
+<style>
+.mk-tabs{display:flex;gap:8px;margin:0 0 18px}
+.mk-calc{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px 16px}
+.mk-out{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:2px solid var(--ink);margin-top:18px}
+.mk-out div{padding:12px 12px 12px 0;border-bottom:1px solid var(--line)}
+.mk-out div + div{padding-left:12px;border-left:1px solid var(--line)}
+.mk-out b{display:block;font-size:22px}
+.mk-out span{font-size:13px;color:var(--ink2)}
+.tbl.mk-ch{display:table;width:100%}.tbl.mk-ch thead{display:table-header-group}.tbl.mk-ch tbody{display:table-row-group}
+.tbl.mk-ch tr{display:table-row}.tbl.mk-ch th,.tbl.mk-ch td{display:table-cell;padding:10px 8px 10px 0}
+@media (max-width:640px){.tbl.mk-ch th,.tbl.mk-ch td{font-size:13px;padding:8px 4px 8px 0}}
+.mk-kw input{min-width:0}
+.mk-kw td{vertical-align:middle}
+.mk-kw .kw{min-width:190px}.mk-kw .pg{min-width:150px}.mk-kw .nm{width:90px;text-align:right}
+.mk-rec{font-size:13px;font-weight:700;white-space:nowrap}
+.mk-rec.top{color:#1f6b3a}.mk-rec.near{color:#8a5a00}.mk-rec.far{color:var(--ink2)}.mk-rec.ads{color:#c2410c}
+.mk-steps{counter-reset:s;list-style:none;padding:0;margin:0}
+.mk-steps li{counter-increment:s;padding:10px 0 10px 40px;position:relative;border-bottom:1px solid var(--line)}
+.mk-steps li::before{content:counter(s);position:absolute;left:0;top:9px;width:26px;height:26px;border-radius:50%;background:var(--ink);color:#fff;font-weight:700;font-size:13px;display:grid;place-items:center}
+@media (max-width:900px){.mk-calc,.mk-out{grid-template-columns:repeat(2,minmax(0,1fr))}.mk-out div:nth-child(odd){padding-left:0;border-left:0}}
+@media (max-width:640px){.mk-kw thead{display:none}.mk-kw,.mk-kw tbody{display:block}
+  .mk-kw tr{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px 8px;padding:12px 0;border-bottom:1px solid var(--line)}
+  .mk-kw td{border:0;padding:0}.mk-kw td:nth-child(1),.mk-kw td:nth-child(2),.mk-kw td:nth-child(6){grid-column:1/-1}
+  .mk-kw td:nth-child(n+3):nth-child(-n+5)::before{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink2)}
+  .mk-kw td:nth-child(3)::before{content:"Suchen/Monat"}.mk-kw td:nth-child(4)::before{content:"Position"}.mk-kw td:nth-child(5)::before{content:"Klickpreis €"}
+  .mk-kw .kw,.mk-kw .pg{min-width:0}.mk-kw .nm{width:100%}.mk-kw .input{min-height:44px}}
+</style>
+<script>
+/* Marketing planner: channels, own rates, budget calculator and keywords (server: Marketing.js) */
+(function () {
+  var U = window.SU, esc = U.esc, run = U.run, M = {data: null, days: 90};
+  var pct = function (x) { return x == null ? '–' : (Math.round(x * 1000) / 10).toLocaleString('de-DE') + ' %'; };
+  var eur = function (x) { return x == null || isNaN(x) ? '–' : Math.round(x).toLocaleString('de-DE') + ' €'; };
+  var num = function (v) { var x = Number(String(v == null ? '' : v).replace(',', '.')); return String(v == null ? '' : v).trim() === '' || isNaN(x) ? null : x; };
+
+  function tabs(active) {
+    return '<div class="mk-tabs"><a class="chip" href="#/statistik" aria-pressed="' + (active === 'visits') + '">Besucher</a>' +
+      '<a class="chip" href="#/marketing" aria-pressed="' + (active === 'mkt') + '">Marketing</a></div>';
+  }
+  function route(h) {
+    if (h.indexOf('marketing') !== 0) return false;
+    U.setNav('stats');
+    M.days = Number(h.split('/')[1]) || 90;
+    if (M.data && M.data.period === M.days) draw(); else U.app.innerHTML = tabs('mkt') + '<p class="loading">Marketing wird geladen …</p>';
+    run('api_marketing', M.days).then(function (r) { M.data = r; if (location.hash.indexOf('#/marketing') === 0 && !U.app.contains(document.activeElement)) draw(); }).catch(U.fail);
+    return true;
+  }
+
+  /* where a keyword stands and what to do next */
+  function rec(k) {
+    var p = k.position;
+    if (p != null && p <= 3) return ['top', 'Top 3 – halten'];
+    if (p != null && p <= 10) return ['near', 'Seite 1 → Top 3: Seite verbessern'];
+    if (p != null && p <= 20) return ['far', 'Seite 2: Inhalt + Links ausbauen'];
+    if (k.volume && k.cpc != null) return ['ads', 'Noch unsichtbar: Google Ads testen'];
+    if (k.volume) return ['far', 'Noch unsichtbar: Seite stärken'];
+    return ['far', 'Zahlen eintragen'];
+  }
+
+  function draw() {
+    var r = M.data, R = r.rates;
+    var kpi = function (v, l) { return '<div class="kpi"><b>' + v + '</b><span>' + esc(l) + '</span></div>'; };
+    var chRows = r.channels.length ? r.channels.map(function (c) {
+      return '<tr style="cursor:default"><td><b>' + esc(c.name) + '</b></td><td class="num">' + c.requests + '</td><td class="num">' + c.booked + '</td><td class="num">' +
+        pct(c.requests ? c.booked / c.requests : null) + '</td><td class="num">' + eur(c.revenue) + '</td></tr>';
+    }).join('') : '<tr><td colspan="5" class="muted">Noch keine Anfragen in diesem Zeitraum.</td></tr>';
+    var kwRows = r.keywords.map(kwRow).join('');
+    var cpcs = r.keywords.filter(function (k) { return k.cpc != null; }), avgCpc = cpcs.length ? cpcs.reduce(function (a, k) { return a + k.cpc; }, 0) / cpcs.length : null;
+    var f = function (v) { return v == null ? '' : String(Math.round(v * 100) / 100).replace('.', ','); };
+    var f1 = function (v) { return String(Math.round(v * 10) / 10).replace('.', ','); };
+    U.app.innerHTML = '<span class="kicker">Statistik</span><div class="h"><h1>Marketing planen</h1><div class="actions">' +
+      [30, 90, 365].map(function (d) { return '<a class="chip" href="#/marketing/' + d + '" aria-pressed="' + (r.period === d) + '">' + (d === 365 ? '1 Jahr' : d + ' Tage') + '</a>'; }).join('') + '</div></div>' +
+      tabs('mkt') +
+      '<div class="grid4">' + kpi(R.visits, 'Besuche') + kpi(R.requests, 'Anfragen') + kpi(pct(R.visitToRequest), 'Besuch → Anfrage') + kpi(pct(R.requestToOrder), 'Anfrage → Auftrag') + '</div>' +
+      '<p class="muted" style="margin:8px 0 0">Ø Auftragswert: ' + (R.orderSample ? '<b>' + eur(R.avgOrder) + '</b> (aus ' + R.orderSample + ' ' + (R.orderSample === 1 ? 'Auftrag' : 'Aufträgen') + ')' : 'noch keine bezahlten Rechnungen oder angenommenen Angebote') + '</p>' +
+
+      '<section class="block" style="margin-top:28px"><h2>Woher kommen Anfragen und Aufträge?</h2>' +
+      '<table class="tbl mk-ch"><thead><tr><th>Kanal</th><th class="num">Anfragen</th><th class="num">Aufträge</th><th class="num">Quote</th><th class="num">Umsatz</th></tr></thead><tbody>' + chRows + '</tbody></table>' +
+      '<p class="muted" style="font-size:13px">Aus der Spalte „Quelle“ der Anfragen. Google-Ads-Klicks erkennt die Website am gclid oder an utm_medium=cpc – Anzeigen-Links deshalb immer mit UTM-Parametern anlegen.</p></section>' +
+
+      '<section class="block"><h2>Budget-Rechner Google Ads</h2><p class="muted">Ihre eigenen Quoten sind vorausgefüllt; den Klickpreis finden Sie im Google-Ads-Keyword-Planer (Spalte „Gebot für obere Positionen“).</p>' +
+      '<div class="mk-calc">' +
+        fld('mk-b', 'Budget pro Monat €', '') + fld('mk-c', 'Ø Klickpreis €', f(avgCpc)) +
+        fld('mk-v', 'Klick → Anfrage %', R.visitToRequest == null ? '' : f1(R.visitToRequest * 100)) +
+        fld('mk-o', 'Anfrage → Auftrag %', R.requestToOrder == null ? '' : f1(R.requestToOrder * 100)) +
+        fld('mk-a', 'Ø Auftragswert €', R.avgOrder == null ? '' : String(R.avgOrder)) +
+      '</div><div class="mk-out" id="mk-out"></div></section>' +
+
+      '<section class="block"><h2>Keywords: Wo stehen wir bei Google?</h2>' +
+      '<p class="muted">Suchanfragen und Klickpreis aus dem <a href="https://ads.google.com/home/tools/keyword-planner/" target="_blank" rel="noopener">Keyword-Planer</a>, Position aus der <a href="https://search.google.com/search-console" target="_blank" rel="noopener">Search Console</a> (Leistung → Suchanfragen → Ø Position). Leer lassen, was Sie nicht wissen.</p>' +
+      '<div style="overflow-x:auto"><table class="tbl mk-kw"><thead><tr><th>Keyword</th><th>Zielseite</th><th class="num">Suchen/Monat</th><th class="num">Position</th><th class="num">Klickpreis €</th><th>Nächster Schritt</th><th></th></tr></thead><tbody id="mk-kw">' + kwRows + '</tbody></table></div>' +
+      '<div class="actions" style="margin-top:12px"><button class="btn small" id="mk-add">+ Keyword</button><button class="btn primary" id="mk-save">Keywords speichern</button></div></section>' +
+
+      '<section class="block"><h2>Reihenfolge, die sich für Essen lohnt</h2><ol class="mk-steps">' +
+        '<li><b>Google-Unternehmensprofil</b> (kostenlos): jede Woche 1–2 Fotos von echten Umzügen, Leistungen und Öffnungszeiten pflegen, nach jedem Auftrag um eine Bewertung bitten. Das bringt die meisten lokalen Anfragen.</li>' +
+        '<li><b>Search Console verbinden</b> und hier die Positionen eintragen: Keywords auf Platz 4–10 sind die schnellsten Gewinne.</li>' +
+        '<li><b>Seiten verbessern</b> für „Seite 1 → Top 3“: Fragen und Fotos ergänzen, von passenden Ratgebern und Stadtteilseiten verlinken.</li>' +
+        '<li><b>Google Ads testen</b> für Keywords, bei denen wir noch unsichtbar sind – klein anfangen, Budget erst erhöhen, wenn die Kosten pro Auftrag unter Ihrer Marge liegen.</li>' +
+      '</ol></section>';
+    ['mk-b', 'mk-c', 'mk-v', 'mk-o', 'mk-a'].forEach(function (id) { document.getElementById(id).addEventListener('input', calc); });
+    calc();
+    bindKw();
+    document.getElementById('mk-add').addEventListener('click', function () {
+      var tb = document.getElementById('mk-kw'); tb.insertAdjacentHTML('beforeend', kwRow({keyword: '', page: '', volume: null, position: null, cpc: null})); bindKw(); tb.lastElementChild.querySelector('input').focus();
+    });
+    document.getElementById('mk-save').addEventListener('click', function (e) {
+      var b = e.target; b.disabled = true;
+      run('api_marketingSave', readKw()).then(function (res) { b.disabled = false; M.data = res; U.toast('Keywords gespeichert.'); draw(); }, function (err) { b.disabled = false; U.fail(err); });
+    });
+  }
+  function fld(id, label, val) { return '<div class="field" style="margin:0"><label for="' + id + '">' + esc(label) + '</label><input class="input" id="' + id + '" inputmode="decimal" value="' + esc(val) + '"></div>'; }
+  function calc() {
+    var v = function (id) { return num(document.getElementById(id).value); };
+    var b = v('mk-b'), c = v('mk-c'), cr = v('mk-v'), or = v('mk-o'), a = v('mk-a'), out = document.getElementById('mk-out');
+    if (!b || !c || cr == null || or == null) { out.innerHTML = '<div style="grid-column:1/-1;border:0"><span>Budget und Klickpreis eintragen – dann sehen Sie Klicks, Anfragen, Aufträge und Kosten pro Auftrag.</span></div>'; return; }
+    var clicks = b / c, req = clicks * cr / 100, ord = req * or / 100, rev = a ? ord * a : null;
+    var cell = function (x, l) { return '<div><b>' + x + '</b><span>' + l + '</span></div>'; };
+    out.innerHTML = cell(Math.round(clicks).toLocaleString('de-DE'), 'Klicks') + cell((Math.round(req * 10) / 10).toLocaleString('de-DE'), 'Anfragen') +
+      cell((Math.round(ord * 10) / 10).toLocaleString('de-DE'), 'Aufträge') + cell(eur(rev), 'Umsatz') +
+      cell(eur(req ? b / req : null), 'Kosten pro Anfrage') + cell(eur(ord ? b / ord : null), 'Kosten pro Auftrag') +
+      cell(rev == null ? '–' : (rev >= b ? '+' : '') + eur(rev - b), 'Umsatz minus Budget') + cell(rev ? (Math.round(rev / b * 10) / 10).toLocaleString('de-DE') + ' ×' : '–', 'Umsatz je 1 € Budget');
+  }
+  function kwRow(k) {
+    var n = function (x) { return x == null ? '' : String(x).replace('.', ','); }, R = rec(k);
+    var site = (M.data && M.data.site) || 'https://www.stabilumzug.de';
+    return '<tr style="cursor:default" data-note="' + esc(k.note || '') + '"><td><input class="input kw" value="' + esc(k.keyword) + '" aria-label="Keyword"></td>' +
+      '<td><input class="input pg" value="' + esc(k.page) + '" aria-label="Zielseite" placeholder="/umzuege/">' + (k.page ? ' <a href="' + esc(site + k.page) + '" target="_blank" rel="noopener" class="muted" style="font-size:12px">ansehen ↗</a>' : '') + '</td>' +
+      '<td><input class="input nm" value="' + n(k.volume) + '" inputmode="numeric" aria-label="Suchanfragen pro Monat"></td>' +
+      '<td><input class="input nm" value="' + n(k.position) + '" inputmode="decimal" aria-label="Position"></td>' +
+      '<td><input class="input nm" value="' + n(k.cpc) + '" inputmode="decimal" aria-label="Klickpreis"></td>' +
+      '<td><span class="mk-rec ' + R[0] + '">' + esc(R[1]) + '</span></td>' +
+      '<td><button class="x" title="Entfernen" aria-label="Keyword entfernen" style="border:0;background:transparent;font-size:18px;cursor:pointer;min-width:44px;min-height:44px">×</button></td></tr>';
+  }
+  function bindKw() {
+    document.querySelectorAll('#mk-kw .x').forEach(function (b) { b.onclick = function () { b.closest('tr').remove(); }; });
+  }
+  function readKw() {
+    return Array.prototype.map.call(document.querySelectorAll('#mk-kw tr'), function (tr) {
+      var i = tr.querySelectorAll('input');
+      return {keyword: i[0].value, page: i[1].value, volume: num(i[2].value), position: num(i[3].value), cpc: num(i[4].value), note: tr.getAttribute('data-note') || ''};
+    });
+  }
+  window.SUMarketing = {route: route, tabs: tabs};
+})();
+</script>

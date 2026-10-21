@@ -26,7 +26,7 @@ const files = [];
 const folder = {getId: () => 'F1', getFoldersByName: () => ({hasNext: () => false}), createFolder: () => folder,
   createFile: b => { const f = {getUrl: () => 'https://drive.google.com/file/' + files.length, getId: () => 'file' + files.length, getBlob: () => b}; files.push(b.name); return f; }};
 ctx.DriveApp = {createFolder: () => folder, getFolderById: () => folder, getFileById: () => ({getBlob: () => blob('stored.pdf')})};
-M.load('admin-script', ['Admin.js', 'Belege.js']);
+M.load('admin-script', ['Admin.js', 'Belege.js', 'Marketing.js']);
 ctx.CURRENT_ = {user: 'office', name: 'office@test'};
 ctx.api_bootstrap_();
 
@@ -192,5 +192,20 @@ assert.strictEqual(plDoc.doc.status, 'Entwurf');
 assert.strictEqual(plDoc.doc.to.name, 'Planer Kunde');
 assert(plDoc.doc.lines.length >= 4);
 console.log('ok planner conversion: plan saved and converted directly to offer draft', plOffer.docNr);
+
+// marketing planner: channels from the lead source, own rates, keyword list
+{ assert.strictEqual(ctx.channel_('google / cpc / sommer'), 'Google Ads'); assert.strictEqual(ctx.channel_('google.com'), 'Google Suche');
+  assert.strictEqual(ctx.channel_('direkt'), 'Direkt / Empfehlung'); assert.strictEqual(ctx.channel_('Admin-Planer'), 'Telefon / Büro');
+  ctx.CURRENT_ = {user: 'office', name: 'office@test'};
+  const m = JSON.parse(JSON.stringify(ctx.api_marketing_(90)));
+  assert(m.channels.length >= 1 && m.rates.requests >= 1, JSON.stringify(m.rates));
+  assert(m.keywords.length >= 10 && m.keywords[0].keyword === 'Umzugsunternehmen Essen' && m.keywords[0].volume === null, 'seed list without invented numbers');
+  const saved = JSON.parse(JSON.stringify(ctx.api_marketingSave_([{keyword: 'Umzug Essen', page: '/umzuege/', volume: '1.300', position: '7,5', cpc: '2,40', note: 'n'},
+    {keyword: '=HYPERLINK("x")', page: 'javascript:alert(1)', volume: 'abc'}, {keyword: ''}])));
+  assert.strictEqual(saved.keywords.length, 2);
+  assert.strictEqual(saved.keywords[0].position, 7.5); assert.strictEqual(saved.keywords[0].cpc, 2.4); assert.strictEqual(saved.keywords[0].note, 'n');
+  assert(!/^=/.test(sheets['Marketing'].data[2][0]), 'no formula in the sheet'); assert.strictEqual(saved.keywords[1].page, '', 'only site paths');
+  assert.throws(() => ctx.api_marketingSave_('x'), /ungültig/);
+  console.log('ok marketing:', m.channels.map(c => c.name + ' ' + c.requests).join(', '), '| keywords', m.keywords.length); }
 
 console.log('ALL OK');
