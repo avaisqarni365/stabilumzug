@@ -4,7 +4,7 @@
  * Each project defines ss_(), which returns the company spreadsheet.
  */
 
-/* Addresses before the move to primary email; replaced by "Einrichten". */
+/* Former addresses: "Einrichten" replaces them with the account that runs the script (info.stabilumzug@gmail.com). */
 var OLD_EMAILS = ['info@stabilumzug.de'];
 
 var TAB = {

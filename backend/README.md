@@ -29,7 +29,7 @@ Family's phone (static site)  ── POST lead / route / draft ──▶  Apps S
 | Entwürfe | Drafts saved for "continue on another device" (deleted after 30 days) |
 | Konfiguration | `notify_email` (receives new requests and the daily reminder), `master_version` |
 
-## Set up (about 20 minutes, logged in as info@stabilumzug.de)
+## Set up (about 20 minutes, logged in as info.stabilumzug@gmail.com)
 
 1. **Create the sheet.** Google Drive → New → Google Sheets. Name it "Stabil Umzug – Anfragen".
 2. **Add the script.** In the sheet: Extensions → Apps Script.
