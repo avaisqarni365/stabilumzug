@@ -33,13 +33,31 @@ def blocks_html(blocks, key, lang):
                        % (t("Im Umzugsplaner", "In the moving planner", lang), inline(b[1], key, lang), link(key, "planner", lang), t("Umzug planen", "Plan your move", lang)))
     return "".join(out)
 
+# One small line drawing per step (navy lines, orange accent "a"), 24x24.
+STEP_ICONS = {
+    "measure": '<rect x="4" y="8" width="16" height="12" rx="1"/><path d="M12 8v5h8"/><path class="a" d="M4 4.5h16M4 3v3M20 3v3"/>',
+    "inventory": '<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9.5 4V2.8h5V4M14 10.5h2.5M14 16h2.5"/><path class="a" d="M8 10.5l1.4 1.4L12 9.3M8 16l1.4 1.4L12 14.8"/>',
+    "volume": '<path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path class="a" d="M4 7.5l8 4.5 8-4.5M12 12v9"/>',
+    "packing": '<path d="M3 8l9-4 9 4-9 4z"/><path d="M3 8v9l9 4 9-4V8M12 12v9"/><path class="a" d="M7.5 6l9 4v3.5"/>',
+    "access": '<path d="M3 21h4.5v-3.5h4.5V14h4.5v-3.5H21"/><path class="a" d="M13 3h6v6M19 3l-6.5 6.5"/>',
+    "parking": '<path d="M12 17v4.5"/><circle class="a" cx="12" cy="10" r="7"/><path class="a" d="M7.1 5.1l9.8 9.8M16.9 5.1l-9.8 9.8"/>',
+    "truck": '<path d="M2 6.5h11v9.5H2zM13 9.5h4.2l2.8 3.2V16H13"/><circle cx="6" cy="17.3" r="1.8"/><circle cx="16.5" cy="17.3" r="1.8"/><path class="a" d="M2 21.3h3M8 21.3h3M14 21.3h3M20 21.3h2"/>',
+    "waste": '<path d="M4 7h16M9.5 7V4h5v3M6 7l1 14h10l1-14"/><path class="a" d="M10 11v6M14 11v6"/>',
+    "kitchen": '<path d="M3 11l9-7 9 7M5 9.5V20h14V9.5"/><path class="a" d="M10 20v-6h4v6"/>',
+    "register": '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M14 10h4M14 13.5h4"/><circle class="a" cx="8.5" cy="10.5" r="2"/><path class="a" d="M5.5 16.2c.6-1.6 1.7-2.4 3-2.4s2.4.8 3 2.4"/>',
+}
+
+def step_icon(k):
+    return ('<span class="ic" aria-hidden="true"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" '
+            'stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">%s</svg></span>' % STEP_ICONS[k]) if k in STEP_ICONS else ""
+
 def journey_html(frm, lang, teasers=True):
     items = []
     for k in JOURNEY:
         g = GUIDES[k]
         badge = '<span class="key">%s</span>' % t("Grundlage", "Foundation", lang) if g["step"] <= 2 else ""
-        items.append('<li><a href="%s"><span class="n">%02d</span><span class="label">%s</span>%s%s</a></li>' % (
-            link(frm, k, lang), g["step"], esc(g[lang]["nav"]), ('<span class="teaser">%s</span>' % esc(g[lang]["teaser"])) if teasers else "", badge))
+        items.append('<li><a href="%s"><span class="top"><span class="n">%02d</span>%s</span><span class="label">%s</span>%s%s</a></li>' % (
+            link(frm, k, lang), g["step"], step_icon(k), esc(g[lang]["nav"]), ('<span class="teaser">%s</span>' % esc(g[lang]["teaser"])) if teasers else "", badge))
     return '<ol class="journey">%s</ol>' % "".join(items)
 
 def topic_tiles(frm, lang):
