@@ -124,7 +124,7 @@
     var from = (p.get('from') || '').slice(0, 120), to = (p.get('to') || '').slice(0, 120), hh = parseInt(p.get('hh'), 10);
     if (from) S.f1.from = from;
     if (to) S.f1.to = to;
-    if (hh >= 0 && hh <= 3) S.f1.hh = hh;
+    if (hh >= 0 && hh <= 3) { S.f1.hh = hh; S.f1.hhSet = true; }   // only a chosen household size goes into the request
     var km = parseInt(p.get('km'), 10);   // measured by the route check on the website
     if (km > 0 && km < 3000) S.f1.km = String(km);
     var st = parseInt(p.get('step'), 10);

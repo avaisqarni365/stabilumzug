@@ -465,10 +465,11 @@ fieldset.lock .input{background:#fff}
     var f = m.el.querySelector('iframe'); f.srcdoc = html;
     m.el.querySelector('#pv-print').addEventListener('click', function () { f.contentWindow.print(); });
   }
+  var LINK_WAIT = '[persönlicher Link wird erstellt …]';
   function mailBox() {
     var d = D.cur.doc, c = D.company, t = d.totals, offer = d.type === 'offer', name = TYPES[d.type];
     var body = 'Guten Tag ' + (d.to.name || '') + ',\n\n' + (offer
-      ? 'vielen Dank für Ihre Anfrage. Im Anhang finden Sie unser offizielles Angebot ' + d.nr + ' als PDF über ' + eur2(t.toPay) + ', gültig bis ' + dDe(d.validUntil) + '.\n\nSie können das Angebot direkt online prüfen und digital auf dem Smartphone/PC unterzeichnen:\n' + (c.portalUrl || 'https://www.stabilumzug.de/mein-umzug/') + (d.lead ? '?id=' + encodeURIComponent(d.lead) + '#sign' : '') + '\n\nAlternativ können Sie das beigefügte PDF unterschrieben per E-Mail oder WhatsApp an uns zurücksenden – dann reservieren wir Ihren Termin fest.'
+      ? 'vielen Dank für Ihre Anfrage. Im Anhang finden Sie unser offizielles Angebot ' + d.nr + ' als PDF über ' + eur2(t.toPay) + ', gültig bis ' + dDe(d.validUntil) + '.\n\nSie können das Angebot direkt online prüfen und digital auf dem Smartphone/PC unterzeichnen:\n' + LINK_WAIT + '\n\nAlternativ können Sie das beigefügte PDF unterschrieben per E-Mail oder WhatsApp an uns zurücksenden – dann reservieren wir Ihren Termin fest.'
       : 'vielen Dank für Ihren Auftrag. Im Anhang finden Sie die ' + name + ' ' + d.nr + ' über ' + eur2(t.toPay) + '.\n\nBitte überweisen Sie den Betrag bis zum ' + dDe(d.due) + (c.iban ? ' auf ' + c.iban : '') + ' mit dem Verwendungszweck ' + d.nr + '.') +
       '\n\nBei Fragen erreichen Sie uns unter ' + c.phone + '.\n\nMit freundlichen Grüßen\n' + c.owner + '\n' + c.name + ' · ' + c.street + ' · ' + c.city;
     var m = modal('<div class="bar"><b>' + esc(name) + ' per E-Mail senden</b><button class="btn small" data-close>Schließen</button></div>' +
@@ -476,7 +477,15 @@ fieldset.lock .input{background:#fff}
       fld('Nachricht', '<textarea class="input" id="m-body" style="min-height:240px">' + esc(body) + '</textarea>') +
       '<p class="muted">Das PDF wird angehängt. Gesendet wird von Ihrem angemeldeten Google-Konto; Antworten gehen an ' + esc(c.email) + '.</p>' +
       '<div class="actions"><button class="btn primary" id="m-send">Jetzt senden</button></div>', true);
+    // personal link to the customer area (with its key), filled in as soon as the server has made it
+    var box = m.el.querySelector('#m-body');
+    if (box.value.indexOf(LINK_WAIT) >= 0) {
+      (d.lead ? run('api_customerLink', d.lead) : Promise.resolve('')).then(function (url) {
+        box.value = box.value.replace(LINK_WAIT, url ? url + '#sign' : (c.portalUrl || 'https://www.stabilumzug.de/mein-umzug/'));
+      }, function () { box.value = box.value.replace(LINK_WAIT, c.phone); });
+    }
     m.el.querySelector('#m-send').addEventListener('click', function (e) {
+      if (box.value.indexOf(LINK_WAIT) >= 0) { U.toast('Der persönliche Link wird noch erstellt – bitte einen Moment.', true); return; }
       busy(e.target, run('api_docSend', d.nr, {to: m.el.querySelector('#m-to').value, subject: m.el.querySelector('#m-subj').value, body: m.el.querySelector('#m-body').value}))
         .then(function (r) { m.close(); D.cur = r; U.toast('Gesendet an ' + r.doc.to.email + '.'); drawForm(); });
     });

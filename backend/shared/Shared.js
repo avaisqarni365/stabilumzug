@@ -401,13 +401,13 @@ function ensureDriveFolder_(name, parent) {
 function apptMails_(a, kind, note) {
   var T = APPT_TYPES[a.type] || {de: a.type, en: a.type, min: a.min};
   var en = a.lang === 'EN', when = (en ? a.date.split('-').reverse().join('/') : dayDeLong_(a.date)) + (en ? ', ' : ', ') + a.time + (en ? '' : ' Uhr');
-  var meetLink = a.meetUrl || (a.type === 'video' ? 'https://meet.google.com' : '');
+  var meetLink = a.meetUrl || '';   // a real meeting link only; otherwise the customer gets it before the appointment
   var where = a.type === 'visit' ? a.address : a.type === 'video' ? (en ? 'Google Meet / WhatsApp Video' : 'Google Meet / WhatsApp-Video') : (en ? 'Phone call' : 'Telefon');
   var how = {
     visit: en ? 'We come to ' + a.address + ', look at everything that needs to be moved and give you a fixed quote afterwards. Takes about 60 minutes, free of charge.'
       : 'Wir kommen zu Ihnen (' + a.address + '), sehen uns alles an, was umziehen soll, und schicken Ihnen danach ein verbindliches Angebot. Dauer etwa 60 Minuten, kostenlos.',
-    video: en ? 'We connect by Google Meet video call (' + (meetLink || 'Google Meet') + ') or by WhatsApp video on ' + a.phone + '. Walk us through your rooms with your phone – about 30 minutes, free of charge.'
-      : 'Wir verbinden uns per Google Meet (' + (meetLink || 'Google Meet') + ') oder per WhatsApp-Video unter ' + a.phone + '. Sie zeigen uns die Räume mit dem Handy – etwa 30 Minuten, kostenlos.',
+    video: en ? 'We connect by ' + (meetLink ? 'Google Meet (' + meetLink + ')' : 'video call – we send you the link shortly before the appointment –') + ' or by WhatsApp video on ' + a.phone + '. Walk us through your rooms with your phone – about 30 minutes, free of charge.'
+      : 'Wir verbinden uns per ' + (meetLink ? 'Google Meet (' + meetLink + ')' : 'Videoanruf – den Link schicken wir Ihnen kurz vor dem Termin –') + ' oder per WhatsApp-Video unter ' + a.phone + '. Sie zeigen uns die Räume mit dem Handy – etwa 30 Minuten, kostenlos.',
     call: en ? 'We call you on ' + a.phone + ' and answer your questions about your move.' : 'Wir rufen Sie unter ' + a.phone + ' an und beantworten Ihre Fragen rund um den Umzug.'
   }[a.type] || '';
   var sign = en ? '\n\nKind regards\nStabil Umzug · Karlstraße 32 · 45329 Essen · 0163 9688190' : '\n\nViele Grüße\nStabil Umzug · Karlstraße 32 · 45329 Essen · 0163 9688190';
@@ -467,7 +467,7 @@ function apptCalendarSync_(a) {
       'Adresse: ' + (a.address || '—'),
       'Umzug nach: ' + (a.to || '—'),
       a.message ? 'Nachricht: ' + a.message : '',
-      a.type === 'video' ? 'Google Meet: https://meet.google.com' : '',
+      a.type === 'video' ? (meetLink ? 'Google Meet: ' + meetLink : 'Video-Link vor dem Termin an den Kunden schicken (Google Meet oder WhatsApp-Video)') : '',
       'Terminnummer: ' + a.nr + ' · Anfrage: ' + (a.lead || '—')
     ].filter(Boolean).join('\n');
     var ev = cal.createEvent('Stabil Umzug: ' + T.de + ' – ' + a.name, start, end, {

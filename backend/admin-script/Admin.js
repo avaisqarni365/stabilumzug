@@ -304,7 +304,7 @@ function api_plannerSave_(plan, target) {
       sheet_(TAB.leads).appendRow([
         leadId, now, STATUS[0], email, '', name, phone, emailAddr, clip_(c.channel || 'phone', 20),
         cell_(s.f1.from), cell_(s.f1.to), clip_(s.f1.km, 8), kmMaps || '', '',
-        dateStr, HH[s.f1.hh] || '', accStr(s.acc.old), accStr(s.acc['new']), s.hvz ? 'ja' : 'nein', cell_(roomsStr, 300),
+        dateStr, (s.f1.hhSet && HH[s.f1.hh]) || '', accStr(s.acc.old), accStr(s.acc['new']), s.hvz ? 'ja' : 'nein', cell_(roomsStr, 300),
         est.n, round_(est.volLow), round_(est.volHigh), Math.round(est.kgMin) + '–' + Math.round(est.kgMax),
         VEH_DE[est.vehicle] + (est.trips > 1 ? ' · ' + est.trips + ' Fahrten' : ''), est.crew, round_(est.hours),
         {high: 'Hoch', medium: 'Mittel', low: 'Niedrig'}[est.conf], master.version, 'Admin-Planer', 'DE',
@@ -331,6 +331,8 @@ function api_plannerSave_(plan, target) {
       sh.getRange(hit.row, leadCol_('Fahrzeug')).setValue(VEH_DE[est.vehicle] + (est.trips > 1 ? ' · ' + est.trips + ' Fahrten' : ''));
       sh.getRange(hit.row, leadCol_('Team')).setValue(est.crew);
       sh.getRange(hit.row, leadCol_('Stunden')).setValue(round_(est.hours));
+      var prev = {}; try { prev = JSON.parse(hit.values[leadCol_('Daten (JSON)') - 1] || '{}'); } catch (e) {}
+      ['contract', 'payer', 'handover', 'src', 'pre', 'photos'].forEach(function (k) { if (prev[k] !== undefined && s[k] === undefined) s[k] = prev[k]; });   // what only the website or the customer set
       sh.getRange(hit.row, leadCol_('Daten (JSON)')).setValue(JSON.stringify(s).slice(0, 45000));
       sheet_(TAB.audit).appendRow([now, email, TAB.leads, leadId, '', 'Im Admin-Planer aktualisiert']);
     }
