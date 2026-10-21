@@ -219,6 +219,9 @@ a.tile:hover h3{color:var(--red-text)}
 .costs div:not(:nth-child(4n+1)){padding-left:18px;border-left:1px solid var(--line)}
 .costs div::before{content:counter(c,decimal-leading-zero);display:block;font-weight:700;color:var(--red-text);font-size:13px;letter-spacing:.08em;margin-bottom:8px}
 .costs h3{font-size:1.1rem;margin-bottom:6px}
+.costs > div{position:relative}
+.costs .cost-ic{position:absolute;top:12px;right:16px}
+.costs > div > h3{padding-right:56px}
 .costs p{margin:0;font-size:14.5px;color:var(--ink2)}
 .costs .src{display:block;margin-top:8px;font-size:12.5px;font-weight:600;color:var(--ink)}
 @media (max-width:960px){
