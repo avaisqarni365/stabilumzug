@@ -145,8 +145,8 @@ def place_page(p):
                   {"@type": "Question", "name": q, "acceptedAnswer": {"@type": "Answer", "text": a}} for q, a in faq if a]}]
         return dict(key=key, lang=lang, schema=ld, route=bool(SITE.get("api")),
                     title=t("Umzug %s – Umzugsunternehmen | Stabil Umzug", "Moving in %s – removal company | Stabil Umzug", lang) % full,
-                    desc=(t("Umzugsunternehmen für %s: Umzug, Entrümpelung, Wohnungsauflösung, Transport. %s km von unserem Standort Essen-Altenessen. Kostenloses Angebot in 24 Std.",
-                            "Removal company for %s: moves, clear-outs, household clearance, transport. %s km from our depot in Essen-Altenessen. Free quote within 24 h.", lang) % (full, km)),
+                    desc=(t("Umzug in %s: Umzug, Entrümpelung, Transport und Möbelmontage vom Umzugsunternehmen aus Essen, %s km entfernt. Angebot in 24 Std.",
+                            "Moving in %s: moves, clear-outs, transport and furniture assembly by a removal company from Essen, %s km away. Quote within 24 h.", lang) % (full, km)),
                     body=body)
     return build
 

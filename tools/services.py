@@ -93,7 +93,7 @@ def quote_page(lang):
         alt=t("Team von Stabil Umzug schützt Boden und Türrahmen vor dem Umzug", "Stabil Umzug crew protecting the floor and door frame before the move", lang))
     body += ('<section class="section"><div class="container">%s<div class="contact-grid"><div>%s</div><div>%s</div></div></div></section>' % (quick_contact(lang), quote_form(key, lang), contact_aside(lang, key)))
     return dict(key=key, lang=lang, quote=True,
-        title=t("Kostenloses Angebot: Umzug, Entrümpelung, Transport | Stabil Umzug Essen", "Free quote: moves, clear-outs, transport | Stabil Umzug Essen", lang),
+        title=t("Kostenloses Angebot für Ihren Umzug in Essen | Stabil Umzug", "Free quote for your move in Essen | Stabil Umzug", lang),
         desc=t("Jetzt kostenloses Angebot anfordern: Umzug, Entrümpelung, Wohnungsauflösung oder Transport in Essen und im Ruhrgebiet. Antwort innerhalb von 24 Stunden.",
                "Request your free quote now: moves, clear-outs, household clearance or transport in Essen and the Ruhr area. Reply within 24 hours.", lang),
         body=body)
@@ -281,7 +281,7 @@ def services_overview(lang):
     body += '<section class="section svc-overview"><div class="container">%s</div></section>' % service_tiles(key, lang, big=True)
     body += cta(key, lang)
     return dict(key=key, lang=lang,
-        title=t("Leistungen: Umzug, Entrümpelung, Wohnungsauflösung, Transport | Stabil Umzug", "Services: moves, clear-outs, clearance, transport | Stabil Umzug", lang),
+        title=t("Umzug, Entrümpelung, Transport in Essen | Stabil Umzug", "Moving, clear-outs and transport in Essen | Stabil Umzug", lang),
         desc=t("Umzugsunternehmen Essen: Privat- und Firmenumzüge, Entrümpelung, Wohnungsauflösung, Möbeltransport und Zusatzleistungen. Kostenloses Angebot in 24 Std.",
                "Moving company in Essen: private and business moves, clear-outs, household clearance, furniture transport and extra services. Free quote within 24 h.", lang),
         body=body)

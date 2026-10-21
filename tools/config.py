@@ -34,6 +34,7 @@ SITE = {
     "maps_url": "https://maps.google.com/?cid=13742321947036407879",
     # Google rating, copied from your Google Business Profile, with the date you looked it up. Empty = not shown.
     # Shown at the top of the home page (key figure) and in the reviews section, always with date and profile link.
+    "geo": (51.500736, 7.010712),   # position of Karlstraße 32 on the Google profile
     "google_rating": "4.9",
     "google_reviews_count": 42,
     "google_rating_date": "21.10.2026",   # update together with rating and count

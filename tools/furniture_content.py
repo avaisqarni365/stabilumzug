@@ -40,7 +40,7 @@ FURNITURE = {
         "lead": "Neue Möbel gekauft, aber kein Transporter und keine Zeit zum Aufbauen? Wir holen Ihre Möbel im Möbelhaus oder bei privaten Verkäufern ab, tragen sie in Ihre Wohnung und bauen sie fertig auf – in Essen und im ganzen Ruhrgebiet.",
         "teaser": "Abholung im Möbelhaus, Lieferung bis in die Wohnung und fertiger Aufbau – alles aus einer Hand.",
         "seo": "Möbel abholen und aufbauen lassen in Essen | Stabil Umzug",
-        "desc": "Möbel-Abholservice in Essen: Wir holen Ihre Möbel bei IKEA, ROLLER, POCO, XXXLutz, Ostermann oder privat ab, liefern bis in die Wohnung und bauen auf. Kostenloses Angebot.",
+        "desc": "Möbel-Abholservice in Essen: Wir holen Ihre Möbel bei IKEA, ROLLER, POCO, XXXLutz oder privat ab, liefern bis in die Wohnung und bauen sie auf.",
         "items": [
             ["Abholung im Möbelhaus", "Sie kaufen und bezahlen, wir holen ab – an der Warenausgabe oder Abholstation, zu den Öffnungszeiten des Möbelhauses."],
             ["Lieferung bis in die Wohnung", "Wir tragen alles in die gewünschte Etage und in den richtigen Raum, auch ohne Aufzug."],
@@ -78,7 +78,7 @@ FURNITURE = {
         "lead": "Bought new furniture but have no van and no time to assemble it? We pick up your furniture at the shop or from private sellers, carry it into your home and assemble it – in Essen and across the Ruhr area.",
         "teaser": "Pick-up at the furniture shop, delivery into your home and assembly – all from one provider.",
         "seo": "Furniture pick-up and assembly in Essen | Stabil Umzug",
-        "desc": "Furniture pick-up service in Essen: we collect your furniture from IKEA, ROLLER, POCO, XXXLutz, Ostermann or private sellers, deliver it into your home and assemble it. Free quote.",
+        "desc": "Furniture pick-up in Essen: we collect from IKEA, ROLLER, POCO, XXXLutz or private sellers, deliver into your home and assemble it.",
         "items": [
             ["Pick-up at the furniture shop", "You buy and pay, we collect – at the goods issue or pick-up point, during the shop's opening hours."],
             ["Delivery into your home", "We carry everything to the right floor and room, even without a lift."],

@@ -44,6 +44,11 @@ STEP_ICONS = {
     "truck": '<path d="M2 6.5h11v9.5H2zM13 9.5h4.2l2.8 3.2V16H13"/><circle cx="6" cy="17.3" r="1.8"/><circle cx="16.5" cy="17.3" r="1.8"/><path class="a" d="M2 21.3h3M8 21.3h3M14 21.3h3M20 21.3h2"/>',
     "waste": '<path d="M4 7h16M9.5 7V4h5v3M6 7l1 14h10l1-14"/><path class="a" d="M10 11v6M14 11v6"/>',
     "kitchen": '<path d="M3 11l9-7 9 7M5 9.5V20h14V9.5"/><path class="a" d="M10 20v-6h4v6"/>',
+    # "So arbeiten wir" on the home page
+    "w_plan": '<rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M10.5 18.5h3"/><path class="a" d="M9 7h6M9 10.2h6M9 13.4h3.5"/>',
+    "w_quote": '<path d="M4 4.5h16v11.5H9.5L4 20.5z"/><path class="a" d="M8 9h8M8 12.3h5"/>',
+    "w_team": '<circle cx="9" cy="8" r="3"/><path d="M3.5 20c.6-3.4 2.8-5.5 5.5-5.5s4.9 2.1 5.5 5.5"/><circle class="a" cx="17" cy="9" r="2.4"/><path class="a" d="M15.6 14.6c.5-.1 1-.1 1.4-.1 2.2 0 3.9 1.7 4.4 4.5"/>',
+    "w_done": '<path d="M3 11l9-7 9 7M5 9.5V20h14V9.5"/><path class="a" d="M8.8 14.6l2.2 2.2 4.3-4.6"/>',
     "register": '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M14 10h4M14 13.5h4"/><circle class="a" cx="8.5" cy="10.5" r="2"/><path class="a" d="M5.5 16.2c.6-1.6 1.7-2.4 3-2.4s2.4.8 3 2.4"/>',
 }
 
