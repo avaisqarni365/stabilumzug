@@ -69,7 +69,7 @@ ctx.SpreadsheetApp.openById = () => M.ss;
 M.ss.getEditors = () => [{getEmail: () => 'office@stabilumzug.test'}];
 M.ss.getOwner = () => ({getEmail: () => 'info.stabilumzug@gmail.com'});
 M.ss.getUrl = () => 'https://docs.google.com/spreadsheets/d/preview';
-M.load('admin-script', ['Admin.js', 'Belege.js', 'Termine.js']);
+M.load('admin-script', ['Admin.js', 'Belege.js', 'Termine.js', 'Marketing.js']);
 // local test user for the login screen (only in this preview, never in the real sheet)
 const PREVIEW_USER = 'test', PREVIEW_PASS = 'preview-1234';
 ctx.usersSheet_().appendRow([PREVIEW_USER, 'Test Büro', 'ja', PREVIEW_PASS, '', '', '']);

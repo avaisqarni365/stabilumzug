@@ -269,6 +269,7 @@ body.locked .top nav,body.locked .top .me{display:none}
     if (window.SUAppts && window.SUAppts.route(h)) return;   // Termine und Statistik (TermineUi.html)
     if (window.SUPlaner && window.SUPlaner.route(h)) return; // Umzugsplaner für Inhaber (PlanerUi.html)
     if (window.SUHilfe && window.SUHilfe.route(h)) return;   // Admin-Handbuch & Hilfe (HilfeUi.html)
+    if (window.SUMarketing && window.SUMarketing.route(h)) return;   // Statistik → Marketing (MarketingUi.html)
     if (h.indexOf('a/') === 0) return detail(decodeURIComponent(h.slice(2)));
     if (h === 'anfragen') return list();
     if (h === 'kalender') return calendar();
@@ -732,5 +733,6 @@ body.locked .top nav,body.locked .top .me{display:none}
 <?!= include_('TermineUi') ?>
 <?!= include_('PlanerUi') ?>
 <?!= include_('HilfeUi') ?>
+<?!= include_('MarketingUi') ?>
 </body>
 </html>

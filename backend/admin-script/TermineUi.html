@@ -160,6 +160,7 @@
     var pct = function (a, b) { if (!b) return '–'; var x = a / b * 100; return (x > 0 && x < 10 ? x.toFixed(1).replace('.', ',') : Math.round(x)) + ' %'; };
     U.app.innerHTML = '<span class="kicker">Statistik</span><div class="h"><h1>Besucher der Website</h1><div class="filters" style="margin:0">' +
       [7, 30, 90, 365].map(function (d) { return '<a class="chip" href="#/statistik/' + d + '" aria-pressed="' + (r.period === d) + '">' + (d === 365 ? '1 Jahr' : d + ' Tage') + '</a>'; }).join('') + '</div></div>' +
+      (window.SUMarketing ? window.SUMarketing.tabs('visits') : '') +
       '<div class="grid4"><div class="kpi"><b>' + today.entries + '</b><span>Besuche heute</span></div><div class="kpi"><b>' + t.entries + '</b><span>Besuche (' + r.period + ' Tage)</span></div>' +
       '<div class="kpi"><b>' + t.views + '</b><span>Seitenaufrufe</span></div><div class="kpi"><b>' + pct(f.requests + f.appts, t.entries) + '</b><span>Besuch → Anfrage oder Termin</span></div></div>' +
       '<div class="card" style="margin-top:26px"><h2>Pro Tag</h2>' + chart(r.days) + '<div class="legend"><span><i style="background:var(--red)"></i>Seitenaufrufe</span><span><i style="background:var(--ink)"></i>Besuche</span></div></div>' +
