@@ -203,11 +203,14 @@ function moveDate_(f1, long) {
 function day_(v) { return v instanceof Date ? Utilities.formatDate(v, 'Europe/Berlin', 'yyyy-MM-dd') : (v == null ? '' : String(v)); }
 
 /* Generates the next lead ID (A-2601, A-2602, …) from script properties. */
+/* Next request number. The website and the admin are two projects with separate script properties, so the highest
+   number in the sheet decides; the own counter only keeps deleted numbers from being handed out again. */
 function nextId_() {
-  var props = PropertiesService.getScriptProperties();
-  var n = Number(props.getProperty('NEXT_ID') || 2601);
-  props.setProperty('NEXT_ID', String(n + 1));
-  return 'A-' + n;
+  var sh = sheet_(TAB.leads), n = sh.getLastRow(), max = 2600;
+  if (n > 1) sh.getRange(2, 1, n - 1, 1).getValues().forEach(function (r) { var m = /^A-(\d+)$/.exec(String(r[0])); if (m) max = Math.max(max, Number(m[1])); });
+  var props = PropertiesService.getScriptProperties(), id = Math.max(max + 1, Number(props.getProperty('NEXT_ID') || 0));
+  props.setProperty('NEXT_ID', String(id + 1));
+  return 'A-' + id;
 }
 /* Decimal number in German notation for texts the customer reads ("4,6 Std."). */
 function de_(x, d) { return String(round_(x, d)).replace('.', ','); }

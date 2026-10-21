@@ -37,6 +37,13 @@ const r = post({action: 'lead', state, consent: true, t: 90000, lang: 'de', cont
 assert(r.ok && r.id === 'A-2601' && r.km === 23, JSON.stringify(r));
 const lead = sheets['Anfragen'].data[1];
 console.log('ok lead', r.id, '| row:', lead.slice(0, 31).join(' ¦ '));
+// the admin is a second project with its own counter: the number must come from the sheet, never repeat
+{ const saved = ctx.PropertiesService.getScriptProperties().getProperty('NEXT_ID');
+  ctx.PropertiesService.getScriptProperties().setProperty('NEXT_ID', '');
+  const other = ctx.nextId_();
+  assert(Number(other.slice(2)) > 2601, 'a project with an empty counter continues after the highest number: ' + other);
+  ctx.PropertiesService.getScriptProperties().setProperty('NEXT_ID', saved);
+  console.log('ok request numbers come from the sheet:', other); }
 assert.strictEqual(lead[31], "'+Klavier im 3. OG", 'formula injection guarded');
 const items = sheets['Gegenstände'].data.slice(1);
 console.log('ok items rows:', items.map(x => x.slice(1, 6).join('/')).join('; '));

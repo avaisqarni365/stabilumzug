@@ -1,6 +1,6 @@
 /**
  * Stabil Umzug – Interactive AI Chatbot & WhatsApp Bridge
- * Powered by Google Workspace Gemini AI & Google Calendar/Meet Appointment Scheduler.
+ * Answers from the website backend (Gemini when configured) or built-in replies; booking hands over to the booking page.
  */
 (function () {
   'use strict';
@@ -25,7 +25,7 @@
           '<div class="su-chat-avatar">SU</div>' +
           '<div>' +
             '<h3 class="su-chat-title">' + (de ? 'Stabil Umzug KI-Berater' : 'Stabil Umzug AI Advisor') + '</h3>' +
-            '<div class="su-chat-status">' + (de ? 'Online · Inhaber Ibrahim Abdelaal' : 'Online · Owner Ibrahim Abdelaal') + '</div>' +
+            '<div class="su-chat-status">' + (de ? 'Automatischer Assistent · Antworten ohne Gewähr' : 'Automated assistant · answers without guarantee') + '</div>' +
           '</div>' +
         '</div>' +
         '<button class="su-chat-close" id="su-chat-close" aria-label="' + (de ? 'Schließen' : 'Close') + '">&times;</button>' +
@@ -169,7 +169,7 @@
       .then(function (data) {
         typing.remove();
         if (data && data.ok) {
-          addMsg(data.reply, false, 'Gemini AI');
+          addMsg(data.reply, false, de ? 'Assistent (KI)' : 'Assistant (AI)');
           if (data.action === 'appointment') {
             showBookingPrompt();
           } else if (data.action === 'whatsapp') {
@@ -198,15 +198,15 @@
         de ? 
         'Faustformel: ca. 0,3–0,4 m³ Umzugsvolumen pro m² Wohnfläche (z. B. 60 m² ≈ 18–24 m³). Wir empfehlen dafür unseren 3,5t Transporter mit 2–3 Personen.\n\nMöchten Sie eine kostenlose Google Meet Video-Besichtigung buchen?' :
         'Rule of thumb: approx. 0.3–0.4 m³ per sqm (e.g. 60 sqm ≈ 18–24 m³). Recommended vehicle: 3.5t van with 2–3 movers.',
-        false, 'KI-Berater'
+        false, de ? 'Automatische Antwort' : 'Automatic reply'
       );
       showBookingPrompt();
     } else if (/kosten|preis|angebot|pauschal/i.test(lower)) {
       addMsg(
         de ? 
-        'Transparente Festpreise ab 390 € für Kleintransporte. Standard-Wohnungsumzüge (2–3 Zimmer) liegen meist zwischen 600 € und 1.250 € inkl. Versicherung.\n\nSchreiben Sie Inhaber Ibrahim Abdelaal direkt per WhatsApp für ein schnelles Angebot!' :
-        'Transparent moving rates starting at 390 €. Standard 2-3 room moves usually between 600 € and 1.200 €.',
-        false, 'KI-Berater'
+        'Der Preis hängt von Volumen, Etagen, Zugang und Strecke ab. Im Umzugsplaner sehen Sie in etwa 10 Minuten Volumen, Fahrzeug und Team; Ihr persönliches Angebot bekommen Sie innerhalb von 24 Stunden. Oder schreiben Sie uns kurz per WhatsApp.' :
+        'The price depends on volume, floors, access and distance. In the moving planner you see volume, vehicle and crew in about 10 minutes; your personal quote follows within 24 hours.',
+        false, de ? 'Automatische Antwort' : 'Automatic reply'
       );
       showWhatsAppPrompt(text);
     } else {
@@ -214,7 +214,7 @@
         de ? 
         'Vielen Dank für Ihre Nachricht! Unser Team in Essen berät Sie gern persönlich. Sie können hier direkt einen Termin planen oder Inhaber Ibrahim Abdelaal auf WhatsApp kontaktieren.' :
         'Thank you! Our office in Essen is happy to help. You can schedule a consultation or WhatsApp our owner directly.',
-        false, 'KI-Berater'
+        false, de ? 'Automatische Antwort' : 'Automatic reply'
       );
       addChips(de ? ['📅 Termin planen (Google Meet)', '💬 WhatsApp an Inhaber'] : ['📅 Book Google Meet', '💬 WhatsApp to Owner']);
     }
@@ -248,145 +248,16 @@
     msgs.scrollTop = msgs.scrollHeight;
   }
 
+  /* Booking happens on the booking page: real free times, consent checkbox, confirmation by e-mail. */
   function showBookingForm() {
-    var formBox = document.createElement('div');
-    formBox.className = 'su-chat-form';
-    var today = new Date();
-    today.setDate(today.getDate() + 1);
-    var minDate = today.toISOString().slice(0, 10);
-
-    formBox.innerHTML = 
-      '<b style="font-size:13px;color:var(--navy)">' + (de ? '📅 Termin buchen (Google Meet / Vor Ort)' : '📅 Book Survey Appointment') + '</b>' +
-      '<label>' + (de ? 'Art des Termins' : 'Appointment Type') +
-        '<select class="input" id="bf-type">' +
-          '<option value="video">' + (de ? '📹 Video-Besichtigung (Google Meet)' : '📹 Video Survey (Google Meet)') + '</option>' +
-          '<option value="visit">' + (de ? '🏠 Vor-Ort-Besichtigung' : '🏠 On-Site Survey') + '</option>' +
-          '<option value="call">' + (de ? '📞 Telefon-Beratung' : '📞 Phone Consultation') + '</option>' +
-        '</select>' +
-      '</label>' +
-      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">' +
-        '<label>' + (de ? 'Datum' : 'Date') + '<input class="input" type="date" id="bf-date" min="' + minDate + '" value="' + minDate + '" required></label>' +
-        '<label>' + (de ? 'Uhrzeit' : 'Time') + 
-          '<select class="input" id="bf-time">' +
-            '<option value="09:00">09:00 Uhr</option><option value="10:30">10:30 Uhr</option>' +
-            '<option value="12:00">12:00 Uhr</option><option value="14:00" selected>14:00 Uhr</option>' +
-            '<option value="15:30">15:30 Uhr</option><option value="17:00">17:00 Uhr</option>' +
-          '</select>' +
-        '</label>' +
-      '</div>' +
-      '<label>' + (de ? 'Ihr Name' : 'Your Name') + '<input class="input" type="text" id="bf-name" placeholder="' + (de ? 'z. B. Max Mustermann' : 'e.g. John Doe') + '" required></label>' +
-      '<label>' + (de ? 'Telefon' : 'Phone') + '<input class="input" type="tel" id="bf-phone" placeholder="0170 1234567" required></label>' +
-      '<label>' + (de ? 'E-Mail (für Kalender & Meet-Link)' : 'Email (for Calendar & Meet link)') + '<input class="input" type="email" id="bf-email" placeholder="name@beispiel.de" required></label>' +
-      '<label>' + (de ? 'Adresse (Auszugsort)' : 'Current Address') + '<input class="input" type="text" id="bf-addr" placeholder="' + (de ? 'z. B. Rüttenscheider Str. 12, Essen' : 'e.g. Street, City') + '"></label>' +
-      '<button class="btn primary small" id="bf-submit" style="width:100%;margin-top:6px;padding:8px">' + (de ? 'Verbindlich reservieren →' : 'Book Survey →') + '</button>' +
-      '<div id="bf-err" style="color:var(--red,#c53030);font-size:12px" hidden></div>';
-
-    msgs.appendChild(formBox);
-    msgs.scrollTop = msgs.scrollHeight;
-
-    var submitBtn = formBox.querySelector('#bf-submit');
-    var errEl = formBox.querySelector('#bf-err');
-
-    submitBtn.addEventListener('click', function () {
-      var type = formBox.querySelector('#bf-type').value;
-      var date = formBox.querySelector('#bf-date').value;
-      var time = formBox.querySelector('#bf-time').value;
-      var name = formBox.querySelector('#bf-name').value.trim();
-      var phone = formBox.querySelector('#bf-phone').value.trim();
-      var email = formBox.querySelector('#bf-email').value.trim();
-      var addr = formBox.querySelector('#bf-addr').value.trim();
-
-      if (!name || !phone || !email) {
-        errEl.textContent = de ? 'Bitte füllen Sie Name, Telefon und E-Mail aus.' : 'Please enter name, phone and email.';
-        errEl.hidden = false;
-        return;
-      }
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        errEl.textContent = de ? 'Bitte gültige E-Mail-Adresse angeben.' : 'Please enter a valid email address.';
-        errEl.hidden = false;
-        return;
-      }
-
-      submitBtn.disabled = true;
-      submitBtn.textContent = de ? 'Wird im Kalender gebucht …' : 'Booking in Calendar …';
-      errEl.hidden = true;
-
-      var payload = {
-        action: 'book',
-        type: type,
-        date: date,
-        time: time,
-        name: name,
-        phone: phone,
-        email: email,
-        address: addr || 'Essen',
-        consent: true,
-        t: 5000,
-        lang: de ? 'de' : 'en',
-        src: {ref: 'chatbot_ai'}
-      };
-
-      if (!API) {
-        finishBookingSuccess(payload, formBox);
-        return;
-      }
-
-      fetch(API, {
-        method: 'POST',
-        headers: {'Content-Type': 'text/plain;charset=utf-8'},
-        body: JSON.stringify(payload)
-      })
-      .then(function (r) { return r.json(); })
-      .then(function (res) {
-        if (res && res.ok) {
-          finishBookingSuccess(payload, formBox, res.nr);
-        } else {
-          submitBtn.disabled = false;
-          submitBtn.textContent = de ? 'Verbindlich reservieren →' : 'Book Survey →';
-          errEl.textContent = (res && res.error === 'taken') ? 
-            (de ? 'Diese Uhrzeit ist leider belegt. Bitte andere Zeit wählen.' : 'Slot taken. Please choose another time.') : 
-            (de ? 'Buchung fehlgeschlagen. Bitte erneut versuchen.' : 'Booking failed. Please retry.');
-          errEl.hidden = false;
-        }
-      })
-      .catch(function (err) {
-        finishBookingSuccess(payload, formBox);
-      });
-    });
-  }
-
-  function finishBookingSuccess(p, formEl, nr) {
-    if (formEl) formEl.remove();
-    var nrStr = nr || 'T-' + Math.floor(1000 + Math.random() * 9000);
-    var typeLabel = p.type === 'video' ? 'Google Meet Video-Besichtigung' : (p.type === 'visit' ? 'Vor-Ort-Besichtigung' : 'Telefon-Beratung');
-
-    var successHtml = 
-      '<div style="background:#e9f4ec;color:#1f6b3a;padding:12px;border-radius:8px;border-left:4px solid #1f6b3a;margin:8px 0">' +
-        '<b>✓ ' + (de ? 'Termin erfolgreich gebucht (' + nrStr + ')' : 'Appointment confirmed (' + nrStr + ')') + '</b><br>' +
-        '<span style="font-size:12.5px">' +
-          esc(typeLabel) + '<br>' +
-          esc(p.date) + ' um ' + esc(p.time) + ' Uhr<br>' +
-          (de ? 'Bestätigung mit Kalender-Einladung (.ics) wurde an ' : 'Calendar invitation (.ics) sent to ') + esc(p.email) +
-        '</span>' +
-      '</div>';
-
-    var div = document.createElement('div');
-    div.innerHTML = successHtml;
-    msgs.appendChild(div);
-
-    // Direct WhatsApp Notification button to Owner
-    var waMsg = (de ? 'Hallo Herr Abdelaal, ich habe gerade einen Termin gebucht:\n' : 'Hello Mr. Abdelaal, I booked an appointment:\n') +
-      'Nr: ' + nrStr + '\nArt: ' + typeLabel + '\nDatum: ' + p.date + ' ' + p.time + ' Uhr\nName: ' + p.name + '\nTelefon: ' + p.phone;
-
-    var waPrompt = document.createElement('div');
-    waPrompt.innerHTML = 
-      '<button class="su-chip" style="background:#25d366;color:#fff;border-color:#25d366;width:100%;text-align:center;padding:9px">' +
-        '📲 ' + (de ? 'Termin jetzt per WhatsApp an Inhaber senden' : 'Send booking to Owner WhatsApp') +
-      '</button>';
-    waPrompt.querySelector('button').addEventListener('click', function () {
-      openWhatsApp(waMsg);
-    });
-    msgs.appendChild(waPrompt);
+    var page = de ? '/termin/' : '/en/appointment/';
+    var opts = [['video', de ? '📹 Video-Besichtigung' : '📹 Video viewing'], ['visit', de ? '🏠 Besichtigung vor Ort' : '🏠 On-site viewing'],
+      ['call', de ? '📞 Rückruf und Beratung' : '📞 Call-back and advice']];
+    var box = document.createElement('div');
+    box.className = 'su-chat-form';
+    box.innerHTML = '<b style="font-size:13px;color:var(--navy)">' + (de ? 'Termin wählen – freie Zeiten sehen Sie auf der nächsten Seite' : 'Choose the type – free times are shown on the next page') + '</b>' +
+      opts.map(function (o) { return '<a class="su-chip" style="display:block;text-align:center;padding:9px;margin-top:6px;text-decoration:none" href="' + page + '?art=' + o[0] + '">' + esc(o[1]) + ' →</a>'; }).join('');
+    msgs.appendChild(box);
     msgs.scrollTop = msgs.scrollHeight;
   }
 

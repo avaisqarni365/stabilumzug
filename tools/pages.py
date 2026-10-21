@@ -154,7 +154,7 @@ def home(lang):
     L = lambda k: link(key, k, lang)
     pre = prefix_for(key, lang)
     call = ('<a class="button arrow tel" href="%s" aria-label="%s">%s</a>' % (phone_link(), esc(t("Anrufen: ", "Call: ", lang) + SITE["phone"]), esc(SITE["phone"]))) if phone_link() else ""
-    facts = [(t("5,0 ★", "5.0 ★", lang), t("Google Bewertung Essen", "Google rating Essen", lang)),
+    facts = [(t("Essen", "Essen", lang), t("Sitz in Altenessen, Einsatz in ganz NRW", "based in Altenessen, working across NRW", lang)),
              (t("24 Std.", "24 h", lang), t("bis zu Ihrem Angebot", "to your quote", lang)),
              (t("7 Tage", "7 days", lang), t("die Woche erreichbar", "a week reachable", lang)),
              (t("10 Min.", "10 min", lang), t("Planer ohne Konto", "planner, no account", lang))]
@@ -179,29 +179,7 @@ def home(lang):
     sec = lambda cls, inner: '<section class="section%s"><div class="container">%s</div></section>' % (cls, inner)
 
     google_maps_url = SITE.get("maps_url", "https://maps.google.com/?q=Stabil+Umzug+Karlstra%C3%9Fe+32+45329+Essen")
-    google_bar = (
-        '<aside class="header-review-bar" aria-label="%s"><div class="container">'
-        '<a href="%s" target="_blank" rel="noopener" class="hrb-link">'
-        '<span class="hrb-badge"><svg class="g-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">'
-        '<path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/>'
-        '<path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.34 24 12 24z"/>'
-        '<path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.99 0 12s.45 3.82 1.25 5.42l4.03-3.15z"/>'
-        '<path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.34 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>'
-        '</svg><span>Google</span></span>'
-        '<span class="hrb-stars" aria-label="5 von 5 Sternen">★★★★★</span>'
-        '<span class="hrb-score"><strong>5,0</strong> / 5,0</span>'
-        '<span class="hrb-sub">%s</span>'
-        '<span class="hrb-addr">· %s, %s %s</span>'
-        '<span class="hrb-cta">%s</span>'
-        '</a></div></aside>'
-    ) % (
-        t("Google Bewertungen von Stabil Umzug", "Google reviews for Stabil Umzug", lang),
-        google_maps_url,
-        t("Hervorragend auf Google", "Excellent on Google", lang),
-        esc(SITE["street"]), esc(SITE["zip"]), esc(SITE["city"]),
-        t("Rezensionen lesen ↗", "Read reviews ↗", lang)
-    )
-    body = google_bar + hero
+    body = hero
 
     body += sec("", head(t("Ihr Umzug in 10 Schritten", "Your move in 10 steps", lang),
                          t("Ein Umzug ist eine Kette. Wir halten sie zusammen.", "A move is a chain. We hold it together.", lang),
@@ -278,55 +256,32 @@ def home(lang):
         "".join("<li>%s</li>" % esc(t(*x, lang)) for x in gear)))
 
     if TESTIMONIALS:
+        # only real reviews, word for word: {"name", "place", "text", "stars" (1-5), "date" ("März 2026"), "source" ("Google")}
         review_cards = []
         for q in TESTIMONIALS:
+            n = max(1, min(5, int(q.get("stars", 5))))
             svc_badge = ('<span class="gr-service">%s</span>' % esc(q["service"])) if q.get("service") else ''
             review_cards.append(
-                ('<article class="gr-card">'
-                 '<div class="gr-top">'
-                 '<div class="gr-author">'
-                 '<span class="gr-avatar" aria-hidden="true">%s</span>'
-                 '<div><strong>%s</strong><small>%s</small></div>'
-                 '</div>'
-                 '<span class="gr-badge" title="Verifizierte Google Rezension">'
-                 '<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.34 24 12 24z"/><path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.99 0 12s.45 3.82 1.25 5.42l4.03-3.15z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.34 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/></svg>'
-                 'Google</span>'
-                 '</div>'
-                 '<div class="gr-stars">★★★★★</div>'
-                 '%s'
-                 '<p class="gr-text">“%s”</p>'
-                 '<div class="gr-foot"><span class="gr-loc">%s</span><span class="gr-date">%s</span></div>'
-                 '</article>') % (
-                    esc(q["name"][:1]),
-                    esc(q["name"]),
-                    esc(q.get("place", SITE["city"])),
-                    svc_badge,
-                    esc(q["text"]),
-                    esc(q.get("place", SITE["city"])),
-                    esc(q.get("date", "Google Rezension"))
-                )
-            )
-
+                '<article class="gr-card"><div class="gr-top"><div class="gr-author"><span class="gr-avatar" aria-hidden="true">%s</span>'
+                '<div><strong>%s</strong><small>%s</small></div></div><span class="gr-badge">%s</span></div>'
+                '<div class="gr-stars" aria-label="%s">%s</div>%s<p class="gr-text">“%s”</p>'
+                '<div class="gr-foot"><span class="gr-loc">%s</span><span class="gr-date">%s</span></div></article>' % (
+                    esc(q["name"][:1]), esc(q["name"]), esc(q.get("place", SITE["city"])), esc(q.get("source", "Google")),
+                    esc(t("%d von 5 Sternen" % n, "%d of 5 stars" % n, lang)), "★" * n + "☆" * (5 - n), svc_badge,
+                    esc(q["text"]), esc(q.get("place", SITE["city"])), esc(q["date"])))
         summary_box = (
-            '<div class="gr-summary">'
-            '<div class="gr-score"><strong>5,0</strong><div class="gr-stars">★★★★★</div></div>'
-            '<p><strong>%s</strong><br>%s, %s %s</p>'
-            '<div class="actions" style="margin-top:10px">'
+            '<div class="gr-summary"><p>%s</p><div class="actions" style="margin-top:10px">'
             '<a class="button arrow" href="%s" target="_blank" rel="noopener">%s</a>'
-            '<a class="button primary" href="%s" target="_blank" rel="noopener">%s</a>'
-            '</div></div>'
+            '<a class="button primary" href="%s" target="_blank" rel="noopener">%s</a></div></div>'
         ) % (
-            t("5,0 / 5,0 Sternen auf Google · Ausgezeichnete Kundenzufriedenheit", "5.0 / 5.0 stars on Google · Outstanding customer satisfaction", lang),
-            esc(SITE["street"]), esc(SITE["zip"]), esc(SITE["city"]),
-            google_maps_url, t("Alle Rezensionen auf Google ↗", "All reviews on Google ↗", lang),
-            google_maps_url, t("Bewertung auf Google schreiben", "Write a Google review", lang)
-        )
-
+            esc(t("Ausgewählte Bewertungen im Wortlaut. Wir prüfen nicht, ob die Verfasser unsere Leistungen tatsächlich genutzt haben; alle Bewertungen finden Sie bei Google.",
+                  "Selected reviews, word for word. We do not check whether the authors actually used our services; you can find all reviews on Google.", lang)),
+            google_maps_url, t("Alle Bewertungen auf Google ↗", "All reviews on Google ↗", lang),
+            google_maps_url, t("Bewertung auf Google schreiben", "Write a Google review", lang))
         body += sec(" gr-section", head(
-            t("Kundenstimmen & Google Rezensionen", "Customer reviews & Google rating", lang),
-            t("5,0 Sterne auf Google – Was Kunden über Stabil Umzug sagen", "5.0 stars on Google – What customers say about Stabil Umzug", lang),
-            t("Echte Bewertungen von Kunden aus Essen, dem Ruhrgebiet und ganz NRW. Alle Rezensionen sind direkt auf unserem Google Unternehmensprofil verifiziert.",
-              "Authentic reviews from customers in Essen, the Ruhr area and across NRW. All reviews verified directly on our Google Business profile.", lang)
+            t("Kundenstimmen", "Customer reviews", lang),
+            t("Was Kunden über Stabil Umzug sagen", "What customers say about Stabil Umzug", lang),
+            t("Bewertungen von Kunden aus Essen und dem Ruhrgebiet.", "Reviews from customers in Essen and the Ruhr area.", lang)
         ) + summary_box + '<div class="gr-grid">%s</div>' % "".join(review_cards))
     body += sec("", head(t("Häufige Fragen", "Common questions", lang), t("Kurz beantwortet.", "Briefly answered.", lang),
                          t("Was Familien uns vor dem Umzug am häufigsten fragen.", "What families ask us most often before a move.", lang)) + faq_html(lang, key))
@@ -354,14 +309,6 @@ def home(lang):
     if not is_ph(SITE["phone"]): biz["telephone"] = SITE["phone"]
     if not is_ph(SITE["email"]): biz["email"] = SITE["email"]
     biz["hasMap"] = SITE.get("maps_url", "https://maps.google.com/?q=Stabil+Umzug+Karlstra%C3%9Fe+32+45329+Essen")
-    biz["aggregateRating"] = {
-        "@type": "AggregateRating",
-        "ratingValue": "5.0",
-        "bestRating": "5",
-        "worstRating": "1",
-        "ratingCount": "48",
-        "reviewCount": "48"
-    }
     return dict(key=key, lang=lang, route=True, schema=[biz, faq_ld],
         title=t("Stabil Umzug Essen: Umzug planen und Angebot in 24 Std.", "Stabil Umzug Essen: plan your move, quote within 24 h", lang),
         desc=t("Umzugsunternehmen in Essen: Umzug online planen, Volumen, Fahrzeug und Team sofort sehen, persönliches Angebot innerhalb von 24 Stunden per WhatsApp oder E-Mail.",
