@@ -49,6 +49,11 @@ STEP_ICONS = {
     "w_quote": '<path d="M4 4.5h16v11.5H9.5L4 20.5z"/><path class="a" d="M8 9h8M8 12.3h5"/>',
     "w_team": '<circle cx="9" cy="8" r="3"/><path d="M3.5 20c.6-3.4 2.8-5.5 5.5-5.5s4.9 2.1 5.5 5.5"/><circle class="a" cx="17" cy="9" r="2.4"/><path class="a" d="M15.6 14.6c.5-.1 1-.1 1.4-.1 2.2 0 3.9 1.7 4.4 4.5"/>',
     "w_done": '<path d="M3 11l9-7 9 7M5 9.5V20h14V9.5"/><path class="a" d="M8.8 14.6l2.2 2.2 4.3-4.6"/>',
+    # "Was Ihren Preis bestimmt": the seven parts of a quote
+    "c_labour": '<circle cx="12" cy="13.5" r="7.5"/><path d="M10 2.5h4M12 2.5V6"/><path class="a" d="M12 9.5v4l2.8 1.8"/>',
+    "c_route": '<path d="M16 9c0 3.6-4 8-4 8s-4-4.4-4-8a4 4 0 0 1 8 0z"/><circle class="a" cx="12" cy="9" r="1.5"/><path class="a" d="M3 21.2h3M9 21.2h3M15 21.2h3M20 21.2h1"/>',
+    "c_assembly": '<path d="M14.7 6.3a4 4 0 0 0-5.2 5.2L3.5 17.5l3 3 6-6a4 4 0 0 0 5.2-5.2l-2.5 2.5-2.3-.7-.7-2.3z"/><path class="a" d="M16.5 16.5l3.5 3.5"/>',
+    "c_extras": '<circle cx="12" cy="12" r="8.5"/><path class="a" d="M12 8v8M8 12h8"/>',
     "register": '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M14 10h4M14 13.5h4"/><circle class="a" cx="8.5" cy="10.5" r="2"/><path class="a" d="M5.5 16.2c.6-1.6 1.7-2.4 3-2.4s2.4.8 3 2.4"/>',
 }
 

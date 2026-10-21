@@ -44,7 +44,10 @@ COSTS = [
 ]
 
 def cost_section(key, lang, alt=False):
-    cells = "".join('<div><h3>%s</h3><p>%s</p><span class="src">%s</span></div>' % (esc(t(*a, lang)), esc(t(*b, lang)), esc(t(*c, lang))) for a, b, c in COSTS)
+    import guides
+    icons = ("c_labour", "truck", "c_route", "c_assembly", "packing", "access", "c_extras")   # same order as COSTS
+    cells = "".join('<div>%s<h3>%s</h3><p>%s</p><span class="src">%s</span></div>' % (
+        guides.step_icon(icons[i]).replace('class="ic"', 'class="ic cost-ic"'), esc(t(*a, lang)), esc(t(*b, lang)), esc(t(*c, lang))) for i, (a, b, c) in enumerate(COSTS))
     return ('<section class="section%s"><div class="container"><div class="head"><div><span class="kicker red">%s</span><h2>%s</h2></div><p>%s</p></div>'
             '<div class="costs">%s</div><p style="margin:28px 0 0"><a class="link-arrow" href="%s">%s</a></p></div></section>'
             % (" alt" if alt else "", t("Transparent kalkuliert", "Transparent pricing", lang),
