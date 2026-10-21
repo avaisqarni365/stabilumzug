@@ -416,6 +416,14 @@
 <xhtml:link rel="alternate" hreflang="de" href="https://www.stabilumzug.de/transport/"/>
 <xhtml:link rel="alternate" hreflang="en" href="https://www.stabilumzug.de/en/transport/"/>
 </url>
+<url><loc>https://www.stabilumzug.de/moebel-abholung/</loc>
+<xhtml:link rel="alternate" hreflang="de" href="https://www.stabilumzug.de/moebel-abholung/"/>
+<xhtml:link rel="alternate" hreflang="en" href="https://www.stabilumzug.de/en/furniture-pickup/"/>
+</url>
+<url><loc>https://www.stabilumzug.de/en/furniture-pickup/</loc>
+<xhtml:link rel="alternate" hreflang="de" href="https://www.stabilumzug.de/moebel-abholung/"/>
+<xhtml:link rel="alternate" hreflang="en" href="https://www.stabilumzug.de/en/furniture-pickup/"/>
+</url>
 <url><loc>https://www.stabilumzug.de/zusatzleistungen/</loc>
 <xhtml:link rel="alternate" hreflang="de" href="https://www.stabilumzug.de/zusatzleistungen/"/>
 <xhtml:link rel="alternate" hreflang="en" href="https://www.stabilumzug.de/en/extra-services/"/>

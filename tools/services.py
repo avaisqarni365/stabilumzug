@@ -18,7 +18,7 @@ def price_text(v, lang):
 
 # ---------------------------------------------------------------- quote form (quote + contact pages)
 SERVICE_OPTIONS = [("moves", "Umzug", "Move"), ("clearance", "Entrümpelung", "Clear-out"), ("dissolution", "Wohnungsauflösung", "Household clearance"),
-                   ("transport", "Transport", "Transport"), ("other", "Sonstiges", "Other")]
+                   ("transport", "Transport", "Transport"), ("furniture", "Möbel abholen & aufbauen", "Furniture pick-up & assembly"), ("other", "Sonstiges", "Other")]
 
 def quote_form(key, lang):
     opt = lambda v, l: '<option value="%s">%s</option>' % (v, esc(l))
@@ -158,7 +158,7 @@ def inline(text, key, lang):
     return LINK_RE.sub(lambda m: '<a href="%s">%s</a>' % (link(key, SVC.get(m.group(1), m.group(1)), lang), m.group(2)), esc(text))
 
 PHOTO = {"moves": "loading-boxes.jpg", "clearance": "empty-room.jpg", "dissolution": "packing.jpg",
-         "transport": "sofa-transport.jpg", "extras": "kitchen-assembly.jpg"}
+         "transport": "sofa-transport.jpg", "furniture": "bed-assembly.jpg", "extras": "kitchen-assembly.jpg"}
 
 ROUTE_SERVICES = ("moves", "transport")
 
@@ -182,6 +182,41 @@ def route_section(key, skey, lang):
               "To calculate, we send the places to Google Maps via our server. We store postcode and town only, anonymously, for 6 months.", lang)),
         quick_plan(key, lang, title=t("Strecke und Umzug planen", "Route and move planner", lang) if moves else t("Strecke und Transport planen", "Route and transport planner", lang)))
 
+def shops_section(key, lang):
+    """Furniture pick-up: the shops we collect from (address and route link, no opening hours), our times, assembly times."""
+    from furniture_content import SHOPS, ASSEMBLY_TIMES
+    from urllib.parse import quote_plus
+    def shop(name, street, town):
+        q = quote_plus(" ".join(x for x in (name, street, town) if x))
+        return ('<li><b>%s</b><span>%s</span><a href="https://www.google.com/maps/search/?api=1&amp;query=%s" target="_blank" rel="noopener">%s</a></li>' % (
+            esc(name), esc(", ".join(x for x in (street, town) if x)), q, t("Route ↗", "Route ↗", lang)))
+    groups = "".join('<div class="shop-group"><h3>%s</h3><ul class="shop-list">%s</ul></div>' % (
+        esc(t(g, "Ruhr area" if g == "Ruhrgebiet" else g, lang)), "".join(shop(*s) for s in shops)) for g, shops in SHOPS)
+    rows = "".join('<tr><td>%s</td><td class="num">%s</td></tr>' % (esc(t(a, b, lang)), esc(t(c, d, lang))) for a, b, c, d in ASSEMBLY_TIMES)
+    hours = SITE.get("hours", "")
+    times = ('<div class="svc-times"><h3>%s</h3><ul class="checks">%s</ul></div>'
+             '<div><h3>%s</h3><table class="asm-times"><tbody>%s</tbody></table><p class="small">%s</p></div>') % (
+        t("Unsere Servicezeiten", "Our service times", lang),
+        "".join("<li>%s</li>" % esc(x) for x in (
+            t("Termine: ", "Appointments: ", lang) + (hours if lang == "de" else hours.replace("Mo–Fr", "Mon–Fri").replace("Sa/So", "Sat/Sun").replace(" Uhr", "")),
+            t("Abholung zu den Öffnungszeiten des Möbelhauses", "Pick-up during the shop's opening hours", lang),
+            t("Lieferung und Aufbau am selben Tag möglich", "Delivery and assembly on the same day possible", lang),
+            t("Termin nach Absprache – per Telefon, WhatsApp oder Formular", "Date by arrangement – by phone, WhatsApp or form", lang))),
+        t("Typische Aufbauzeiten", "Typical assembly times", lang), rows,
+        esc(t("Richtwerte für zwei Personen, je nach Modell. Die genaue Zeit steht in Ihrem Angebot.",
+              "Guide values for two people, depending on the model. The exact time is in your quote.", lang)))
+    return ('<section class="section alt"><div class="container"><div class="head"><div><span class="kicker red">%s</span><h2>%s</h2></div><p>%s</p></div>'
+            '<div class="shops">%s</div><p class="small" style="margin-top:18px">%s</p>'
+            '<div class="split shop-times" style="margin-top:44px">%s</div></div></section>') % (
+        t("Möbelhäuser", "Furniture shops", lang),
+        esc(t("Wir holen dort ab – und bei jedem anderen Möbelhaus.", "We collect there – and from any other furniture shop.", lang)),
+        esc(t("Die großen Möbelhäuser in Essen und im Ruhrgebiet. Ihr Möbelhaus fehlt? Kein Problem, wir holen überall ab.",
+              "The large furniture shops in Essen and the Ruhr area. Yours is missing? No problem, we collect anywhere.", lang)),
+        groups,
+        esc(t("Die genannten Namen sind Marken der jeweiligen Unternehmen. Wir sind kein Partner dieser Möbelhäuser und holen in Ihrem Auftrag ab. Öffnungszeiten bitte direkt beim Möbelhaus prüfen.",
+              "The names are trademarks of their owners. We are not a partner of these shops and collect on your behalf. Please check opening hours directly with the shop.", lang)),
+        times)
+
 def service_page(skey):
     def build(lang):
         from pages import cta
@@ -195,7 +230,7 @@ def service_page(skey):
             quote_href, t("Kostenloses Angebot", "Free quote", lang),
             ('<a class="button arrow tel" href="tel:%s" aria-label="%s">%s</a>' % (esc(SITE["phone_href"]), esc(t("Anrufen: ", "Call: ", lang) + SITE["phone"]), esc(SITE["phone"]))) if SITE.get("phone_href") else "")
         items = "".join('<div><h3>%s</h3><p>%s</p></div>' % (esc(a), inline(b, key, lang)) for a, b in c["items"])
-        body = head + (route_section(key, skey, lang) if skey in ROUTE_SERVICES else "") + '<section class="section"><div class="container"><div class="head"><div><span class="kicker red">%s</span><h2>%s</h2></div><p>%s</p></div><div class="costs svc">%s</div></div></section>' % (
+        body = head + (route_section(key, skey, lang) if skey in ROUTE_SERVICES else "") + (shops_section(key, lang) if skey == "furniture" else "") + '<section class="section"><div class="container"><div class="head"><div><span class="kicker red">%s</span><h2>%s</h2></div><p>%s</p></div><div class="costs svc">%s</div></div></section>' % (
             t("Leistungen", "Services", lang), esc(t("Was wir für Sie übernehmen.", "What we take care of.", lang)), esc(c["teaser"]), items)
         steps = "".join('<li><span class="n">%02d</span><h3>%s</h3><p>%s</p></li>' % (i + 1, esc(a), inline(b, key, lang)) for i, (a, b) in enumerate(c["process"]))
         incl = "".join("<li>%s</li>" % inline(x, key, lang) for x in c["included"])
