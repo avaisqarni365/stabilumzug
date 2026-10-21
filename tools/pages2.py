@@ -125,7 +125,7 @@ def booking(lang):
               "Free on-site viewing, video viewing or a call-back: pick a free time above – you get a confirmation by email with a calendar entry right away.", lang)),
         "".join("<li>%s</li>" % esc(x) for x in points))
     return dict(key=key, lang=lang, booking=True,
-                title=t("Termin buchen: kostenlose Umzugsbesichtigung in Essen | Stabil Umzug", "Book a free moving viewing in Essen | Stabil Umzug", lang),
+                title=t("Umzugsbesichtigung in Essen kostenlos buchen | Stabil Umzug", "Book a free moving viewing in Essen | Stabil Umzug", lang),
                 desc=t("Kostenlose Besichtigung vor Ort, Video-Besichtigung oder Rückruf online buchen – freie Zeiten sofort sehen, Bestätigung per E-Mail.",
                        "Book a free on-site viewing, video viewing or call-back online – see free times at once, confirmation by email.", lang),
                 body=body)

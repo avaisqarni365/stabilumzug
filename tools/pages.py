@@ -67,9 +67,9 @@ def planner(lang):
     ) % (pre, esc(t("Umzugsplaner", "Moving planner", lang)), esc(fallback),
          esc(phone), link(key, "contact", lang), t("Zum Kontaktformular", "Go to the contact form", lang))
     return dict(key=key, lang=lang, planner=True,
-        title=t("Umzugsplaner: Volumen, Fahrzeug und Team schätzen | Stabil Umzug", "Moving planner: estimate volume, vehicle and crew | Stabil Umzug", lang),
-        desc=t("Kostenloser Umzugsplaner: Räume, Möbel und Zugang erfassen, Volumen, Fahrzeug und Team sofort sehen und die Zusammenfassung per WhatsApp oder E-Mail an Stabil Umzug senden.",
-               "Free moving planner: record rooms, furniture and access, see volume, vehicle and crew right away, and send the summary to Stabil Umzug via WhatsApp or email.", lang),
+        title=t("Umzugsplaner Essen: Volumen und Team schätzen | Stabil Umzug", "Moving planner: estimate volume and crew | Stabil Umzug", lang),
+        desc=t("Kostenloser Umzugsplaner von Stabil Umzug aus Essen: Räume und Möbel erfassen, Volumen, Fahrzeug und Team sofort sehen, Angebot in 24 Std.",
+               "Free moving planner by Stabil Umzug from Essen: record rooms and furniture, see volume, vehicle and crew at once, quote within 24 hours.", lang),
         body=body)
 
 # ---------------------------------------------------------------- contact
@@ -147,6 +147,14 @@ def quick_plan(key, lang, title=None, kicker=None, from_value=""):
         t("Umzug planen", "Plan my move", lang),
         t("Ohne Konto · ca. 10 Minuten · Volumen, Fahrzeug und Team sofort sehen", "No account · about 10 minutes · see volume, vehicle and crew right away", lang))
 
+# Service area for search engines: Essen with its districts, then the nearby cities we have pages for
+AREA_SERVED = ([{"@type": "City", "name": "Essen"}]
+               + [{"@type": "Place", "name": "Essen-" + d} for d in ("Altenessen", "Borbeck", "Bredeney", "Frohnhausen", "Holsterhausen", "Katernberg",
+                                                                     "Kettwig", "Kray", "Rüttenscheid", "Stadtkern", "Steele", "Werden")]
+               + [{"@type": "City", "name": c} for c in ("Bochum", "Bottrop", "Dortmund", "Düsseldorf", "Duisburg", "Gelsenkirchen", "Gladbeck",
+                                                         "Hattingen", "Herne", "Mülheim an der Ruhr", "Oberhausen", "Velbert")]
+               + [{"@type": "AdministrativeArea", "name": "Ruhrgebiet"}])
+
 def google_rating(lang):
     """The real Google rating from config.py (score, count, date, profile link) – None until all four are filled in."""
     r, n, d = str(SITE.get("google_rating", "")).strip(), int(SITE.get("google_reviews_count") or 0), str(SITE.get("google_rating_date", "")).strip()
@@ -184,8 +192,8 @@ def home(lang):
             esc(G["url"]), G["stars"], esc(G["score"]), esc(t("%d Google-Bewertungen · Stand %s", "%d Google reviews · as of %s", lang) % (G["count"], G["date"])),
             t("ansehen ↗", "view ↗", lang))) if G else "",
         quick_plan(key, lang),
-        esc(t("Umzüge, Entrümpelungen, Wohnungsauflösungen und Transporte – im Ruhrgebiet und in ganz Deutschland. Kostenloses, persönliches Angebot innerhalb von 24 Stunden.",
-              "Moves, clear-outs, household clearances and transport – across the Ruhr area and all of Germany. Free personal quote within 24 hours.", lang)),
+        esc(t("Umzüge, Entrümpelungen, Wohnungsauflösungen, Transporte und Möbelmontage – in Essen, im Ruhrgebiet und auf Wunsch deutschlandweit. Kostenloses, persönliches Angebot innerhalb von 24 Stunden.",
+              "Moves, clear-outs, household clearances, transport and furniture assembly – in Essen, the Ruhr area and across Germany on request. Free personal quote within 24 hours.", lang)),
         L("quote"), t("Kostenloses Angebot", "Free quote", lang), call,
         pre, pre, pre, esc(t("Weißer Transporter mit Stabil-Umzug-Logo in Orange und Navy", "White van with the Stabil Umzug logo in orange and navy", lang)),
         t("Unser Transporter · Essen", "Our van · Essen", lang),
@@ -216,7 +224,8 @@ def home(lang):
              (("Persönliches Angebot", "Personal quote"), ("Wir prüfen Ihre Angaben und senden das Angebot per WhatsApp oder E-Mail. Bei Unsicherheit ein kurzer Video-Check.", "We check your details and send the quote via WhatsApp or email. A short video check if anything is uncertain.")),
              (("Umzugstag mit festem Team", "Moving day with a fixed crew"), ("Eigener Transporter und ein Ansprechpartner vor Ort.", "Our own transporter and a contact person on site.")),
              (("Ankommen & abhaken", "Arrive & tick off"), ("Möbelmontage, Übergabeprotokoll, Rechnung.", "Furniture assembly, handover record, invoice."))]
-    steps_html = "".join('<li><span class="n">%02d</span><h3>%s</h3><p>%s</p></li>' % (i + 1, esc(t(*s[0], lang)), esc(t(*s[1], lang))) for i, s in enumerate(steps))
+    steps_html = "".join('<li><span class="top"><span class="n">%02d</span>%s</span><h3>%s</h3><p>%s</p></li>' % (
+        i + 1, guides.step_icon(("w_plan", "w_quote", "w_team", "w_done")[i]), esc(t(*s[0], lang)), esc(t(*s[1], lang))) for i, s in enumerate(steps))
     body += sec(" alt place-steps", head(t("So arbeiten wir", "How we work", lang), t("Von der Planung bis zum Abhaken.", "From planning to ticking off.", lang),
                              t("Vier Schritte mit Ihnen – ohne Besichtigungstermin, wenn Ihre Angaben reichen.", "Four steps with you – without a site visit when your details are enough.", lang))
                 + '<ol class="steps-list">%s</ol>' % steps_html)
@@ -321,15 +330,19 @@ def home(lang):
            ],
            "address": {"@type": "PostalAddress", "streetAddress": SITE["street"], "postalCode": SITE["zip"], "addressLocality": SITE["city"],
                        "addressRegion": SITE["region"], "addressCountry": "DE"},
-           "openingHoursSpecification": OPENING, "areaServed": ["Essen", "Ruhrgebiet", "Deutschland"], "inLanguage": ["de", "en"],
+           "openingHoursSpecification": OPENING, "areaServed": AREA_SERVED, "inLanguage": ["de", "en"],
            "founder": SITE["owner"], "vatID": SITE["vat_id"],
            "hasOfferCatalog": {"@type": "OfferCatalog", "name": "Leistungen", "itemListElement": [
                {"@type": "Offer", "itemOffered": {"@type": "Service", "name": n}} for n in ("Umzug", "Entrümpelung", "Wohnungsauflösung", "Transport")]}}
     if not is_ph(SITE["phone"]): biz["telephone"] = SITE["phone"]
     if not is_ph(SITE["email"]): biz["email"] = SITE["email"]
     biz["hasMap"] = SITE.get("maps_url", "https://maps.google.com/?q=Stabil+Umzug+Karlstra%C3%9Fe+32+45329+Essen")
+    if SITE.get("geo"):   # exact position of the business, as on the Google profile
+        biz["geo"] = {"@type": "GeoCoordinates", "latitude": SITE["geo"][0], "longitude": SITE["geo"][1]}
+    if SITE.get("google_profile_url"):
+        biz["sameAs"] = [SITE["google_profile_url"]]
     return dict(key=key, lang=lang, route=True, schema=[biz, faq_ld],
         title=t("Stabil Umzug Essen: Umzug planen und Angebot in 24 Std.", "Stabil Umzug Essen: plan your move, quote within 24 h", lang),
-        desc=t("Umzugsunternehmen in Essen: Umzug online planen, Volumen, Fahrzeug und Team sofort sehen, persönliches Angebot innerhalb von 24 Stunden per WhatsApp oder E-Mail.",
-               "Moving company in Essen: plan your move online, see volume, vehicle and crew right away, personal quote within 24 hours via WhatsApp or email.", lang),
+        desc=t("Umzugsunternehmen in Essen: Umzug online planen, Volumen, Fahrzeug und Team sofort sehen – persönliches Angebot in 24 Std. per WhatsApp oder E-Mail.",
+               "Moving company in Essen: plan your move online, see volume, vehicle and crew right away – personal quote within 24 h via WhatsApp or email.", lang),
         body=body)

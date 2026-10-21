@@ -160,10 +160,13 @@ a{color:inherit;text-underline-offset:3px}
 .journey a:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
 .journey .n{font-weight:700;font-size:2.4rem;line-height:1;letter-spacing:-.04em;color:var(--red);font-variant-numeric:tabular-nums}
 .journey .top{display:flex;align-items:center;justify-content:space-between;gap:10px;align-self:stretch}
-.journey .ic{flex:none;width:46px;height:46px;border-radius:12px;display:grid;place-items:center;background:var(--tint);color:var(--ink)}
-.journey .ic .a{stroke:var(--red)}
+.ic{flex:none;width:46px;height:46px;border-radius:12px;display:grid;place-items:center;background:var(--tint);color:var(--ink)}
+.ic .a{stroke:var(--red)}
 .journey a:hover .ic{background:color-mix(in srgb,var(--red) 16%,#fff)}
-@media (max-width:600px){.journey .ic{width:38px;height:38px;border-radius:10px}.journey .ic svg{width:23px;height:23px}}
+@media (max-width:600px){.ic{width:38px;height:38px;border-radius:10px}.ic svg{width:23px;height:23px}}
+.steps-list .top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.steps-list .top .n{margin-bottom:0}
+.alt .ic{background:#fff}
 .journey .label{font-weight:700;font-size:17px;line-height:1.2}
 .journey .teaser{font-size:14px;color:var(--ink2);line-height:1.45}
 .journey .key{align-self:flex-start;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;background:var(--tint);color:var(--tint-ink);padding:2px 8px;margin-top:auto}
