@@ -27,7 +27,7 @@ var LEAD_COLS = ['ID', 'Eingang', 'Status', 'Zuständig', 'Angebot €', 'Name',
 /* Who pays for the move (planner, "Wer bezahlt den Umzug?"): an offer for these goes to the payer, not to the customer. */
 var PAYERS = ['Selbstzahler', 'Arbeitgeber', 'Jobcenter', 'Sozialamt', 'Andere'];
 var JSON_COL = LEAD_COLS.indexOf('Daten (JSON)') + 1;   // 1-based
-var SERVICE_DE = {moves: 'Umzug', clearance: 'Entrümpelung', dissolution: 'Wohnungsauflösung', transport: 'Transport', other: 'Sonstiges'};
+var SERVICE_DE = {moves: 'Umzug', clearance: 'Entrümpelung', dissolution: 'Wohnungsauflösung', transport: 'Transport', furniture: 'Möbel abholen & aufbauen', other: 'Sonstiges'};
 var ITEM_COLS = ['Anfrage', 'item_id', 'Gegenstand', 'Größe', 'Anzahl', 'Herkunft', 'm³ je Stück', 'm³ gesamt'];
 var QUOTE_COLS = ['Anfrage', 'Version', 'Erstellt', 'Stammdaten', 'Position', 'Basis', 'Menge', 'Einheit', 'Satz €', 'Betrag €'];
 var CAT_COLS = ['item_id', 'Größe', 'Name DE', 'Name EN', 'Suchwörter', 'Raum', 'Volumen m³', 'kg min', 'kg max', 'Abbau min', 'Aufbau min', 'Träger', 'Zerbrechlich', 'Aktiv'];

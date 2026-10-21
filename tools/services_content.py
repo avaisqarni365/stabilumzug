@@ -379,3 +379,7 @@ SERVICES = {
         },
     },
 }
+
+# Furniture pick-up and assembly (content in furniture_content.py), shown after Transport
+from furniture_content import FURNITURE as _FURNITURE
+SERVICES = {k: v for k, v in list(SERVICES.items())[:4] + [("furniture", _FURNITURE)] + list(SERVICES.items())[4:]}

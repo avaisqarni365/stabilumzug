@@ -1434,3 +1434,17 @@ details.fs-card > summary:focus-visible{outline:2px solid var(--red);outline-off
 .gr-text{font-size:13.5px;line-height:1.5;color:var(--ink,#1e293b);margin:0 0 14px;flex-grow:1}
 .gr-foot{display:flex;align-items:center;justify-content:space-between;font-size:11.5px;color:var(--muted,#94a3b8);border-top:1px solid #f1f5f9;padding-top:10px}
 
+
+/* ---------- furniture pick-up: shops, service times, assembly times ---------- */
+.shops{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:28px 40px}
+.shop-group h3{font-size:1.15rem;margin:0 0 6px}
+.shop-list{list-style:none;margin:0;padding:0;border-top:2px solid var(--ink)}
+.shop-list li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 16px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
+.shop-list b{font-size:16px}
+.shop-list span{grid-column:1;color:var(--ink2);font-size:14px}
+.shop-list a{grid-column:2;grid-row:1/3;font-weight:700;font-size:14px;white-space:nowrap;min-height:44px;display:inline-flex;align-items:center;padding:0 4px}
+.shop-times h3{font-size:1.15rem;margin:0 0 10px}
+.asm-times{width:100%;border-collapse:collapse;border-top:2px solid var(--ink)}
+.asm-times td{padding:10px 0;border-bottom:1px solid var(--line);font-size:15px}
+.asm-times td.num{text-align:right;font-weight:700;white-space:nowrap;padding-left:16px}
+@media (max-width:760px){.shops{grid-template-columns:minmax(0,1fr);gap:24px}}

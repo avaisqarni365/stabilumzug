@@ -66,7 +66,8 @@ def place_page(p):
             else:
                 nb.append('<li>%s</li>' % esc(n))
         svc = [("moves", t("Umzug %s", "Moving in %s", lang)), ("clearance", t("Entrümpelung %s", "Clear-out in %s", lang)),
-               ("dissolution", t("Wohnungsauflösung %s", "Household clearance in %s", lang)), ("transport", t("Möbeltransport %s", "Furniture transport in %s", lang))]
+               ("dissolution", t("Wohnungsauflösung %s", "Household clearance in %s", lang)), ("transport", t("Möbeltransport %s", "Furniture transport in %s", lang)),
+               ("furniture", t("Möbel abholen & aufbauen %s", "Furniture pick-up & assembly in %s", lang))]
         from services import PHOTO as SVC_PHOTO
         svc_html = "".join('<a class="tile svc-tile" href="%s"><div class="ti"><img src="%sassets/img/photos/%s" data-sizes="(max-width:760px) 100vw, 300px" alt="" loading="lazy" width="1600" height="1067"></div><h3>%s</h3><span class="link-arrow">%s</span></a>' % (
             link(key, SVC[k], lang), pre, SVC_PHOTO[k], esc(lbl % name), t("Mehr erfahren", "Learn more", lang)) for k, lbl in svc)
