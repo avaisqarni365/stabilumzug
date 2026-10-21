@@ -3,6 +3,7 @@ const fs = require('fs'), path = require('path'), assert = require('assert'), vm
 const M = require('./mock');
 const {ctx, sheets, alerts, mails, puts, REPO} = M;
 M.load('apps-script', ['Estimator.js', 'Shared.js', 'Code.js', 'Website.js']);
+ctx.RATE.write = 1000;   // the test sends many forms within one minute; the limit itself is tested at the end
 ctx.Utilities.newBlob = (data, type, name) => ({data, type, name});
 // 1. setup seeds catalogue + rules from master.json
 ctx.setup();
@@ -157,6 +158,19 @@ console.log('ok admin users: password encrypted on entry, too short ones refused
 // 6. rate limit
 for (let i = 0; i < 70; i++) post({action: 'route', from: 'Essen Hbf', to: 'Bochum Hbf'});
 console.log('ok rate limit:', post({action: 'route', from: 'a b c d', to: 'e f g h'}).error);
+// forms have their own limit, page views theirs: a busy page cannot block the request form
+ctx.RATE.write = 2; ctx.RATE.hit = 100000;
+const minuteKey = 'rl_write_' + Math.floor(Date.now() / 60000); ctx.CacheService.getScriptCache().remove(minuteKey);
+for (let i = 0; i < 2; i++) post({action: 'quick', consent: true, t: 9000, form: {service: 'moves', name: 'R' + i, phone: '01'}});
+assert.strictEqual(post({action: 'quick', consent: true, t: 9000, form: {service: 'moves', name: 'R3', phone: '01'}}).error, 'busy', 'form limit');
+assert.notStrictEqual(post({action: 'hit', p: '/', s: 'direkt', d: 'Handy', l: 'de', e: 1}).error, 'busy', 'page views have their own limit');
+assert.strictEqual(post({action: 'photos', id: 'A-1', images: []}).error === 'too_large', false);
+assert.strictEqual(ctx.doPost({postData: {contents: JSON.stringify({action: 'lead', x: 'y'.repeat(120000)})}}).error, 'too_large', 'only photo uploads may be large');
+// e-mails to a typed-in address: at most 5 a day
+for (let i = 0; i < 5; i++) assert(ctx.mailOk_('fremd@example.de'));
+assert(!ctx.mailOk_('Fremd@Example.de'), 'sixth mail to the same address is refused');
+ctx.RATE.write = 1000;
+console.log('ok separate limits, body size per action, daily mail cap per address');
 // 6-month deletion: old requests without order go (with their items), booked ones and ones with a document stay
 { const L = ctx.LEAD_COLS, old = new Date(Date.now() - 200 * 864e5), row = (id, status) => L.map(c => c === 'ID' ? id : c === 'Eingang' ? old : c === 'Status' ? status : '');
   const leadsBefore = sheets['Anfragen'].data.length;

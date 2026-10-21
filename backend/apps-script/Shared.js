@@ -433,6 +433,7 @@ function apptMails_(a, kind, note) {
       (en ? '\n\nThe updated calendar file is attached.' : '\n\nDie aktualisierte Kalenderdatei ist angehängt.') + sign;
   }
   try {
+    if (kind === 'booked' && typeof mailOk_ === 'function' && !mailOk_(a.email)) throw new Error('mail limit ' + a.nr);   // website bookings only
     var mail = {to: a.email, subject: subject, body: body, name: 'Stabil Umzug'};
     if (file) mail.attachments = [file];
     var office = String(config_('notify_email') || Session.getEffectiveUser().getEmail() || '');

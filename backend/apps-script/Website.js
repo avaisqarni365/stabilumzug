@@ -185,7 +185,7 @@ function preAgreementPdf_(d) {
 }
 
 function preAgreementMail_(email, en, id, name, pdf) {
-  if (!email) return;
+  if (!email || !mailOk_(email)) return;
   var c = company_();
   MailApp.sendEmail({to: email, name: c.name, replyTo: c.email, attachments: [pdf],
     subject: en ? 'Your pre-agreement V-' + id + ' – Stabil Umzug' : 'Ihre Vorvereinbarung V-' + id + ' – Stabil Umzug',
@@ -259,7 +259,7 @@ function book_(b) {
 function hit_(b) {
   var p = String(b.p || '/').slice(0, 80);
   if (p.charAt(0) !== '/' || /[<>"]/.test(p)) return {ok: false};
-  var s = clip_(b.s || 'Direkt', 40), d = ['Handy', 'Tablet', 'Computer'].indexOf(b.d) >= 0 ? b.d : 'Computer', l = b.l === 'en' ? 'EN' : 'DE';
+  var s = cell_(b.s || 'Direkt', 40), d = ['Handy', 'Tablet', 'Computer'].indexOf(b.d) >= 0 ? b.d : 'Computer', l = b.l === 'en' ? 'EN' : 'DE';
   var day = Utilities.formatDate(new Date(), 'Europe/Berlin', 'yyyy-MM-dd'), key = [day, p, s, d, l].join('|');
   var lock = LockService.getScriptLock();
   if (!lock.tryLock(3000)) return {ok: false};
