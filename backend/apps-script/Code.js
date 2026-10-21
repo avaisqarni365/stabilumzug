@@ -37,10 +37,12 @@ function doGet(e) {
 function doPost(e) {
   try {
     if (!e || !e.postData || !e.postData.contents) return json({ok: false, error: 'empty'});
-    var big = e.postData.contents.length > 100000;   // only photo uploads may be larger (up to 10 photos of ~1600 px)
-    if (big && (e.postData.contents.slice(0, 30).indexOf('"action":"photos"') < 0 || e.postData.contents.length > PHOTO_MAX_BODY)) return json({ok: false, error: 'too_large'});
-    if (!rateLimit_()) return json({ok: false, error: 'busy'});
+    var size = e.postData.contents.length;
+    if (size > PHOTO_MAX_BODY) return json({ok: false, error: 'too_large'});
     var body = JSON.parse(e.postData.contents);
+    if (!body || typeof body !== 'object') return json({ok: false, error: 'empty'});
+    if (size > 100000 && body.action !== 'photos') return json({ok: false, error: 'too_large'});   // only photo uploads may be larger
+    if (!rateLimit_(body.action)) return json({ok: false, error: 'busy'});
     switch (body.action) {
       case 'lead': return json(saveLead_(body));
       case 'quick': return json(saveQuick_(body));
@@ -72,11 +74,25 @@ function json(o) {
 }
 
 /* At most 60 requests per minute in total: enough for a moving company, a brake for scripts. */
-function rateLimit_() {
-  var cache = CacheService.getScriptCache(), key = 'rl_' + Math.floor(Date.now() / 60000);
+/* Requests per minute for all visitors together, separately per kind: page views must never block a request form. */
+var RATE = {hit: 600, write: 20, read: 60};
+var WRITE_ACTIONS = ['lead', 'quick', 'book', 'photos', 'saveDraft', 'accept', 'resend', 'handover'];
+function rateLimit_(action) {
+  var kind = action === 'hit' ? 'hit' : WRITE_ACTIONS.indexOf(action) >= 0 ? 'write' : 'read';
+  var cache = CacheService.getScriptCache(), key = 'rl_' + kind + '_' + Math.floor(Date.now() / 60000);
   var n = Number(cache.get(key) || 0) + 1;
   cache.put(key, String(n), 120);
-  return n <= 60;
+  return n <= RATE[kind];
+}
+
+/* E-mails to an address a visitor typed in: at most 5 a day per address (protects strangers and the mail quota). */
+function mailOk_(addr) {
+  var a = String(addr || '').toLowerCase().trim();
+  if (!a) return false;
+  var cache = CacheService.getScriptCache(), key = 'ml_' + Utilities.base64EncodeWebSafe(a).slice(0, 200), n = Number(cache.get(key) || 0);
+  if (n >= 5) return false;
+  cache.put(key, String(n + 1), 86400);
+  return true;
 }
 
 /* ------------------------------------------------------------------ leads */
@@ -111,13 +127,13 @@ function saveLead_(b) {
     var srcTxt = [src.utm_source, src.utm_medium, src.utm_campaign, src.utm_term].filter(Boolean).join(' / ') || src.ref || (src.gclid ? 'Google Ads' : 'direkt');
     var date = moveDate_(s.f1);
     sheet_(TAB.leads).appendRow([
-      id, now, STATUS[0], '', '', cell_(name, 80), cell_(phone, 40), cell_(email, 120), clip_(c.channel, 20),
-      cell_(s.f1.from), cell_(s.f1.to), clip_(s.f1.km, 8), route.ok ? route.km : '', route.ok ? route.min : '',
+      id, now, STATUS[0], '', '', cell_(name, 80), cell_(phone, 40), cell_(email, 120), cell_(c.channel, 20),
+      cell_(s.f1.from), cell_(s.f1.to), cell_(s.f1.km, 8), route.ok ? route.km : '', route.ok ? route.min : '',
       date, (s.f1.hhSet && HH[s.f1.hh]) || '', acc(s.acc.old), acc(s.acc['new']), s.hvz ? 'ja' : 'nein', cell_(rooms, 300),
       est.n, round_(est.volLow), round_(est.volHigh), Math.round(est.kgMin) + '–' + Math.round(est.kgMax),
       VEH_DE[est.vehicle] + (est.trips > 1 ? ' · ' + est.trips + ' Fahrten' : ''), est.crew, round_(est.hours),
       {high: 'Hoch', medium: 'Mittel', low: 'Niedrig'}[est.conf], master.version, cell_(srcTxt, 120), b.lang === 'en' ? 'EN' : 'DE',
-      cell_(c.note, 1000), clip_(s.ref, 20), now, JSON.stringify(s).slice(0, 45000), 'Umzug (Planer)', '', '', '',
+      cell_(c.note, 1000), cell_(s.ref, 20), now, JSON.stringify(s).slice(0, 45000), 'Umzug (Planer)', '', '', '',
       cell_(payer.text, 300), pre ? 'V-' + id + ' zugestimmt am ' + Utilities.formatDate(now, 'Europe/Berlin', 'dd.MM.yyyy HH:mm') : ''
     ]);
     rows = [];
@@ -180,7 +196,7 @@ function saveQuick_(b) {
     set('Name', cell_(name, 80)); set('Telefon', cell_(phone, 40)); set('E-Mail', cell_(email, 120)); set('Kontaktweg', clip_(f.channel, 20));
     set('Von', cell_(from)); set('Nach', cell_(to));
     if (route.ok) { set('km (Maps)', route.km); set('Fahrzeit min', route.min); }
-    set('Termin', clip_(f.date, 10) || 'flexibel');
+    set('Termin', cell_(f.date, 10) || 'flexibel');
     set('Räume', f.rooms ? clip_(f.rooms, 6) + ' Zimmer' : '');
     set('Quelle', cell_(srcTxt, 120)); set('Sprache', b.lang === 'en' ? 'EN' : 'DE');
     set('Nachricht', cell_(f.message, 1000)); set('Einwilligung', now);
@@ -362,7 +378,7 @@ function resend_(email, lang) {
       if (tok && String(v[leadCol_('E-Mail') - 1]).toLowerCase() === email) links.push(v[0] + ': ' + portal + '?id=' + encodeURIComponent(v[0]) + '&k=' + tok);
     });
   }
-  if (links.length) {
+  if (links.length && mailOk_(email)) {
     var en = lang === 'en';
     try {
       MailApp.sendEmail({to: email, subject: en ? 'Your Stabil Umzug link' : 'Ihr Link zu „Mein Umzug“ – Stabil Umzug',

@@ -36,8 +36,15 @@ var CURRENT_ = null;   // the logged-in user of this call, set by api()
 /* login(username, password) → {ok, token, name} or {ok: false, error}. Same answer for unknown user and wrong password. */
 function login(user, pass) {
   var u = String(user || '').trim().toLowerCase().slice(0, 60), cache = CacheService.getScriptCache(), key = 'admfail_' + u;
-  var fails = Number(cache.get(key) || 0);
-  if (fails >= LOCK_TRIES) return {ok: false, error: 'locked'};
+  // count the attempt before checking the password, under a lock: parallel requests cannot get more than LOCK_TRIES guesses
+  var lock = LockService.getScriptLock(), fails;
+  lock.waitLock(10000);
+  try {
+    fails = Number(cache.get(key) || 0);
+    // site-wide brake: more than 30 failed logins in 15 minutes (any user names) pauses all logins for a while
+    if (fails >= LOCK_TRIES || Number(cache.get('admfail_all') || 0) > 30) return {ok: false, error: 'locked'};
+    cache.put(key, String(fails + 1), LOCK_SECONDS);
+  } finally { lock.releaseLock(); }
   var sh = usersSheet_(), n = sh.getLastRow(), c = function (k) { return USER_COLS.indexOf(k); };
   var rows = n > 1 ? sh.getRange(2, 1, n - 1, USER_COLS.length).getValues() : [], hit = -1;
   for (var i = 0; i < rows.length; i++) if (String(rows[i][c('Benutzername')]).trim().toLowerCase() === u && u) { hit = i; break; }
@@ -51,7 +58,7 @@ function login(user, pass) {
     if (r[c('Passwort (verschlüsselt)')] && hashPw_(pass, r[c('Salt')]) === String(r[c('Passwort (verschlüsselt)')])) { ok = true; name = String(r[c('Name')] || r[c('Benutzername')]); }
   }
   if (!ok) {
-    cache.put(key, String(fails + 1), LOCK_SECONDS);
+    cache.put('admfail_all', String(Number(cache.get('admfail_all') || 0) + 1), LOCK_SECONDS);
     Utilities.sleep(600);
     return {ok: false, error: fails + 1 >= LOCK_TRIES ? 'locked' : 'login'};
   }
