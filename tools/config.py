@@ -31,7 +31,13 @@ SITE = {
     "vat_id": "DE458214531",
     "register": "",
     "hosting": "GitHub Pages (GitHub, Inc., 88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, USA)",
-    "maps_url": "https://maps.google.com/?q=Stabil+Umzug+Karlstra%C3%9Fe+32+45329+Essen",
+    "maps_url": "https://maps.google.com/?cid=13742321947036407879",
+    # Google rating, copied from your Google Business Profile, with the date you looked it up. Empty = not shown.
+    # Shown at the top of the home page (key figure) and in the reviews section, always with date and profile link.
+    "google_rating": "4.9",
+    "google_reviews_count": 42,
+    "google_rating_date": "21.10.2026",   # update together with rating and count
+    "google_profile_url": "https://maps.google.com/?cid=13742321947036407879",
     "logo_url": "https://www.stabilumzug.de/assets/img/og.png",
     "brand_images": [
         "https://www.stabilumzug.de/assets/img/van-branded.jpg",

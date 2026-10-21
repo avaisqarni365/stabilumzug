@@ -147,6 +147,17 @@ def quick_plan(key, lang, title=None, kicker=None, from_value=""):
         t("Umzug planen", "Plan my move", lang),
         t("Ohne Konto · ca. 10 Minuten · Volumen, Fahrzeug und Team sofort sehen", "No account · about 10 minutes · see volume, vehicle and crew right away", lang))
 
+def google_rating(lang):
+    """The real Google rating from config.py (score, count, date, profile link) – None until all four are filled in."""
+    r, n, d = str(SITE.get("google_rating", "")).strip(), int(SITE.get("google_reviews_count") or 0), str(SITE.get("google_rating_date", "")).strip()
+    url = str(SITE.get("google_profile_url", "")).strip()
+    if not (r and n and d and url.startswith("https://")):
+        return None
+    v = max(0.0, min(5.0, float(r.replace(",", "."))))
+    full = int(v + 0.25)
+    return {"score": ("%.1f" % v).replace(".", ",") if lang == "de" else "%.1f" % v, "count": n, "date": d, "url": url,
+            "stars": "★" * full + "☆" * (5 - full)}
+
 def home(lang):
     import guides
     import services as services_mod
@@ -154,20 +165,25 @@ def home(lang):
     L = lambda k: link(key, k, lang)
     pre = prefix_for(key, lang)
     call = ('<a class="button arrow tel" href="%s" aria-label="%s">%s</a>' % (phone_link(), esc(t("Anrufen: ", "Call: ", lang) + SITE["phone"]), esc(SITE["phone"]))) if phone_link() else ""
+    G = google_rating(lang)
     facts = [(t("Essen", "Essen", lang), t("Sitz in Altenessen, Einsatz in ganz NRW", "based in Altenessen, working across NRW", lang)),
              (t("24 Std.", "24 h", lang), t("bis zu Ihrem Angebot", "to your quote", lang)),
              (t("7 Tage", "7 days", lang), t("die Woche erreichbar", "a week reachable", lang)),
              (t("10 Min.", "10 min", lang), t("Planer ohne Konto", "planner, no account", lang))]
     hero = (
         '<section class="hero on-dark"><div class="container">'
-        '<div class="hero-copy"><span class="kicker">%s</span><h1>%s</h1><p class="tagline">%s</p>%s<p class="lead">%s</p>'
+        '<div class="hero-copy"><span class="kicker">%s</span><h1>%s</h1><p class="tagline">%s</p>%s%s<p class="lead">%s</p>'
         '<div class="actions"><a class="button primary" href="%s">%s</a>%s</div></div>'
         '<figure class="hero-art"><img src="%sassets/img/van-branded.jpg" srcset="%sassets/img/van-branded-640.jpg 640w, %sassets/img/van-branded.jpg 1108w" sizes="(max-width:860px) 92vw, 50vw" alt="%s" width="1108" height="1108" fetchpriority="high"><figcaption>%s</figcaption></figure>'
         '<ul class="facts">%s</ul>'
         '</div></section>'
     ) % (
         t("Umzugsunternehmen · Essen", "Moving company · Essen", lang),
-        t("Umzug, Entrümpelung und Transport in Essen.", "Moves, clear-outs and transport in Essen.", lang), t("Stabil geplant.", "Solidly planned.", lang), quick_plan(key, lang),
+        t("Umzug, Entrümpelung und Transport in Essen.", "Moves, clear-outs and transport in Essen.", lang), t("Stabil geplant.", "Solidly planned.", lang),
+        ('<a class="g-chip" href="%s" target="_blank" rel="noopener"><span class="g-stars" aria-hidden="true">%s</span><b>%s</b><span>%s</span><span class="g-more">%s</span></a>' % (
+            esc(G["url"]), G["stars"], esc(G["score"]), esc(t("%d Google-Bewertungen · Stand %s", "%d Google reviews · as of %s", lang) % (G["count"], G["date"])),
+            t("ansehen ↗", "view ↗", lang))) if G else "",
+        quick_plan(key, lang),
         esc(t("Umzüge, Entrümpelungen, Wohnungsauflösungen und Transporte – im Ruhrgebiet und in ganz Deutschland. Kostenloses, persönliches Angebot innerhalb von 24 Stunden.",
               "Moves, clear-outs, household clearances and transport – across the Ruhr area and all of Germany. Free personal quote within 24 hours.", lang)),
         L("quote"), t("Kostenloses Angebot", "Free quote", lang), call,
@@ -255,7 +271,7 @@ def home(lang):
         esc(t("Damit Möbel heil ankommen und Treppenhäuser ohne Kratzer bleiben.", "So furniture arrives intact and stairwells stay free of scratches.", lang)),
         "".join("<li>%s</li>" % esc(t(*x, lang)) for x in gear)))
 
-    if TESTIMONIALS:
+    if TESTIMONIALS or G:
         # only real reviews, word for word: {"name", "place", "text", "stars" (1-5), "date" ("März 2026"), "source" ("Google")}
         review_cards = []
         for q in TESTIMONIALS:
@@ -269,20 +285,23 @@ def home(lang):
                     esc(q["name"][:1]), esc(q["name"]), esc(q.get("place", SITE["city"])), esc(q.get("source", "Google")),
                     esc(t("%d von 5 Sternen" % n, "%d of 5 stars" % n, lang)), "★" * n + "☆" * (5 - n), svc_badge,
                     esc(q["text"]), esc(q.get("place", SITE["city"])), esc(q["date"])))
-        summary_box = (
+        summary_box = ((('<div class="gr-score"><strong>%s</strong><div class="gr-stars" aria-hidden="true">%s</div></div>' % (esc(G["score"]), G["stars"]))
+                        + '<p class="gr-count">%s</p>' % esc(t("%d Google-Bewertungen · Stand %s", "%d Google reviews · as of %s", lang) % (G["count"], G["date"]))) if G else "") + (
             '<div class="gr-summary"><p>%s</p><div class="actions" style="margin-top:10px">'
             '<a class="button arrow" href="%s" target="_blank" rel="noopener">%s</a>'
             '<a class="button primary" href="%s" target="_blank" rel="noopener">%s</a></div></div>'
         ) % (
             esc(t("Ausgewählte Bewertungen im Wortlaut. Wir prüfen nicht, ob die Verfasser unsere Leistungen tatsächlich genutzt haben; alle Bewertungen finden Sie bei Google.",
-                  "Selected reviews, word for word. We do not check whether the authors actually used our services; you can find all reviews on Google.", lang)),
-            google_maps_url, t("Alle Bewertungen auf Google ↗", "All reviews on Google ↗", lang),
-            google_maps_url, t("Bewertung auf Google schreiben", "Write a Google review", lang))
+                  "Selected reviews, word for word. We do not check whether the authors actually used our services; you can find all reviews on Google.", lang) if review_cards else
+                t("Alle Bewertungen stammen von unserem Google-Unternehmensprofil und sind dort öffentlich nachzulesen.",
+                  "All reviews come from our Google Business Profile, where you can read them publicly.", lang)),
+            (G["url"] if G else google_maps_url), t("Alle Bewertungen auf Google ↗", "All reviews on Google ↗", lang),
+            (G["url"] if G else google_maps_url), t("Bewertung auf Google schreiben", "Write a Google review", lang))
         body += sec(" gr-section", head(
             t("Kundenstimmen", "Customer reviews", lang),
             t("Was Kunden über Stabil Umzug sagen", "What customers say about Stabil Umzug", lang),
             t("Bewertungen von Kunden aus Essen und dem Ruhrgebiet.", "Reviews from customers in Essen and the Ruhr area.", lang)
-        ) + summary_box + '<div class="gr-grid">%s</div>' % "".join(review_cards))
+        ) + summary_box + ('<div class="gr-grid">%s</div>' % "".join(review_cards) if review_cards else ""))
     body += sec("", head(t("Häufige Fragen", "Common questions", lang), t("Kurz beantwortet.", "Briefly answered.", lang),
                          t("Was Familien uns vor dem Umzug am häufigsten fragen.", "What families ask us most often before a move.", lang)) + faq_html(lang, key))
     body += cta(key, lang)
