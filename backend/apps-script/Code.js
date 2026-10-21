@@ -113,7 +113,7 @@ function saveLead_(b) {
     sheet_(TAB.leads).appendRow([
       id, now, STATUS[0], '', '', cell_(name, 80), cell_(phone, 40), cell_(email, 120), clip_(c.channel, 20),
       cell_(s.f1.from), cell_(s.f1.to), clip_(s.f1.km, 8), route.ok ? route.km : '', route.ok ? route.min : '',
-      date, HH[s.f1.hh] || '', acc(s.acc.old), acc(s.acc['new']), s.hvz ? 'ja' : 'nein', cell_(rooms, 300),
+      date, (s.f1.hhSet && HH[s.f1.hh]) || '', acc(s.acc.old), acc(s.acc['new']), s.hvz ? 'ja' : 'nein', cell_(rooms, 300),
       est.n, round_(est.volLow), round_(est.volHigh), Math.round(est.kgMin) + '–' + Math.round(est.kgMax),
       VEH_DE[est.vehicle] + (est.trips > 1 ? ' · ' + est.trips + ' Fahrten' : ''), est.crew, round_(est.hours),
       {high: 'Hoch', medium: 'Mittel', low: 'Niedrig'}[est.conf], master.version, cell_(srcTxt, 120), b.lang === 'en' ? 'EN' : 'DE',
