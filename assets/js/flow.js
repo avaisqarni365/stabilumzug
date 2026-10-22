@@ -894,7 +894,7 @@
   /* our own photos (team in Stabil Umzug workwear) in the start-screen cards: 640 / 1024 px versions */
   function photo(name, alt) {
     var p = BASE + 'assets/img/photos/' + name;
-    return '<img src="' + p + '-640.jpg" srcset="' + p + '-640.jpg 640w, ' + p + '-1024.jpg 1024w" sizes="(max-width:760px) 45vw, 300px" alt="' + esc(alt) + '" width="640" height="427" loading="lazy" decoding="async">';
+    return '<img src="' + p + '-640.jpg" srcset="' + p + '-640.jpg 640w, ' + p + '-1024.jpg 1024w" sizes="(max-width:760px) 45vw, 360px" alt="' + esc(alt) + '" width="640" height="427" loading="lazy" decoding="async">';
   }
 
   if (S.step > 0 && !S.started) S.started = Date.now() - 60000;

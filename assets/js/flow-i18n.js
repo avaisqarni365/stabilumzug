@@ -8,7 +8,7 @@ window.FLOW_T = {
   back: 'Zurück', next: 'Weiter', guessTag: 'geschätzt', remove: 'Entfernen',
   f0: {
    kicker: 'Umzugsunternehmen · Essen',
-   title1: 'Umzug in Essen und ganz Deutschland.', title2: 'Stabil geplant.',
+   title1: 'Umzug in Essen und im Ruhrgebiet.', title2: 'Stabil geplant.',
    lead: 'Umzüge, Klaviertransporte und Entrümpelungen – professionell, sorgfältig und flexibel. 7 Tage die Woche für Sie da.',
    fleet: 'Unser Transporter',
    how: 'So läuft Ihr Umzug',
@@ -143,7 +143,7 @@ window.FLOW_T = {
   back: 'Back', next: 'Next', guessTag: 'guess', remove: 'Remove',
   f0: {
    kicker: 'Moving company · Essen',
-   title1: 'Moving in Essen and across Germany.', title2: 'Solidly planned.',
+   title1: 'Moving in Essen and the Ruhr area.', title2: 'Solidly planned.',
    lead: 'Moves, piano transport and clear-outs – professional, careful and flexible. There for you 7 days a week.',
    fleet: 'Our transporter',
    how: 'How your move works',
