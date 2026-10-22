@@ -114,6 +114,7 @@ function leadObj_(v) {
     quoteSent: iso_(g('Angebot gesendet')), hasToken: !!g('Kundentoken'),
     payer: String(g('Kostenträger') || ''), pre: String(g('Vorvereinbarung') || ''),
     payerData: (function () { try { return JSON.parse(g('Daten (JSON)') || '{}').payer || null; } catch (e) { return null; } })(),
+    arrival: (function () { try { return JSON.parse(g('Daten (JSON)') || '{}').arrival || ''; } catch (e) { return ''; } })(),
     contract: (function () { try { var c = JSON.parse(g('Daten (JSON)') || '{}').contract || null; if (c) delete c.sigData; return c; } catch (e) { return null; } })(),
     handover: (function () { try { return JSON.parse(g('Daten (JSON)') || '{}').handover || null; } catch (e) { return null; } })(),
     photosDrive: (function () { var n = String(g('Notizen') || ''); var m = n.match(/Google Drive:\s*(https:\/\/[^\s\)]+)/); return m ? m[1] : ''; })()
@@ -191,6 +192,16 @@ function api_update_(id, patch) {
       sh.getRange(hit.row, col).setValue(val);
       audit.appendRow([now, email, TAB.leads, id + ' · ' + fields[k], k === 'notes' ? '(Notiz)' : old, k === 'notes' ? '(Notiz geändert)' : val]);
     });
+    if (patch.arrival !== undefined) {   // F11: arrival time of the team, shown to the customer from the day before
+      var arr = /^([01]\d|2[0-3]):[0-5]\d$/.test(String(patch.arrival)) ? String(patch.arrival) : '', jc = leadCol_('Daten (JSON)'), jm = {};
+      try { jm = JSON.parse(hit.values[jc - 1] || '{}'); } catch (e) {}
+      if ((jm.arrival || '') !== arr) {
+        jm.arrival = arr;
+        sh.getRange(hit.row, jc).setValue(JSON.stringify(jm));
+        hit.values[jc - 1] = JSON.stringify(jm);
+        audit.appendRow([now, email, TAB.leads, id + ' · Ankunft Team', '', arr || '(leer)']);
+      }
+    }
     if (patch.handover !== undefined) {
       var jsonCol = leadCol_('Daten (JSON)');
       var jsonMeta = {};

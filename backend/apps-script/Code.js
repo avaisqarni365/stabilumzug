@@ -52,6 +52,7 @@ function doPost(e) {
       case 'photos': return json(photos_(body));
       case 'hit': return json(hit_(body));
       case 'saveDraft': return json(saveDraft_(body));
+      case 'damage': return json(damage_(body));
       case 'accept': return json(accept_(String(body.id || ''), String(body.k || ''), body.confirm === true, body.sig, body.signer, body.waiver === true,
                                          {date: String(body.date || ''), payment: String(body.payment || '')}));
       case 'resend': return json(resend_(String(body.email || ''), String(body.lang || 'de')));
@@ -77,7 +78,7 @@ function json(o) {
 /* At most 60 requests per minute in total: enough for a moving company, a brake for scripts. */
 /* Requests per minute for all visitors together, separately per kind: page views must never block a request form. */
 var RATE = {hit: 600, write: 20, read: 60};
-var WRITE_ACTIONS = ['lead', 'quick', 'book', 'photos', 'saveDraft', 'accept', 'resend', 'handover'];
+var WRITE_ACTIONS = ['lead', 'quick', 'book', 'photos', 'saveDraft', 'accept', 'resend', 'handover', 'damage'];
 function rateLimit_(action) {
   var kind = action === 'hit' ? 'hit' : WRITE_ACTIONS.indexOf(action) >= 0 ? 'write' : 'read';
   var cache = CacheService.getScriptCache(), key = 'rl_' + kind + '_' + Math.floor(Date.now() / 60000);
@@ -264,6 +265,7 @@ function portal_(id, k) {
   return {
     dateMode: isoDay_(day_(g('Termin'))) ? 'fixed' : 'flex', dateFrom: isoDay_(f1.dateFrom) || '', dateTo: isoDay_(f1.dateTo) || '', payer: pk > 0,
     booking: contract ? {date: contract.date || '', payment: contract.payment || ''} : null,
+    arrival: jsonMeta.arrival || '', reviewUrl: reviewUrl_(), damage: (jsonMeta.damage || []).length,
     ok: true, id: id, name: name, service: String(g('Leistung') || 'Umzug').replace(/ \((Planer|Kurzformular)\)$/, ''),
     status: String(g('Status') || STATUS[0]), date: day_(g('Termin')), from: String(g('Von') || ''), to: String(g('Nach') || ''),
     lang: String(g('Sprache') || 'DE'), quoteSent: iso_(g('Angebot gesendet')),
@@ -297,6 +299,73 @@ function sigOf_(id) {
   var v = sh.getRange(2, 1, sh.getLastRow() - 1, 4).getValues();
   for (var i = v.length - 1; i >= 0; i--) if (String(v[i][0]) === String(id)) return String(v[i][3]);
   return '';
+}
+
+/* ------------------------------------------------------------------ before, on and after the moving day (F10–F12) */
+
+/* Google review link: "review_url" in Konfiguration, else the business profile. */
+function reviewUrl_() {
+  var u = '';
+  try { u = String(config_('review_url') || ''); } catch (e) {}
+  return /^https:\/\//.test(u) ? u : 'https://maps.google.com/?cid=13742321947036407879';
+}
+function portalLink_(id, token, en) {
+  return (en ? 'https://www.stabilumzug.de/en/my-move/' : 'https://www.stabilumzug.de/mein-umzug/') + '?id=' + encodeURIComponent(id) + '&k=' + token;
+}
+
+/* Daily: reminder 7 days and 1 day before the move (F10/F11), thank-you with review and damage link after it (F12).
+   Each mail is sent once per request (marked in the request JSON). */
+function customerMails_(now) {
+  var sh = sheet_(TAB.leads), v = sh.getDataRange().getValues(), today = Utilities.formatDate(now, 'Europe/Berlin', 'yyyy-MM-dd'), n = 0;
+  var c = function (name) { return leadCol_(name) - 1; };
+  for (var i = 1; i < v.length && n < 40; i++) {
+    var r = v[i], id = String(r[0]), status = String(r[c('Status')]), email = String(r[c('E-Mail')] || ''), tok = String(r[c('Kundentoken')] || '');
+    if (!id || !email || !tok || ['Gebucht', 'Erledigt'].indexOf(status) < 0) continue;
+    var meta = {}; try { meta = JSON.parse(r[JSON_COL - 1] || '{}'); } catch (e) { continue; }
+    var sent = meta.mails || {}, en = String(r[c('Sprache')]) === 'EN', name = String(r[c('Name')] || '');
+    var date = day_(r[c('Termin')]), days = /^\d{4}-\d{2}-\d{2}$/.test(date) ? Math.round((new Date(date + 'T12:00:00') - new Date(today + 'T12:00:00')) / 864e5) : null;
+    var kind = status === 'Gebucht' && days === 7 && !sent.d7 ? 'd7' : status === 'Gebucht' && days === 1 && !sent.d1 ? 'd1' : status === 'Erledigt' && !sent.thanks ? 'thanks' : '';
+    if (!kind) continue;
+    var link = portalLink_(id, tok, en), when = date.split('-').reverse().join(en ? '/' : '.');
+    var M = {
+      d7: en ? ['Your move on ' + when + ' – one week to go', 'one week to go until your move on ' + when + '. In your personal area you find the checklist with what is due now (mail forwarding, utilities, packing):'] :
+               ['Ihr Umzug am ' + when + ' – noch eine Woche', 'in einer Woche ist Ihr Umzug am ' + when + '. In Ihrem persönlichen Bereich finden Sie die Checkliste mit allem, was jetzt ansteht (Nachsendeauftrag, Strom und Internet, Packen):'],
+      d1: en ? ['Tomorrow is your moving day', 'tomorrow is your move. Please keep the parking space free, note the meter readings and keep valuables and documents with you. Arrival time of our team' + (meta.arrival ? ': ' + meta.arrival : ' – see your personal area') + ':'] :
+               ['Morgen ist Ihr Umzugstag', 'morgen ist Ihr Umzug. Bitte halten Sie den Parkplatz frei, notieren Sie die Zählerstände und nehmen Sie Wertsachen und Dokumente selbst mit. Ankunft unseres Teams' + (meta.arrival ? ': ' + meta.arrival + ' Uhr' : ' – siehe Ihr persönlicher Bereich') + ':'],
+      thanks: en ? ['Thank you for moving with Stabil Umzug', 'thank you for your trust! We hope you are settling in well. If you are happy with us, a short Google review helps us a lot: ' + reviewUrl_() + NLQ + 'If anything was damaged, please report it here within 14 days:'] :
+                   ['Danke für Ihren Umzug mit Stabil Umzug', 'vielen Dank für Ihr Vertrauen – wir hoffen, Sie haben sich gut eingelebt. Wenn Sie zufrieden waren, hilft uns eine kurze Google-Bewertung sehr: ' + reviewUrl_() + NLQ + 'Falls etwas beschädigt wurde, melden Sie es bitte innerhalb von 14 Tagen hier:']
+    }[kind];
+    if (!mailOk_(email)) continue;
+    try {
+      MailApp.sendEmail({to: email, name: 'Stabil Umzug', subject: M[0],
+        body: (en ? 'Hello ' : 'Guten Tag ') + name + ',' + NLQ + M[1] + NLQ + link + (kind === 'thanks' ? '#schaden' : '') + NLQ + (en ? 'Kind regards' : 'Viele Grüße') + '\nStabil Umzug · 0163 9688190'});
+      sent[kind] = today; meta.mails = sent; n++;
+      sh.getRange(i + 1, JSON_COL).setValue(JSON.stringify(meta).slice(0, 49000));
+    } catch (err) { console.error('customer mail', id, err); }
+  }
+  return n;
+}
+var NLQ = '\n\n';
+
+/* F12: the customer reports damage after the move (token protected); goes to the notes, the audit and the office. */
+function damage_(b) {
+  var id = String(b.id || ''), text = clip_(b.text, 2000);
+  if (text.length < 5) return {ok: false, error: 'text'};
+  var lock = LockService.getScriptLock(); lock.waitLock(20000);
+  var hit;
+  try {
+    hit = leadByToken_(id, String(b.k || ''));
+    if (!hit) return {ok: false, error: 'not_found'};
+    var meta = {}; try { meta = JSON.parse(hit.values[JSON_COL - 1] || '{}'); } catch (e) {}
+    meta.damage = (meta.damage || []).concat([{at: iso_(new Date()), text: text}]).slice(-10);
+    sheet_(TAB.leads).getRange(hit.row, JSON_COL).setValue(JSON.stringify(meta).slice(0, 49000));
+    var col = leadCol_('Notizen'), old = String(hit.values[col - 1] || '');
+    sheet_(TAB.leads).getRange(hit.row, col).setValue(cell_((old ? old + '\n' : '') + 'Schadensmeldung (Kunde, ' + Utilities.formatDate(new Date(), 'Europe/Berlin', 'dd.MM.yyyy') + '): ' + text, 2000));
+    sheet_(TAB.audit).appendRow([new Date(), 'Kunde', TAB.leads, id + ' · Schadensmeldung', '', text.slice(0, 200)]);
+  } finally { lock.releaseLock(); }
+  var to = config_('notify_email') || Session.getEffectiveUser().getEmail();
+  if (to) try { MailApp.sendEmail({to: to, subject: 'Schadensmeldung zu ' + id, body: 'Der Kunde meldet einen Schaden:' + NLQ + text + NLQ + adminLink_(id)}); } catch (err) { console.error(err); }
+  return {ok: true};
 }
 
 function sigSheet_() {
@@ -743,6 +812,7 @@ function daily() {
     for (var j = rv.length - 1; j >= 1; j--) { if (rv[j][0] && new Date(rv[j][0]) < cut) routes.deleteRow(j + 1); }
   }
   try { purgeOld_(now); } catch (err) { console.error(err); }
+  try { customerMails_(now); } catch (err) { console.error(err); }
   var leads = sheet_(TAB.leads).getDataRange().getValues().slice(1), open = [];
   leads.forEach(function (r) {
     var age = (now - new Date(r[1])) / 864e5;

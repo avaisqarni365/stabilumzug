@@ -1483,3 +1483,13 @@ details.fs-card > summary:focus-visible{outline:2px solid var(--red);outline-off
 .bk-pay legend{font-weight:600;font-size:14px;margin-bottom:6px;padding:0}
 .bk-pay label{display:flex;align-items:center;gap:8px;min-height:40px;font-size:14px;cursor:pointer}
 .bk-pay input{width:20px;height:20px}
+
+/* ---------- customer area: checklist marks, moving day, after the move ---------- */
+.pcheck li.t-soon span,.pcheck li.t-late span{font-weight:600}
+.t-flag{display:inline-block;font-size:11px;letter-spacing:.04em;text-transform:uppercase;padding:1px 6px;margin-left:6px;border-radius:4px;vertical-align:1px}
+.t-soon .t-flag{background:#fff4d6;color:#8a5a00}.t-late .t-flag{background:#fde4dc;color:#b42318}
+.pday{border:2px solid var(--red);background:var(--tint)}
+.pday-time{font-size:1.15rem;margin:4px 0 12px}
+.pafter textarea{width:100%;min-height:110px}
+@media (max-width:520px){.pstep{column-gap:6px}.pstep li{font-size:11px;line-height:1.3;padding-right:0}.pstep li span{font-size:1.2rem}}
+.pday{padding:16px 18px}.pday .checks{margin-bottom:0}.pafter p{text-align:left;hyphens:auto}

@@ -38,8 +38,16 @@
     needConsents: 'Please confirm the order and the privacy policy before signing.',
     err: 'That did not work. Please try again or call us.',
     list: 'Your checklist', before: 'days before', after: 'days after', due: 'by',
-    tasks: [['hvz', 'Apply for a no-parking zone (we do this if you chose it)', 14], ['bulk', 'Book bulky-waste pickup with the city', 10], ['mail', 'Set up mail forwarding', 7],
-      ['util', 'Transfer power, gas and internet', 7], ['pack', 'Pack and label boxes room by room', 3], ['reg', 'Register at the citizens’ office', -14]],
+    tasks: [['notice', 'Give notice on the old flat (usually 3 months)', 60], ['leave', 'Ask your employer for a day off on moving day', 30],
+      ['hvz', 'Apply for a no-parking zone (we do this if you chose it)', 14], ['bulk', 'Book bulky-waste pickup with the city', 10], ['mail', 'Set up mail forwarding', 7],
+      ['util', 'Transfer power, gas and internet', 7], ['pack', 'Pack and label boxes room by room', 3], ['fridge', 'Defrost the fridge, empty the freezer', 1],
+      ['meter', 'Note meter readings and hand over keys', 0], ['reg', 'Register at the citizens’ office', -14]],
+    soon: 'due soon', late: 'overdue',
+    dayTitle0: 'Today is your moving day', dayTitle1: 'Tomorrow is your moving day', arrival: 'Our team arrives at', arrivalOpen: 'We confirm the arrival time by phone.',
+    dayList: ['Keep the parking space in front of the house free', 'Note the meter readings (power, gas, water)', 'Keep valuables, documents and medicine with you', 'Pack a box with things for the first night'],
+    afterTitle: 'How was your move?', afterText: 'Thank you for moving with us. A short Google review helps other families find us.',
+    review: 'Write a Google review', damageTitle: 'Report damage', damageHint: 'Please describe what was damaged and where (within 14 days of the move).',
+    damageSend: 'Send report', damageOk: 'Thank you – we will contact you about it.', damageErr: 'Please describe the damage in a few words.',
     help: 'Questions?', call: 'Call', wa: 'WhatsApp'
   } : {
     loading: 'Ihr Umzug wird geladen …', notFound: 'Dieser Link ist nicht (mehr) gültig. Geben Sie Ihre E-Mail-Adresse ein – wir senden Ihnen Ihren aktuellen Link.',
@@ -73,8 +81,16 @@
     needConsents: 'Bitte bestätigen Sie den Auftrag und die Datenschutzhinweise.',
     err: 'Das hat nicht geklappt. Bitte erneut versuchen oder anrufen.',
     list: 'Ihre Checkliste', before: 'Tage vorher', after: 'Tage danach', due: 'bis',
-    tasks: [['hvz', 'Halteverbotszone beantragen (übernehmen wir, wenn gewählt)', 14], ['bulk', 'Sperrmüll-Termin bei der Stadt', 10], ['mail', 'Nachsendeauftrag stellen', 7],
-      ['util', 'Strom, Gas und Internet ummelden', 7], ['pack', 'Kartons packen und beschriften', 3], ['reg', 'Ummeldung beim Bürgeramt', -14]],
+    tasks: [['notice', 'Alte Wohnung kündigen (meist 3 Monate Frist)', 60], ['leave', 'Beim Arbeitgeber Sonderurlaub für den Umzugstag erfragen', 30],
+      ['hvz', 'Halteverbotszone beantragen (übernehmen wir, wenn gewählt)', 14], ['bulk', 'Sperrmüll-Termin bei der Stadt', 10], ['mail', 'Nachsendeauftrag stellen', 7],
+      ['util', 'Strom, Gas und Internet ummelden', 7], ['pack', 'Kartons packen und beschriften', 3], ['fridge', 'Kühlschrank abtauen, Gefrierfach leeren', 1],
+      ['meter', 'Zählerstände notieren, Schlüssel übergeben', 0], ['reg', 'Ummeldung beim Bürgeramt', -14]],
+    soon: 'bald fällig', late: 'überfällig',
+    dayTitle0: 'Heute ist Ihr Umzugstag', dayTitle1: 'Morgen ist Ihr Umzugstag', arrival: 'Unser Team kommt um', arrivalOpen: 'Die Ankunftszeit bestätigen wir Ihnen telefonisch.',
+    dayList: ['Parkplatz vor dem Haus freihalten', 'Zählerstände notieren (Strom, Gas, Wasser)', 'Wertsachen, Dokumente und Medikamente selbst mitnehmen', 'Einen Karton für die erste Nacht packen'],
+    afterTitle: 'Wie war Ihr Umzug?', afterText: 'Danke, dass Sie mit uns umgezogen sind. Eine kurze Google-Bewertung hilft anderen Familien, uns zu finden.',
+    review: 'Google-Bewertung schreiben', damageTitle: 'Schaden melden', damageHint: 'Bitte beschreiben Sie, was wo beschädigt wurde (innerhalb von 14 Tagen nach dem Umzug).',
+    damageSend: 'Meldung senden', damageOk: 'Danke – wir melden uns dazu bei Ihnen.', damageErr: 'Bitte beschreiben Sie den Schaden in ein paar Worten.',
     help: 'Fragen?', call: 'Anrufen', wa: 'WhatsApp'
   };
   var loc = en ? 'en-GB' : 'de-DE';
@@ -245,10 +261,24 @@
       var done = {}; try { done = JSON.parse(localStorage.getItem('su-check-' + d.id) || '{}'); } catch (e) {}
       var base = new Date(d.date + 'T12:00:00');
       list = '<section class="pcard"><h2>' + esc(T.list) + '</h2><ul class="pcheck">' + T.tasks.map(function (tk) {
-        var due = new Date(base.getTime() - tk[2] * 864e5);
-        return '<li><label><input type="checkbox" data-t="' + tk[0] + '"' + (done[tk[0]] ? ' checked' : '') + '> <span>' + esc(tk[1]) +
+        var due = new Date(base.getTime() - tk[2] * 864e5), left = Math.round((due - new Date()) / 864e5), mark = done[tk[0]] ? '' : left < 0 ? 'late' : left <= 3 ? 'soon' : '';
+        return '<li' + (mark ? ' class="t-' + mark + '"' : '') + '><label><input type="checkbox" data-t="' + tk[0] + '"' + (done[tk[0]] ? ' checked' : '') + '> <span>' + esc(tk[1]) +
+          (mark ? ' <b class="t-flag">' + esc(T[mark]) + '</b>' : '') +
           '<small>' + esc(T.due) + ' ' + due.toLocaleDateString(loc, {day: '2-digit', month: '2-digit'}) + ' · ' + Math.abs(tk[2]) + ' ' + esc(tk[2] > 0 ? T.before : T.after) + '</small></span></label></li>';
       }).join('') + '</ul></section>';
+    }
+    var dayCard = '', todayIso = new Date().toISOString().slice(0, 10), tmr = new Date(Date.now() + 864e5).toISOString().slice(0, 10);
+    if (d.status === 'Gebucht' && isDate(d.date) && (d.date === todayIso || d.date === tmr)) {
+      dayCard = '<section class="pcard pday"><h2>' + esc(d.date === todayIso ? T.dayTitle0 : T.dayTitle1) + '</h2>' +
+        '<p class="pday-time">' + (d.arrival ? esc(T.arrival) + ' <b>' + esc(d.arrival) + (en ? '' : ' Uhr') + '</b>' : esc(T.arrivalOpen)) + '</p>' +
+        '<ul class="checks">' + T.dayList.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul></section>';
+    }
+    if (d.status === 'Erledigt') {
+      dayCard = '<section class="pcard pafter" id="schaden"><h2>' + esc(T.afterTitle) + '</h2><p>' + esc(T.afterText) + '</p>' +
+        (d.reviewUrl ? '<div class="actions" style="margin:12px 0 22px"><a class="button primary" href="' + esc(d.reviewUrl) + '" target="_blank" rel="noopener">★ ' + esc(T.review) + '</a></div>' : '') +
+        '<h3>' + esc(T.damageTitle) + '</h3><p class="muted">' + esc(T.damageHint) + '</p>' +
+        '<textarea class="input" id="dmg" rows="4" maxlength="2000"></textarea>' +
+        '<div class="actions" style="margin-top:10px"><button class="button arrow" type="button" id="dmg-send">' + esc(T.damageSend) + '</button></div><p class="msg" id="dmg-msg" role="status"></p></section>';
     }
     var help = '<section class="pcard"><h2>' + esc(T.help) + '</h2><div class="actions">' +
       (SITE.phone_href ? '<a class="button arrow" href="tel:' + esc(SITE.phone_href) + '">' + esc(T.call + ' ' + SITE.phone) + '</a>' : '') +
@@ -256,8 +286,18 @@
 
     box.innerHTML = '<p class="portal-hello">' + esc((en ? 'Hello ' : 'Hallo ') + d.name) + '</p>' + (closed ? '<p class="portal-msg">' + esc(T.closed) + '</p>' : steps) +
       '<dl class="pfacts">' + facts.map(function (f) { return '<div><dt>' + esc(f[0]) + '</dt><dd>' + esc(f[1]) + '</dd></div>'; }).join('') + '</dl>' +
-      '<div class="pgrid"><div>' + quote + '</div><div>' + list + help + '</div></div>';
+      dayCard + '<div class="pgrid"><div>' + quote + '</div><div>' + list + help + '</div></div>';
 
+    var dmgBtn = document.getElementById('dmg-send');   // F12: damage report
+    if (dmgBtn) dmgBtn.addEventListener('click', function () {
+      var t = document.getElementById('dmg').value.trim(), m = document.getElementById('dmg-msg');
+      if (t.length < 5) { m.textContent = T.damageErr; m.className = 'msg bad'; return; }
+      dmgBtn.disabled = true;
+      fetch(API, {method: 'POST', headers: {'Content-Type': 'text/plain;charset=utf-8'}, body: JSON.stringify({action: 'damage', id: d.id, k: k, text: t})})
+        .then(function (r) { return r.json(); })
+        .then(function (r) { if (r && r.ok) { m.textContent = T.damageOk; m.className = 'msg good'; document.getElementById('dmg').value = ''; } else { dmgBtn.disabled = false; m.textContent = T.err; m.className = 'msg bad'; } })
+        .catch(function () { dmgBtn.disabled = false; m.textContent = T.err; m.className = 'msg bad'; });
+    });
     var printBtn = document.getElementById('p-print');
     if (printBtn) printBtn.addEventListener('click', function () { window.print(); });
 
