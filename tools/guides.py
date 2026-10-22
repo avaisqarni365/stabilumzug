@@ -54,6 +54,13 @@ STEP_ICONS = {
     "c_route": '<path d="M16 9c0 3.6-4 8-4 8s-4-4.4-4-8a4 4 0 0 1 8 0z"/><circle class="a" cx="12" cy="9" r="1.5"/><path class="a" d="M3 21.2h3M9 21.2h3M15 21.2h3M20 21.2h1"/>',
     "c_assembly": '<path d="M14.7 6.3a4 4 0 0 0-5.2 5.2L3.5 17.5l3 3 6-6a4 4 0 0 0 5.2-5.2l-2.5 2.5-2.3-.7-.7-2.3z"/><path class="a" d="M16.5 16.5l3.5 3.5"/>',
     "c_extras": '<circle cx="12" cy="12" r="8.5"/><path class="a" d="M12 8v8M8 12h8"/>',
+    # "Sechs Versprechen" on the about page
+    "p_guess": '<circle cx="12" cy="12" r="9"/><path class="a" d="M9.6 9.4a2.5 2.5 0 1 1 3.4 2.4c-.6.3-1 .8-1 1.5v.6M12 16.9v.2"/>',
+    "p_range": '<path d="M3 12h18M3 8.5v7M21 8.5v7"/><path class="a" d="M8 7v10M16 7v10"/>',
+    "p_once": '<path d="M19.5 10.5A7.5 7.5 0 0 0 6 6.3M4.5 13.5A7.5 7.5 0 0 0 18 17.7"/><path class="a" d="M5.5 2.8v3.9h3.9M18.5 21.2v-3.9h-3.9"/>',
+    "p_price": '<path d="M6 3h12v18l-3-1.8-3 1.8-3-1.8L6 21z"/><path class="a" d="M9 8h6M9 11.5h6M9 15h3.5"/>',
+    "p_lang": '<path d="M3 4.5h11v8.5H8l-5 3.8z"/><path class="a" d="M16.5 8.5H21v9l-3-2.4h-6.5v-2.1"/>',
+    "p_measure": '<rect x="2.5" y="11" width="19" height="6.5" rx="1"/><path d="M6.5 11v3M10.5 11v2M14.5 11v3M18.5 11v2"/><path class="a" d="M8.5 5.5l2.3 2.3 4.7-4.6"/>',
     "register": '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M14 10h4M14 13.5h4"/><circle class="a" cx="8.5" cy="10.5" r="2"/><path class="a" d="M5.5 16.2c.6-1.6 1.7-2.4 3-2.4s2.4.8 3 2.4"/>',
 }
 
