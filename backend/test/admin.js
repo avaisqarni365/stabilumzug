@@ -186,4 +186,16 @@ const pubRes = ctx.api_publishWebsite_();
 assert(pubRes.ok && pubRes.version && pubRes.count > 0);
 console.log('ok admin publish: version', pubRes.version, '| items', pubRes.count);
 
+// every file the admin page includes, and every script, is on the upload whitelist (.claspignore) – a missing one breaks the live admin
+{ const fs = require('fs'), path = require('path'), dir = path.join(M.REPO, 'backend/admin-script'), ignore = fs.readFileSync(path.join(dir, '.claspignore'), 'utf8');
+  const allowed = new Set(ignore.split(/\r?\n/).filter(l => l.startsWith('!')).map(l => l.slice(1).trim()));
+  const inc = [...fs.readFileSync(path.join(dir, 'Index.html'), 'utf8').matchAll(/include_\('(\w+)'\)/g)].map(m => m[1] + '.html');
+  const scripts = fs.readdirSync(dir).filter(f => /\.(js|html)$/.test(f) && f !== 'Config.js');
+  const missing = [...new Set(inc.concat(scripts))].filter(f => !allowed.has(f));
+  assert.deepStrictEqual(missing, [], 'not uploaded by clasp: ' + missing.join(', '));
+  const wdir = path.join(M.REPO, 'backend/apps-script'), wign = fs.readFileSync(path.join(wdir, '.claspignore'), 'utf8');
+  const wmissing = fs.readdirSync(wdir).filter(f => /\.js$/.test(f) && !wign.includes('!' + f));
+  assert.deepStrictEqual(wmissing, [], 'website files not uploaded: ' + wmissing.join(', '));
+  console.log('ok upload whitelist covers', inc.length, 'includes and', scripts.length, 'files'); }
+
 console.log('ALL OK');
