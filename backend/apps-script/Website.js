@@ -109,7 +109,7 @@ function photos_(b) {
                adminLink_(id), 'Tabelle: ' + SpreadsheetApp.getActive().getUrl()].filter(Boolean).join('\n'), attachments: blobs});
     } catch (err) { console.error(err); return {ok: false, error: 'mail'}; }
   }
-  return {ok: true, n: tok.n, driveUrl: driveFolderUrl};
+  return {ok: true, n: tok.n};
 }
 
 /* ------------------------------------------------------------------ pre-agreement without a price (Vorvereinbarung)

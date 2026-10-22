@@ -679,6 +679,15 @@ function purgeOld_(now) {
     var a = ap.getRange(2, 1, ap.getLastRow() - 1, APPT_COLS.length).getValues(), ci = APPT_COLS.indexOf('Eingang'), li = APPT_COLS.indexOf('Anfrage');
     for (var j = a.length - 1; j >= 0; j--) if (new Date(a[j][ci]).getTime() < cut && !keep[String(a[j][li] || '')]) { ap.deleteRow(j + 2); m++; }
   }
+  if (n && typeof DriveApp !== 'undefined') {
+    try {
+      var roots = DriveApp.getFoldersByName('Stabil Umzug - Kundenfotos');
+      while (roots.hasNext()) {
+        var sub = roots.next().getFolders();
+        while (sub.hasNext()) { var f = sub.next(); if (gone[f.getName()]) f.setTrashed(true); }
+      }
+    } catch (err) { console.error('Drive photo deletion:', err); }
+  }
   if (n || m) sheet_(TAB.audit).appendRow([now, 'System', TAB.leads, 'Löschung nach 6 Monaten', '', n + ' Anfragen, ' + m + ' Termine']);
   return {requests: n, appts: m};
 }
