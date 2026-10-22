@@ -26,7 +26,7 @@ const files = [];
 const folder = {getId: () => 'F1', getFoldersByName: () => ({hasNext: () => false}), createFolder: () => folder,
   createFile: b => { const f = {getUrl: () => 'https://drive.google.com/file/' + files.length, getId: () => 'file' + files.length, getBlob: () => b}; files.push(b.name); return f; }};
 ctx.DriveApp = {createFolder: () => folder, getFolderById: () => folder, getFileById: () => ({getBlob: () => blob('stored.pdf')})};
-M.load('admin-script', ['Admin.js', 'Belege.js', 'Marketing.js']);
+M.load('admin-script', ['Admin.js', 'Belege.js', 'Marketing.js', 'Einsatz.js']);
 ctx.CURRENT_ = {user: 'office', name: 'office@test'};
 ctx.api_bootstrap_();
 
@@ -207,5 +207,28 @@ console.log('ok planner conversion: plan saved and converted directly to offer d
   assert(!/^=/.test(sheets['Marketing'].data[2][0]), 'no formula in the sheet'); assert.strictEqual(saved.keywords[1].page, '', 'only site paths');
   assert.throws(() => ctx.api_marketingSave_('x'), /ungültig/);
   console.log('ok marketing:', m.channels.map(c => c.name + ' ' + c.requests).join(', '), '| keywords', m.keywords.length); }
+
+// crew app: a booked job appears, actual values are saved, finishing sets "Erledigt", the report compares plan and actual
+{ ctx.CURRENT_ = {user: 'office', name: 'office@test'};
+  const L = sheets['Anfragen'].data, H = L[0], ri = L.findIndex((r, i) => i > 0 && r[0]), row = L[ri], id = row[0];
+  const soon = new Date(Date.now() + 2 * 864e5).toISOString().slice(0, 10);
+  row[H.indexOf('Status')] = 'Gebucht'; row[H.indexOf('Termin')] = soon; row[H.indexOf('Team')] = 3; row[H.indexOf('Stunden')] = 6;
+  const jobs = JSON.parse(JSON.stringify(ctx.api_jobs_()));
+  const j = jobs.jobs.find(x => x.id === id);
+  assert(j && j.date === soon && j.crew === 3 && j.hours === 6 && j.actual === null, JSON.stringify(j));
+  assert.throws(() => ctx.api_jobSave_(id, {start: '08:00'}, true), /Beginn, Ende und Personen/, 'finish needs the actual values');
+  assert.throws(() => ctx.api_jobSave_('A-0', {}, false), /nicht gefunden/);
+  let r = JSON.parse(JSON.stringify(ctx.api_jobSave_(id, {start: '08:00', end: '25:00', crew: '3', km: '42', note: 'Klavier extra'}, false)));
+  assert.strictEqual(r.jobs.find(x => x.id === id).actual.end, '', 'invalid time not stored');
+  r = JSON.parse(JSON.stringify(ctx.api_jobSave_(id, {start: '08:00', end: '14:30', crew: '3', km: '42', note: '=HYPERLINK("x")'}, true)));
+  const a = r.jobs.find(x => x.id === id).actual;
+  assert.strictEqual(a.hours + ' ' + a.manHours + ' ' + a.km, '6.5 19.5 42');
+  assert(!/^=/.test(a.note), 'no formula from the crew');
+  assert.strictEqual(sheets['Anfragen'].data[ri][H.indexOf('Status')], 'Erledigt', 'finishing sets Erledigt');
+  assert.strictEqual(sheets['Einsätze'].data.length, 2, 'one row per job (updated, not appended)');
+  const rep = JSON.parse(JSON.stringify(ctx.api_jobReport_()));
+  const x = rep.rows.find(y => y.id === id);
+  assert.strictEqual(x.planManHours + ' ' + x.manHours + ' ' + x.dev, '18 19.5 8.3', 'plan 3 × 6 h vs. 19.5 h actual');
+  console.log('ok crew app: job list, actual values, finish, report', rep.avgDev + ' %'); }
 
 console.log('ALL OK');

@@ -1,0 +1,132 @@
+<style>
+.job{display:block;border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin:0 0 12px;text-decoration:none;color:var(--ink);background:#fff}
+.job:hover{border-color:var(--ink)}
+.job .jtop{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.job .jday{font-weight:700;font-size:15px}.job .jarr{font-weight:700;color:var(--red-text,#c2410c)}
+.job h3{margin:6px 0 2px;font-size:1.1rem}
+.job .jsub{font-size:13.5px;color:var(--ink2)}
+.job .jtags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.job .jtags span{font-size:12px;font-weight:600;border:1px solid var(--line);border-radius:6px;padding:2px 8px}
+.jlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px}.jlist .job{margin:0}
+.job.done{opacity:.7}.job.today{border:2px solid var(--red)}
+.jgroup{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink2);margin:22px 0 8px}
+.jfacts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 16px;margin:0}
+.jfacts div{padding:10px 0;border-bottom:1px solid var(--line)}.jfacts dt{font-size:12px;color:var(--ink2);text-transform:uppercase;letter-spacing:.05em}.jfacts dd{margin:2px 0 0;font-weight:600}
+.jitems{list-style:none;padding:0;margin:0;columns:2;column-gap:20px}.jitems li{padding:4px 0;break-inside:avoid;font-size:14px}
+.jact{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.jact .input{min-height:44px}
+.jrep td,.jrep th{white-space:nowrap}
+.dev-up{color:#b42318;font-weight:700}.dev-down{color:#1f6b3a;font-weight:700}
+@media (max-width:640px){.jfacts{grid-template-columns:minmax(0,1fr)}.jitems{columns:1}.jact{grid-template-columns:repeat(2,minmax(0,1fr))}}
+</style>
+<script>
+/* Crew app: Einsätze (list, job, actual values) and the report quote vs. actual (server: Einsatz.js) */
+(function () {
+  var U = window.SU, esc = U.esc, run = U.run, J = {data: null, tab: 'jobs'};
+  var dayLong = function (iso) { return new Date(iso + 'T12:00:00').toLocaleDateString('de-DE', {weekday: 'long', day: '2-digit', month: '2-digit'}); };
+  var de = function (n) { return n == null || n === '' ? '–' : String(Math.round(n * 10) / 10).replace('.', ','); };
+  var maps = function (a) { return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(a); };
+
+  function route(h) {
+    if (h === 'einsaetze' || h === 'einsaetze/bericht') { U.setNav('jobs'); J.tab = h === 'einsaetze' ? 'jobs' : 'report'; load(); return true; }
+    if (h.indexOf('einsatz/') === 0) { U.setNav('jobs'); J.id = decodeURIComponent(h.slice(8)); load(); return true; }
+    return false;
+  }
+  function load() {
+    var h = location.hash;
+    if (J.tab === 'report' && h.indexOf('#/einsaetze/bericht') === 0) {
+      U.app.innerHTML = head() + '<p class="loading">Auswertung wird geladen …</p>';
+      run('api_jobReport').then(drawReport).catch(U.fail);
+      return;
+    }
+    if (J.data) draw(); else U.app.innerHTML = head() + '<p class="loading">Einsätze werden geladen …</p>';
+    run('api_jobs').then(function (r) { J.data = r; if (!U.app.contains(document.activeElement) || document.activeElement === document.body) draw(); }).catch(U.fail);
+  }
+  function head() {
+    return '<span class="kicker">Team</span><div class="h"><h1>Einsätze</h1></div><div class="mk-tabs" style="display:flex;gap:8px;margin:0 0 18px">' +
+      '<a class="chip" href="#/einsaetze" aria-pressed="' + (J.tab === 'jobs') + '">Einsätze</a><a class="chip" href="#/einsaetze/bericht" aria-pressed="' + (J.tab === 'report') + '">Angebot vs. Ist</a></div>';
+  }
+  function draw() {
+    if (location.hash.indexOf('#/einsatz/') === 0) return drawJob();
+    var r = J.data, groups = {}, order = [];
+    r.jobs.forEach(function (j) {
+      var g = j.date < r.today ? 'Letzte 30 Tage' : j.date === r.today ? 'Heute' : 'Kommende';
+      if (!groups[g]) { groups[g] = []; order.push(g); }
+      groups[g].push(j);
+    });
+    order.sort(function (a, b) { var o = {'Heute': 0, 'Kommende': 1, 'Letzte 30 Tage': 2}; return o[a] - o[b]; });
+    if (groups['Letzte 30 Tage']) groups['Letzte 30 Tage'].reverse();
+    U.app.innerHTML = head() + (r.jobs.length ? order.map(function (g) {
+      return '<div class="jgroup">' + esc(g) + '</div><div class="jlist">' + groups[g].map(card).join('') + '</div>';
+    }).join('') : '<p class="empty">Keine gebuchten Einsätze. Einsätze erscheinen hier, sobald eine Anfrage „Gebucht“ ist und einen Umzugstag hat.</p>');
+  }
+  function card(j) {
+    var cls = j.status === 'Erledigt' ? ' done' : j.date === J.data.today ? ' today' : '';
+    return '<a class="job' + cls + '" href="#/einsatz/' + encodeURIComponent(j.id) + '"><div class="jtop"><span class="jday">' + esc(dayLong(j.date)) + '</span>' +
+      (j.arrival ? '<span class="jarr">' + esc(j.arrival) + ' Uhr</span>' : '') + '</div>' +
+      '<h3>' + esc(j.name || '–') + '</h3><div class="jsub">' + esc([j.from, j.to].filter(Boolean).join(' → ')) + '</div>' +
+      '<div class="jtags">' + [j.vehicle, j.crew ? j.crew + ' Personen' : '', j.hours ? de(j.hours) + ' Std. geplant' : '', j.volMin != null ? de(j.volMin) + '–' + de(j.volMax) + ' m³' : '',
+        j.status === 'Erledigt' ? '✓ erledigt' : j.actual && j.actual.start ? 'Ist erfasst' : ''].filter(Boolean).map(function (t) { return '<span>' + esc(t) + '</span>'; }).join('') + '</div></a>';
+  }
+  function drawJob() {
+    var j = (J.data.jobs || []).filter(function (x) { return x.id === J.id; })[0];
+    if (!j) { U.app.innerHTML = head() + '<p class="empty">Dieser Einsatz ist nicht (mehr) in der Liste. <a href="#/a/' + encodeURIComponent(J.id) + '">Zur Anfrage</a></p>'; return; }
+    var a = j.actual || {}, fact = function (k, v) { return v ? '<div><dt>' + esc(k) + '</dt><dd>' + v + '</dd></div>' : ''; };
+    var tel = j.phone ? '<a href="tel:' + esc(j.phone.replace(/\s/g, '')) + '">' + esc(j.phone) + '</a>' : '';
+    U.app.innerHTML = '<a href="#/einsaetze" class="muted">← Alle Einsätze</a>' +
+      '<div class="h"><div><span class="kicker">' + esc(j.id) + ' · ' + esc(dayLong(j.date)) + (j.arrival ? ' · ' + esc(j.arrival) + ' Uhr' : '') + '</span><h1>' + esc(j.name || '–') + '</h1></div>' +
+      '<div class="actions">' + (j.phone ? '<a class="btn small" href="tel:' + esc(j.phone.replace(/\s/g, '')) + '">Anrufen</a>' : '') + '<a class="btn small" href="#/a/' + encodeURIComponent(j.id) + '">Anfrage</a></div></div>' +
+      '<div class="card"><h2>Auftrag</h2><dl class="jfacts">' +
+        fact('Von', j.from ? esc(j.from) + ' <a href="' + maps(j.from) + '" target="_blank" rel="noopener">Karte ↗</a>' : '') +
+        fact('Nach', j.to ? esc(j.to) + ' <a href="' + maps(j.to) + '" target="_blank" rel="noopener">Karte ↗</a>' : '') +
+        fact('Zugang Auszug', esc(j.accOld)) + fact('Zugang Einzug', esc(j.accNew)) + fact('Halteverbot', esc(j.hvz)) +
+        fact('Fahrzeug', esc(j.vehicle)) + fact('Geplant', (j.crew ? j.crew + ' Personen · ' : '') + (j.hours ? de(j.hours) + ' Std.' : '')) +
+        fact('Volumen', j.volMin != null ? de(j.volMin) + '–' + de(j.volMax) + ' m³' : '') + fact('Telefon', tel) + '</dl>' +
+        (j.notes ? '<p style="margin:12px 0 0;white-space:pre-wrap"><b>Notizen:</b> ' + esc(j.notes) + '</p>' : '') + '</div>' +
+      (j.items.length ? '<div class="card"><h2>Gegenstände (' + j.items.reduce(function (s, i) { return s + i.n; }, 0) + ')</h2><ul class="jitems">' +
+        j.items.map(function (i) { return '<li>' + i.n + ' × ' + esc(i.name) + (i.size ? ' <span class="muted">' + esc(i.size) + '</span>' : '') + '</li>'; }).join('') + '</ul></div>' : '') +
+      '<div class="card"><h2>Ist-Werte</h2><div class="jact">' +
+        '<div class="field" style="margin:0"><label for="ja-s">Beginn</label><input class="input" id="ja-s" type="time" value="' + esc(a.start || '') + '"></div>' +
+        '<div class="field" style="margin:0"><label for="ja-e">Ende</label><input class="input" id="ja-e" type="time" value="' + esc(a.end || '') + '"></div>' +
+        '<div class="field" style="margin:0"><label for="ja-c">Personen</label><input class="input" id="ja-c" type="number" min="1" max="12" inputmode="numeric" value="' + esc(a.crew || j.crew || '') + '"></div>' +
+        '<div class="field" style="margin:0"><label for="ja-k">km gesamt</label><input class="input" id="ja-k" type="number" min="0" inputmode="numeric" value="' + esc(a.km == null ? '' : a.km) + '"></div>' +
+      '</div><div class="field" style="margin-top:12px"><label for="ja-n">Notiz (Besonderheiten, Schäden, Mehraufwand)</label><textarea class="input" id="ja-n" rows="3">' + esc(a.note || '') + '</textarea></div>' +
+      '<p class="muted" id="ja-sum"></p>' +
+      '<div class="actions"><button class="btn" id="ja-save">Speichern</button>' + (j.status !== 'Erledigt' ? '<button class="btn primary" id="ja-done">Auftrag abschließen</button>' : '<span class="badge">✓ Erledigt</span>') + '</div></div>';
+    var sum = function () {
+      var s = document.getElementById('ja-s').value, e = document.getElementById('ja-e').value, c = Number(document.getElementById('ja-c').value) || 0, out = document.getElementById('ja-sum');
+      if (!s || !e) { out.textContent = ''; return; }
+      var m = (Number(e.slice(0, 2)) * 60 + Number(e.slice(3))) - (Number(s.slice(0, 2)) * 60 + Number(s.slice(3))); if (m <= 0) m += 1440;
+      var h = m / 60, man = h * c, plan = j.hours && j.crew ? j.hours * j.crew : null;
+      out.textContent = de(h) + ' Std.' + (c ? ' · ' + de(man) + ' Personenstunden' : '') + (plan && c ? ' · geplant ' + de(plan) + ' (' + (man >= plan ? '+' : '') + de((man - plan) / plan * 100) + ' %)' : '');
+    };
+    ['ja-s', 'ja-e', 'ja-c'].forEach(function (id) { document.getElementById(id).addEventListener('input', sum); });
+    sum();
+    var save = function (finish, btn) {
+      var a2 = {start: document.getElementById('ja-s').value, end: document.getElementById('ja-e').value, crew: document.getElementById('ja-c').value,
+                km: document.getElementById('ja-k').value, note: document.getElementById('ja-n').value};
+      if (finish && !confirm('Auftrag abschließen? Die Anfrage wird „Erledigt“ und der Kunde bekommt am nächsten Morgen die Dankes-E-Mail mit Bewertungslink.')) return;
+      btn.disabled = true;
+      run('api_jobSave', j.id, a2, !!finish).then(function (r) { btn.disabled = false; J.data = r; U.toast(finish ? 'Auftrag abgeschlossen.' : 'Ist-Werte gespeichert.'); drawJob(); },
+        function (e) { btn.disabled = false; U.fail(e); });
+    };
+    document.getElementById('ja-save').addEventListener('click', function (e) { save(false, e.target); });
+    var done = document.getElementById('ja-done'); if (done) done.addEventListener('click', function (e) { save(true, e.target); });
+  }
+  function drawReport(r) {
+    var dev = function (x) { return x == null ? '–' : '<span class="' + (x > 10 ? 'dev-up' : x < -10 ? 'dev-down' : '') + '">' + (x > 0 ? '+' : '') + de(x) + ' %</span>'; };
+    U.app.innerHTML = head() +
+      '<div class="grid4"><div class="kpi"><b>' + r.count + '</b><span>Einsätze mit Ist-Werten</span></div>' +
+      '<div class="kpi"><b>' + (r.avgDev == null ? '–' : (r.avgDev > 0 ? '+' : '') + de(r.avgDev) + ' %') + '</b><span>Ø Abweichung Personenstunden</span></div>' +
+      '<div class="kpi"><b>' + (r.perManHour == null ? '–' : r.perManHour + ' €') + '</b><span>Umsatz je Personenstunde</span></div>' +
+      '<div class="kpi"><b style="font-size:1.35rem;line-height:1.2">' + (r.avgDev == null ? '–' : r.avgDev > 10 ? 'Angebote zu knapp' : r.avgDev < -10 ? 'Angebote großzügig' : 'Planung passt') + '</b><span>Einschätzung</span></div></div>' +
+      '<p class="muted" style="margin:10px 0 18px">Plus = mehr Aufwand als geplant (Angebot zu knapp), Minus = weniger. Über ±10 % lohnt es sich, die Sätze oder Montagezeiten im Katalog anzupassen.</p>' +
+      (r.rows.length ? '<div style="overflow-x:auto"><table class="tbl jrep mk-ch"><thead><tr><th>Anfrage</th><th>Datum</th><th class="num">Geplant</th><th class="num">Ist</th><th class="num">Abw.</th><th class="num">Angebot</th></tr></thead><tbody>' +
+        r.rows.map(function (x) {
+          return '<tr data-id="' + esc(x.id) + '"><td><a href="#/einsatz/' + encodeURIComponent(x.id) + '"><b>' + esc(x.id) + '</b></a><div class="muted">' + esc(x.name) + '</div></td><td>' + U.day(x.date) + '</td>' +
+            '<td class="num">' + (x.planManHours ? de(x.planManHours) + ' h' : '–') + '</td><td class="num">' + de(x.manHours) + ' h</td><td class="num">' + dev(x.dev) + '</td><td class="num">' + U.eur(x.total) + '</td></tr>';
+        }).join('') + '</tbody></table></div>' : '<p class="empty">Noch keine Ist-Werte. Sie erscheinen, sobald das Team bei einem Einsatz Beginn, Ende und Personen einträgt.</p>');
+  }
+  window.SUJobs = {route: route};
+})();
+</script>
