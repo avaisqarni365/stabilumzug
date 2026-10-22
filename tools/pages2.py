@@ -79,7 +79,10 @@ def about(lang):
               "A move is a chain of steps: measure the new home, list your belongings, clarify access, parking permit, boxes, assembly, registration. "
               "Most money and stress are lost when information from one step does not reach the next. So we turned this flow into a simple planner.", lang)
     # phones: the six titles first, each text one tap away
-    cells = "".join('<div><details class="pr" data-fold open><summary><h3>%s</h3></summary><p>%s</p></details></div>' % (esc(t(*a, lang)), esc(t(*b, lang))) for a, b in PRINCIPLES)
+    import guides
+    icons = ("p_guess", "p_range", "p_once", "p_price", "p_lang", "p_measure")   # same order as PRINCIPLES
+    cells = "".join('<div>%s<details class="pr" data-fold open><summary><h3>%s</h3></summary><p>%s</p></details></div>' % (
+        guides.step_icon(icons[i]).replace('class="ic"', 'class="ic cost-ic"'), esc(t(*a, lang)), esc(t(*b, lang))) for i, (a, b) in enumerate(PRINCIPLES))
     body += ('<section class="section"><div class="container"><div class="head"><div><span class="kicker red">%s</span><h2>%s</h2></div><p>%s</p></div>'
              '<div class="costs two">%s</div></div></section>' % (t("Wie wir arbeiten", "How we work", lang), t("Sechs Versprechen.", "Six promises.", lang), esc(intro), cells))
     look = [("uniform.jpg", ("Arbeitskleidung in Orange und Navy", "Workwear in orange and navy"),
