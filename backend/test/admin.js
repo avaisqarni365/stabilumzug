@@ -212,6 +212,34 @@ console.log('ok admin publish: version', pubRes.version, '| items', pubRes.count
   assert.deepStrictEqual(wmissing, [], 'website files not uploaded: ' + wmissing.join(', '));
   console.log('ok upload whitelist covers', inc.length, 'includes and', scripts.length, 'files'); }
 
+// F10–F12: reminders before the move, arrival time, thank-you and damage report after it (planner request, booked for 10.11.2026)
+{ const at = d => new Date(d + 'T08:00:00');
+  ctx.CURRENT_ = {user: 'office', name: 'office@test'};
+  ctx.api_update_(planner.id, {arrival: '25:99'}); assert.strictEqual(ctx.api_lead_(planner.id).lead.arrival, '', 'invalid time ignored');
+  ctx.api_update_(planner.id, {arrival: '08:30'}); assert.strictEqual(ctx.api_lead_(planner.id).lead.arrival, '08:30');
+  assert.strictEqual(ctx.portal_(planner.id, tok).arrival, '08:30');
+  const before = M.mails.length;
+  assert.strictEqual(ctx.customerMails_(at('2026-11-03')), 1, 'one week before');
+  assert(/noch eine Woche/.test(M.mails[M.mails.length - 1].subject) && M.mails[M.mails.length - 1].body.includes('k=' + tok));
+  assert.strictEqual(ctx.customerMails_(at('2026-11-03')), 0, 'only once');
+  assert.strictEqual(ctx.customerMails_(at('2026-11-09')), 1, 'the day before');
+  assert(/08:30 Uhr/.test(M.mails[M.mails.length - 1].body), 'arrival time in the mail');
+  assert.strictEqual(ctx.customerMails_(at('2026-11-05')), 0, 'nothing on other days');
+  ctx.api_update_(planner.id, {status: 'Erledigt'});
+  assert.strictEqual(ctx.customerMails_(at('2026-11-11')), 1, 'thank-you after the move');
+  const ty = M.mails[M.mails.length - 1];
+  assert(ty.body.includes('maps.google.com/?cid=') && ty.body.includes('#schaden'), 'review and damage link');
+  assert.strictEqual(ctx.customerMails_(at('2026-11-12')), 0);
+  assert.strictEqual(M.mails.length, before + 3);
+  const postD = b => ctx.doPost({postData: {contents: JSON.stringify(Object.assign({action: 'damage'}, b))}});
+  assert.strictEqual(postD({id: planner.id, k: 'f'.repeat(32), text: 'Kratzer im Schrank'}).error, 'not_found');
+  assert.strictEqual(postD({id: planner.id, k: tok, text: 'x'}).error, 'text');
+  assert(postD({id: planner.id, k: tok, text: 'Kratzer an der Kommode im Flur'}).ok);
+  assert(/Schadensmeldung \(Kunde/.test(ctx.api_lead_(planner.id).lead.notes), 'damage in the notes');
+  assert(M.mails.some(m => m.subject === 'Schadensmeldung zu ' + planner.id), 'office informed');
+  assert.strictEqual(ctx.portal_(planner.id, tok).damage, 1);
+  console.log('ok F10–F12: reminders once each, arrival time, thank-you with review and damage link, damage report'); }
+
 // F9: a flexible request – the customer picks a day inside the wished window; a Jobcenter request needs no payment choice
 { const L = ctx.LEAD_COLS, row = (termin, meta) => L.map(c => c === 'Termin' ? termin : c === 'Daten (JSON)' ? JSON.stringify(meta) : '');
   const flex = {values: row('flexibel 03.12.2026–17.12.2026', {f1: {dateMode: 'flex', dateFrom: '2026-12-03', dateTo: '2026-12-17'}})};

@@ -388,6 +388,8 @@ body.locked .top nav,body.locked .top .me{display:none}
       '</div><aside class="side">' +
         '<div class="card"><h2>Bearbeitung</h2><div class="field"><label for="st">Status</label><select class="input" id="st">' + S.statuses.map(function (s) { return '<option' + (s === l.status ? ' selected' : '') + '>' + esc(s) + '</option>'; }).join('') + '</select></div>' +
         '<div class="field"><label for="ow">Zuständig</label><input class="input" id="ow" value="' + esc(l.owner) + '" placeholder="Name"></div>' +
+        '<div class="field"><label for="arr">Ankunft Team am Umzugstag</label><input class="input" id="arr" type="time" value="' + esc(l.arrival || '') + '">' +
+          '<small class="muted">Sieht der Kunde in „Mein Umzug“ ab dem Vortag.</small></div>' +
         '<div class="field"><label for="nt">Interne Notizen</label><textarea class="input" id="nt" placeholder="Nur für das Büro sichtbar">' + esc(l.notes) + '</textarea></div>' +
         '<button class="btn primary" id="save-meta">Speichern</button></div>' +
         contractHtml() +
@@ -585,7 +587,8 @@ body.locked .top nav,body.locked .top .me{display:none}
 
     document.getElementById('save-meta').addEventListener('click', function (e) {
       var b = e.target; b.disabled = true;
-      run('api_update', l.id, {status: document.getElementById('st').value, owner: document.getElementById('ow').value, notes: document.getElementById('nt').value})
+      run('api_update', l.id, {status: document.getElementById('st').value, owner: document.getElementById('ow').value, notes: document.getElementById('nt').value,
+        arrival: document.getElementById('arr') ? document.getElementById('arr').value : undefined})
         .then(function (nl) { b.disabled = false; S.cur.lead = nl; patchLead(nl); toast('Gespeichert.'); })
         .catch(function (err) { b.disabled = false; fail(err); });
     });
