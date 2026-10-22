@@ -226,10 +226,10 @@ def privacy(lang):
                   "For our statistics we store per calculation only time, postcode and town of start and destination, distance, page and campaign – no street, no contact details – "
                   "and delete these entries after 6 months (Art. 6(1)(f) GDPR)."))
         S.append(("Fotos", "Photos",
-                  "Mit einer Anfrage können Sie freiwillig Fotos hochladen (höchstens 10). Ihr Browser verkleinert sie vor dem Senden; wir erhalten sie per E-Mail in unserem Google-Postfach "
-                  "und nutzen sie nur, um Ihren Umzug zu planen (Art. 6 Abs. 1 lit. b DSGVO). Bitte fotografieren Sie möglichst keine Personen oder Dokumente.",
-                  "You can upload photos with a request (up to 10). Your browser shrinks them before sending; we receive them by email in our Google mailbox "
-                  "and use them only to plan your move (Art. 6(1)(b) GDPR). Please avoid photographing people or documents."))
+                  "Mit einer Anfrage können Sie freiwillig Fotos hochladen (höchstens 10). Ihr Browser verkleinert sie vor dem Senden; wir erhalten sie per E-Mail in unserem Google-Postfach, "
+                  "legen sie in unserem Google Drive ab und nutzen sie nur, um Ihren Umzug zu planen (Art. 6 Abs. 1 lit. b DSGVO). Bitte fotografieren Sie möglichst keine Personen oder Dokumente.",
+                  "You can upload photos with a request (up to 10). Your browser shrinks them before sending; we receive them by email in our Google mailbox, "
+                  "keep them in our Google Drive and use them only to plan your move (Art. 6(1)(b) GDPR). Please avoid photographing people or documents."))
         S.append(("Terminbuchung", "Appointment booking",
                   "Buchen Sie einen Termin, speichern wir Art, Tag und Uhrzeit sowie Name, Telefon, E-Mail, Adresse und Ihre Nachricht und senden Ihnen und uns eine Bestätigung per E-Mail (Art. 6 Abs. 1 lit. b DSGVO).",
                   "When you book an appointment, we store its type, day and time as well as your name, phone, email, address and message and send a confirmation email to you and to us (Art. 6(1)(b) GDPR)."))
