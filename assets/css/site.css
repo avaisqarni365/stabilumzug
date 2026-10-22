@@ -1470,3 +1470,16 @@ details.fs-card > summary:focus-visible{outline:2px solid var(--red);outline-off
 .g-chip:hover{border-color:var(--ink)}
 @media (max-width:520px){.g-chip{border-radius:14px;font-size:13px;gap:2px 8px;padding:8px 12px}}
 @media (max-width:760px){.costs > div:has(> details.pr) > .cost-ic{right:34px;top:8px}.costs > div summary h3{padding-right:84px}}
+
+/* ---------- customer area: booking (moving day, payment) ---------- */
+.bk{border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin:0 0 16px;background:#fff}
+.bk h4{margin:0 0 10px;font-size:1rem}
+.bk-fixed{margin:0 0 10px}
+.bk-lab{display:block;font-weight:600;font-size:14px;margin-bottom:6px}
+.bk .input{min-height:44px;width:100%;max-width:260px}
+.bk-change{margin:0 0 12px}.bk-change summary{cursor:pointer;font-size:14px;color:var(--red-text,#c2410c);min-height:32px}
+.bk-change .input{margin-top:8px}
+.bk-pay{border:0;margin:6px 0 0;padding:0;display:grid;gap:8px}
+.bk-pay legend{font-weight:600;font-size:14px;margin-bottom:6px;padding:0}
+.bk-pay label{display:flex;align-items:center;gap:8px;min-height:40px;font-size:14px;cursor:pointer}
+.bk-pay input{width:20px;height:20px}

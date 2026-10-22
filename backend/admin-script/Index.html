@@ -470,6 +470,8 @@ body.locked .top nav,body.locked .top .me{display:none}
           (c.signedAt ? '<div><dt>Zeitpunkt</dt><dd>' + dt(c.signedAt) + '</dd></div>' : '') +
           (c.sigStored ? '<div><dt>Unterschrift</dt><dd>im Tab „Unterschriften“ der Tabelle</dd></div>' : '') +
           (c.waiver ? '<div><dt>Beginn</dt><dd>vor Ende der Widerrufsfrist verlangt</dd></div>' : '') +
+          (c.date ? '<div><dt>Umzugstag</dt><dd>' + day(c.date) + '</dd></div>' : '') +
+          (c.payment ? '<div><dt>Zahlung</dt><dd>' + esc({transfer: 'Überweisung nach Rechnung', cash: 'Bar am Umzugstag', payer: 'Kostenträger'}[c.payment] || c.payment) + '</dd></div>' : '') +
         '</dl>' +
         '<div class="actions" style="flex-direction:column;gap:6px">' +
           ((c.sigUrl || c.sigDriveUrl) ? '<a class="btn small" target="_blank" rel="noopener" href="' + esc((c.sigUrl || c.sigDriveUrl)) + '" style="width:100%;text-align:center">✍️ Signatur ansehen (Drive)</a>' : '') +

@@ -138,7 +138,21 @@ assert.strictEqual(postA({action: 'accept', id: planner.id, k: tok, confirm: tru
 assert.strictEqual(postA({action: 'accept', id: planner.id, k: tok, confirm: true, sig: 'javascript:alert(1)'}).error, 'sig');
 assert.notStrictEqual(ctx.api_lead_(planner.id).lead.status, 'Gebucht', 'a refused signature does not book');
 const mailsBefore = M.mails.length;
-const acceptRes = postA({action: 'accept', id: planner.id, k: tok, confirm: true, sig: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', signer: 'Herr Yilmaz'});
+// F9: moving day and payment are part of the booking
+const SIG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+assert.strictEqual(postA({action: 'accept', id: planner.id, k: tok, confirm: true, sig: SIG, signer: 'Herr Yilmaz'}).error, 'payment', 'payment method required');
+assert.strictEqual(postA({action: 'accept', id: planner.id, k: tok, confirm: true, sig: SIG, signer: 'Herr Yilmaz', payment: 'transfer', date: '2020-01-01'}).error, 'date_past');
+assert.strictEqual(postA({action: 'accept', id: planner.id, k: tok, confirm: true, sig: SIG, signer: 'Herr Yilmaz', payment: 'gold'}).error, 'payment');
+assert.notStrictEqual(ctx.api_lead_(planner.id).lead.status, 'Gebucht', 'refused bookings do not book');
+const pv0 = ctx.portal_(planner.id, tok);
+assert.strictEqual(pv0.dateMode, 'fixed'); assert.strictEqual(pv0.payer, false); assert.strictEqual(pv0.booking, null);
+const acceptRes = postA({action: 'accept', id: planner.id, k: tok, confirm: true, sig: SIG, signer: 'Herr Yilmaz', payment: 'cash', date: '2026-11-10'});
+assert.strictEqual(JSON.stringify(acceptRes.booking), JSON.stringify({date: '2026-11-10', payment: 'cash'}));
+assert.strictEqual(ctx.api_lead_(planner.id).lead.date, '2026-11-10', 'the confirmed day is the job date');
+assert(M.mails.some(m => /Umzugstag: 10\.11\.2026 \(vom Kunden geändert/.test(m.body)), 'office sees the changed day');
+assert(M.mails.some(m => /Zahlung: Bar am Umzugstag/.test(m.body)), 'customer and office see the payment');
+const pv1 = ctx.portal_(planner.id, tok);
+assert.strictEqual(JSON.stringify(pv1.booking), JSON.stringify({date: '2026-11-10', payment: 'cash'})); assert(/^data:image/.test(pv1.signature), 'signature shown from its own tab');
 assert.strictEqual(acceptRes.status, 'Gebucht');
 assert.strictEqual(ctx.api_lead_(planner.id).lead.status, 'Gebucht');
 assert.strictEqual(M.mails.length, mailsBefore + 2, 'office and customer notified');
@@ -197,5 +211,18 @@ console.log('ok admin publish: version', pubRes.version, '| items', pubRes.count
   const wmissing = fs.readdirSync(wdir).filter(f => /\.js$/.test(f) && !wign.includes('!' + f));
   assert.deepStrictEqual(wmissing, [], 'website files not uploaded: ' + wmissing.join(', '));
   console.log('ok upload whitelist covers', inc.length, 'includes and', scripts.length, 'files'); }
+
+// F9: a flexible request – the customer picks a day inside the wished window; a Jobcenter request needs no payment choice
+{ const L = ctx.LEAD_COLS, row = (termin, meta) => L.map(c => c === 'Termin' ? termin : c === 'Daten (JSON)' ? JSON.stringify(meta) : '');
+  const flex = {values: row('flexibel 03.12.2026–17.12.2026', {f1: {dateMode: 'flex', dateFrom: '2026-12-03', dateTo: '2026-12-17'}})};
+  assert.strictEqual(ctx.bookingCheck_(flex, {payment: 'transfer'}).error, 'date', 'flexible: a day must be chosen');
+  assert.strictEqual(ctx.bookingCheck_(flex, {payment: 'transfer', date: '2026-12-01'}).error, 'date_window');
+  assert.strictEqual(ctx.bookingCheck_(flex, {payment: 'transfer', date: '2026-12-18'}).error, 'date_window');
+  const okFlex = ctx.bookingCheck_(flex, {payment: 'transfer', date: '2026-12-10'});
+  assert.strictEqual(okFlex.date + ' ' + okFlex.payment + ' ' + okFlex.moved, '2026-12-10 transfer false');
+  const jc = {values: row('2026-12-05', {f1: {}, payer: {kind: 2, name: 'Jobcenter'}})};
+  const okJc = ctx.bookingCheck_(jc, {});
+  assert.strictEqual(okJc.date + ' ' + okJc.payment, '2026-12-05 payer', 'payer requests: paid by the payer, fixed day kept');
+  console.log('ok booking: flexible window, payer, fixed day'); }
 
 console.log('ALL OK');

@@ -52,7 +52,8 @@ function doPost(e) {
       case 'photos': return json(photos_(body));
       case 'hit': return json(hit_(body));
       case 'saveDraft': return json(saveDraft_(body));
-      case 'accept': return json(accept_(String(body.id || ''), String(body.k || ''), body.confirm === true, body.sig, body.signer, body.waiver === true));
+      case 'accept': return json(accept_(String(body.id || ''), String(body.k || ''), body.confirm === true, body.sig, body.signer, body.waiver === true,
+                                         {date: String(body.date || ''), payment: String(body.payment || '')}));
       case 'resend': return json(resend_(String(body.email || ''), String(body.lang || 'de')));
       case 'chat': return json(aiChat_(body));
       default: return json({ok: false, error: 'unknown_action'});
@@ -259,19 +260,45 @@ function portal_(id, k) {
   var name = String(g('Name') || '');
   var jsonMeta = {};
   try { jsonMeta = JSON.parse(v[JSON_COL - 1] || '{}'); } catch (e) {}
-  var contract = jsonMeta.contract || null;
+  var contract = jsonMeta.contract || null, f1 = jsonMeta.f1 || {}, pk = jsonMeta.payer && Number(jsonMeta.payer.kind) || 0;
   return {
+    dateMode: isoDay_(day_(g('Termin'))) ? 'fixed' : 'flex', dateFrom: isoDay_(f1.dateFrom) || '', dateTo: isoDay_(f1.dateTo) || '', payer: pk > 0,
+    booking: contract ? {date: contract.date || '', payment: contract.payment || ''} : null,
     ok: true, id: id, name: name, service: String(g('Leistung') || 'Umzug').replace(/ \((Planer|Kurzformular)\)$/, ''),
     status: String(g('Status') || STATUS[0]), date: day_(g('Termin')), from: String(g('Von') || ''), to: String(g('Nach') || ''),
     lang: String(g('Sprache') || 'DE'), quoteSent: iso_(g('Angebot gesendet')),
     quote: q ? {version: q.version, lines: lines, total: Number(g('Angebot €')) || quoteTotal_(q.lines, rates_().min_price)} : null,
     signedAt: contract ? contract.signedAt : null,
     signer: contract ? contract.signer : null,
-    signature: contract ? (contract.sigData || contract.sigUrl) : null
+    signature: contract ? (contract.sigData || sigOf_(id) || null) : null
   };
 }
 
 /* "Zahlungspflichtig beauftragen": the customer accepts and digitally signs the latest quote. */
+/* F9 booking: the customer confirms the moving day (inside the wished window) and how to pay. */
+var PAYMENTS = {transfer: 'Überweisung nach Rechnung', cash: 'Bar am Umzugstag', payer: 'Zahlung durch den Kostenträger'};
+function isoDay_(s) { s = String(s || ''); return /^\d{4}-\d{2}-\d{2}$/.test(s) && !isNaN(new Date(s + 'T12:00:00')) ? s : ''; }
+function bookingCheck_(hit, b) {
+  var v = hit.values, fixed = isoDay_(day_(v[leadCol_('Termin') - 1])), meta = {};
+  try { meta = JSON.parse(v[JSON_COL - 1] || '{}'); } catch (e) {}
+  var f1 = meta.f1 || {}, payer = meta.payer && Number(meta.payer.kind) > 0;
+  var date = isoDay_(b.date) || fixed, today = Utilities.formatDate(new Date(), 'Europe/Berlin', 'yyyy-MM-dd');
+  if (!date) return {error: 'date'};
+  if (date < today) return {error: 'date_past'};
+  var from = isoDay_(f1.dateFrom), to = isoDay_(f1.dateTo);
+  if (!fixed && ((from && date < from) || (to && date > to))) return {error: 'date_window'};
+  var pay = payer ? 'payer' : (PAYMENTS[b.payment] && b.payment !== 'payer' ? b.payment : '');
+  if (!pay) return {error: 'payment'};
+  return {date: date, payment: pay, moved: !!fixed && date !== fixed};
+}
+function sigOf_(id) {
+  var sh = ss_().getSheetByName(TAB.signatures);
+  if (!sh || sh.getLastRow() < 2) return '';
+  var v = sh.getRange(2, 1, sh.getLastRow() - 1, 4).getValues();
+  for (var i = v.length - 1; i >= 0; i--) if (String(v[i][0]) === String(id)) return String(v[i][3]);
+  return '';
+}
+
 function sigSheet_() {
   var ss = ss_(), sh = ss.getSheetByName(TAB.signatures);
   if (!sh) { sh = ss.insertSheet(TAB.signatures); sh.appendRow(['Anfrage', 'Zeitpunkt', 'Name', 'Unterschrift (Bild als Data-URL)']); sh.setFrozenRows(1); }
@@ -279,7 +306,7 @@ function sigSheet_() {
 }
 var SIG_MAX = 40000;   // characters of the signature image (data URL); the phone sends a small JPEG
 
-function accept_(id, k, confirm, sig, signer, waiver) {
+function accept_(id, k, confirm, sig, signer, waiver, bk) {
   if (!confirm) return {ok: false, error: 'confirm'};
   sig = String(sig || '');
   if (sig && (!/^data:image\/(png|jpeg);base64,[A-Za-z0-9+\/=]+$/.test(sig) || sig.length > SIG_MAX)) return {ok: false, error: 'sig'};
@@ -292,6 +319,8 @@ function accept_(id, k, confirm, sig, signer, waiver) {
     if (status === 'Gebucht' || status === 'Erledigt') return {ok: true, already: true, status: status};
     if (!latestQuote_(id)) return {ok: false, error: 'no_quote'};
     if (status === 'Verloren') return {ok: false, error: 'closed'};
+    var B = bookingCheck_(hit, bk || {});
+    if (B.error) return {ok: false, error: B.error};
 
     var now = new Date(), nowIso = iso_(now), nowDe = Utilities.formatDate(now, 'Europe/Berlin', 'dd.MM.yyyy HH:mm');
     var signerName = clip_(signer || hit.values[leadCol_('Name') - 1] || 'Kunde', 80);
@@ -312,15 +341,17 @@ function accept_(id, k, confirm, sig, signer, waiver) {
     if (sig) sigSheet_().appendRow([id, now, signerName, sig]);
     var jsonMeta = {};
     try { jsonMeta = JSON.parse(hit.values[JSON_COL - 1] || '{}'); } catch (e) {}
-    jsonMeta.contract = {signed: true, signedAt: nowIso, signer: signerName, sigUrl: sigUrl, sigStored: !!sig, waiver: !!waiver};
+    jsonMeta.contract = {signed: true, signedAt: nowIso, signer: signerName, sigUrl: sigUrl, sigStored: !!sig, waiver: !!waiver, date: B.date, payment: B.payment};
     sheet_(TAB.leads).getRange(hit.row, JSON_COL).setValue(JSON.stringify(jsonMeta).slice(0, 49000));
     var colNote = leadCol_('Notizen'), oldNote = String(hit.values[colNote - 1] || '');
-    var signNote = 'Vertrag digital gezeichnet von ' + signerName + ' am ' + nowDe + ' Uhr' + (waiver ? ' · vorzeitiger Beginn verlangt (§ 356 Abs. 4 BGB)' : '') + (sigUrl ? ' (Drive: ' + sigUrl + ')' : '');
+    var signNote = 'Vertrag digital gezeichnet von ' + signerName + ' am ' + nowDe + ' Uhr · Umzugstag ' + B.date.split('-').reverse().join('.') +
+      (B.moved ? ' (vom Kunden geändert)' : '') + ' · ' + PAYMENTS[B.payment] + (waiver ? ' · vorzeitiger Beginn verlangt (§ 356 Abs. 4 BGB)' : '') + (sigUrl ? ' (Drive: ' + sigUrl + ')' : '');
     sheet_(TAB.leads).getRange(hit.row, colNote).setValue(cell_((oldNote ? oldNote + '\n' : '') + signNote, 2000));
+    sheet_(TAB.leads).getRange(hit.row, leadCol_('Termin')).setValue(B.date);   // the confirmed day: Kalender and reminders use it
     sheet_(TAB.leads).getRange(hit.row, leadCol_('Status')).setValue('Gebucht');   // last: only when everything above is saved
 
     sheet_(TAB.audit).appendRow([now, 'Kunde (' + signerName + ')', TAB.leads, id + ' · Status', status, 'Gebucht – digital unterschrieben']);
-    res = {ok: true, status: 'Gebucht', signedAt: nowIso, signer: signerName, signature: sig || sigUrl};
+    res = {ok: true, status: 'Gebucht', signedAt: nowIso, signer: signerName, signature: sig || sigUrl, booking: {date: B.date, payment: B.payment}};
   } finally { lock.releaseLock(); }
 
   var to = config_('notify_email') || Session.getEffectiveUser().getEmail();
@@ -330,7 +361,8 @@ function accept_(id, k, confirm, sig, signer, waiver) {
       MailApp.sendEmail({to: to, subject: 'Auftrag erteilt (digital signiert): ' + id + ' – ' + signerName,
         body: 'Der Kunde hat das Angebot ' + id + ' über „Mein Umzug“ rechtsverbindlich digital unterzeichnet.\n\nName: ' + signerName +
           '\nTelefon: ' + (v[leadCol_('Telefon') - 1] || '—') + '\nE-Mail: ' + (v[leadCol_('E-Mail') - 1] || '—') +
-          '\nAngebot: ' + (v[leadCol_('Angebot €') - 1] || '—') + ' €' + (sigUrl ? '\nUnterschrift in Google Drive: ' + sigUrl : '') +
+          '\nAngebot: ' + (v[leadCol_('Angebot €') - 1] || '—') + ' €' + '\nUmzugstag: ' + B.date.split('-').reverse().join('.') + (B.moved ? ' (vom Kunden geändert – bitte prüfen)' : '') +
+          '\nZahlung: ' + PAYMENTS[B.payment] + (sigUrl ? '\nUnterschrift in Google Drive: ' + sigUrl : '') +
           '\n\n' + adminLink_(id) + '\n' + ss_().getUrl()});
     } catch (err) { console.error(err); }
   }
@@ -346,12 +378,16 @@ function accept_(id, k, confirm, sig, signer, waiver) {
         body: (en ?
           'Hello ' + signerName + ',\n\nthank you for choosing Stabil Umzug! Your moving contract for request ' + id + ' has been successfully signed and booked.\n\n' +
           'Agreed price: ' + (hit.values[leadCol_('Angebot €') - 1] || '–') + ' €\n' +
+          'Moving day: ' + B.date.split('-').reverse().join('/') + (B.moved ? ' (your new date – we confirm it shortly)' : '') + '\n' +
+          'Payment: ' + {transfer: 'bank transfer after the invoice', cash: 'cash on moving day', payer: 'paid by your payer (e.g. Jobcenter)'}[B.payment] + '\n' +
           'We have reserved your moving date. Our office will contact you directly with any final details.\n\n' +
           'You can review your contract and moving checklist anytime in your personal portal:\nhttps://www.stabilumzug.de/en/my-move/?id=' + id + '&k=' + k +
           '\n\nKind regards,\nStabil Umzug · Karlstraße 32 · 45329 Essen · Phone & WhatsApp: 0163 9688190'
           :
           'Guten Tag ' + signerName + ',\n\nvielen Dank für Ihr Vertrauen! Ihr Umzugsauftrag zur Anfrage ' + id + ' wurde erfolgreich digital unterzeichnet und verbindlich gebucht.\n\n' +
           'Vereinbarter Gesamtpreis: ' + (hit.values[leadCol_('Angebot €') - 1] || '–') + ' €\n' +
+          'Umzugstag: ' + B.date.split('-').reverse().join('.') + (B.moved ? ' (Ihr neuer Wunschtermin – wir bestätigen ihn kurz)' : '') + '\n' +
+          'Zahlung: ' + PAYMENTS[B.payment] + '\n' +
           'Ihr Termin ist fest reserviert. Unser Büro bestätigt Ihnen die Details nochmals persönlich.\n\n' +
           'Ihren Vertragsstatus und Ihre Checkliste finden Sie jederzeit unter:\nhttps://www.stabilumzug.de/mein-umzug/?id=' + id + '&k=' + k +
           '\n\nViele Grüße\nStabil Umzug · Karlstraße 32 · 45329 Essen · Telefon & WhatsApp: 0163 9688190'
