@@ -23,6 +23,11 @@
     cWaiver: 'I expressly request and agree that Stabil Umzug begins providing the service before the end of the statutory 14-day cancellation period (§ 356(4) BGB). I understand that I lose my right of withdrawal upon complete performance.',
     cAgb: 'I have read the privacy policy.',
     optional: 'optional – only if the move is to start within the 14 days',
+    bookTitle: 'Your booking', dayLabel: 'Moving day', dayFixed: 'Your moving day', dayPick: 'Choose your moving day',
+    dayWindow: 'between %1 and %2', dayChange: 'I need a different day',
+    payLabel: 'Payment', payTransfer: 'Bank transfer after the invoice', payCash: 'Cash on moving day', payPayer: 'Paid by your payer (e.g. Jobcenter, employer)',
+    needDay: 'Please choose your moving day.', needPay: 'Please choose how you want to pay.',
+    errDate: {date: 'Please choose your moving day.', date_past: 'This day is in the past – please choose another one.', date_window: 'Please choose a day inside your requested period.', payment: 'Please choose how you want to pay.'},
     acceptBtn: 'Sign contract & place binding order',
     submitting: 'Submitting contract …',
     signedBadge: '✓ Contract digitally signed & binding',
@@ -53,6 +58,11 @@
     cWaiver: 'Ich verlange ausdrücklich und stimme zu, dass Stabil Umzug vor Ende der 14-tägigen Widerrufsfrist mit der Ausführung der Dienstleistung beginnt (§ 356 Abs. 4 BGB). Mir ist bekannt, dass ich mein Widerrufsrecht bei vollständiger Erfüllung verliere.',
     cAgb: 'Ich habe die Datenschutzerklärung zur Kenntnis genommen.',
     optional: 'freiwillig – nur nötig, wenn der Umzug innerhalb der 14 Tage beginnen soll',
+    bookTitle: 'Ihre Buchung', dayLabel: 'Umzugstag', dayFixed: 'Ihr Umzugstag', dayPick: 'Wählen Sie Ihren Umzugstag',
+    dayWindow: 'zwischen %1 und %2', dayChange: 'Ich brauche einen anderen Tag',
+    payLabel: 'Zahlung', payTransfer: 'Überweisung nach Rechnung', payCash: 'Bar am Umzugstag', payPayer: 'Zahlung durch den Kostenträger (z. B. Jobcenter, Arbeitgeber)',
+    needDay: 'Bitte wählen Sie Ihren Umzugstag.', needPay: 'Bitte wählen Sie, wie Sie bezahlen möchten.',
+    errDate: {date: 'Bitte wählen Sie Ihren Umzugstag.', date_past: 'Dieser Tag liegt in der Vergangenheit – bitte einen anderen wählen.', date_window: 'Bitte einen Tag innerhalb Ihres Wunschzeitraums wählen.', payment: 'Bitte wählen Sie, wie Sie bezahlen möchten.'},
     acceptBtn: 'Vertrag verbindlich unterzeichnen & zahlungspflichtig beauftragen',
     submitting: 'Vertrag wird übermittelt …',
     signedBadge: '✓ Vertrag rechtsgültig digital gezeichnet',
@@ -166,6 +176,22 @@
     };
   }
 
+  /* F9: moving day (fixed: confirm or change; flexible: pick inside the window) and payment */
+  function bookingFields(d) {
+    var today = new Date(); today.setDate(today.getDate() + 1);
+    var min = today.toISOString().slice(0, 10), lo = d.dateFrom && d.dateFrom > min ? d.dateFrom : min, hi = d.dateTo || '';
+    var day = d.dateMode === 'fixed'
+      ? '<p class="bk-fixed">' + esc(T.dayFixed) + ': <b>' + fmt(d.date) + '</b></p>' +
+        '<details class="bk-change"><summary>' + esc(T.dayChange) + '</summary><input class="input" type="date" id="bk-date" min="' + min + '"></details>'
+      : '<label class="bk-lab" for="bk-date">' + esc(T.dayPick) + (d.dateFrom && d.dateTo ? ' <span class="muted">(' + esc(T.dayWindow.replace('%1', fmt(d.dateFrom)).replace('%2', fmt(d.dateTo))) + ')</span>' : '') + '</label>' +
+        '<input class="input" type="date" id="bk-date" min="' + lo + '"' + (hi ? ' max="' + hi + '"' : '') + ' required>';
+    var pay = d.payer
+      ? '<p class="bk-fixed">' + esc(T.payLabel) + ': <b>' + esc(T.payPayer) + '</b></p>'
+      : '<fieldset class="bk-pay"><legend>' + esc(T.payLabel) + '</legend>' +
+        '<label><input type="radio" name="bk-pay" value="transfer" checked> <span>' + esc(T.payTransfer) + '</span></label>' +
+        '<label><input type="radio" name="bk-pay" value="cash"> <span>' + esc(T.payCash) + '</span></label></fieldset>';
+    return '<div class="bk"><h4>' + esc(T.bookTitle) + '</h4>' + day + pay + '</div>';
+  }
   function render(d) {
     var step = stepIndex(d), closed = d.status === 'Verloren';
     var steps = '<ol class="pstep">' + T.steps.map(function (s, i) { return '<li class="' + (i < step ? 'done' : i === step ? 'now' : '') + '"><span>' + (i + 1) + '</span>' + esc(s) + '</li>'; }).join('') + '</ol>';
@@ -180,6 +206,8 @@
         quote += '<div class="sig-box" style="margin-top:20px">' +
           '<div class="sig-badge">' + esc(T.signedBadge) + '</div>' +
           '<p class="sig-meta"><b>' + esc(d.signer || d.name) + '</b>' + (d.signedAt ? ' · ' + dt(d.signedAt) : '') + '</p>' +
+          (d.booking && d.booking.date ? '<p class="sig-meta">' + esc(T.dayLabel) + ': <b>' + fmt(d.booking.date) + '</b>' +
+            (d.booking.payment ? ' · ' + esc(T.payLabel) + ': <b>' + esc({transfer: T.payTransfer, cash: T.payCash, payer: T.payPayer}[d.booking.payment] || '') + '</b>' : '') + '</p>' : '') +
           (d.signature ? '<img class="sig-preview" src="' + esc(d.signature) + '" alt="Digitale Unterschrift">' : '') +
           '<p class="portal-ok">' + esc(T.signedNotice) + '</p>' +
           '<div class="actions" style="margin-top:14px"><button class="button arrow" type="button" id="p-print">' + esc(T.printContract) + '</button></div>' +
@@ -187,7 +215,7 @@
       } else if (!closed) {
         quote += '<div class="sig-box" id="sign">' +
           '<h3 class="sig-title">' + esc(T.contractTitle) + '</h3>' +
-          '<p class="sig-sub">' + esc(T.contractSub) + '</p>' +
+          '<p class="sig-sub">' + esc(T.contractSub) + '</p>' + bookingFields(d) +
           '<div class="sig-name-field"><label for="sig-name">' + esc(T.signerLabel) + '</label>' +
           '<input id="sig-name" type="text" value="' + esc(d.name || '') + '" placeholder="' + esc(T.signerPlaceholder) + '" required autocomplete="name"></div>' +
           '<div class="sig-canvas-wrap">' +
@@ -244,6 +272,10 @@
         var pm = document.getElementById('pm');
         var nameInput = document.getElementById('sig-name');
         var signer = nameInput ? nameInput.value.trim() : '';
+        var bkDate = document.getElementById('bk-date'), bkPay = document.querySelector('input[name="bk-pay"]:checked');
+        var chosen = bkDate ? bkDate.value : '';
+        if (d.dateMode !== 'fixed' && !chosen) { pm.textContent = T.needDay; pm.className = 'msg bad'; bkDate.focus(); return; }
+        if (!d.payer && !bkPay) { pm.textContent = T.needPay; pm.className = 'msg bad'; return; }
         if (!signer) { pm.textContent = T.needName; pm.className = 'msg bad'; nameInput.focus(); return; }
         if (!sigPad.hasSigned()) { pm.textContent = T.needSig; pm.className = 'msg bad'; return; }
         var cOrder = document.getElementById('c-order');
@@ -268,7 +300,9 @@
             confirm: true,
             sig: sigImg,
             signer: signer,
-            waiver: !!(cWaiver && cWaiver.checked)
+            waiver: !!(cWaiver && cWaiver.checked),
+            date: chosen,
+            payment: d.payer ? 'payer' : (bkPay ? bkPay.value : '')
           })
         })
           .then(function (r) { return r.json(); })
@@ -278,10 +312,11 @@
               d.signedAt = r.signedAt || new Date().toISOString();
               d.signer = r.signer || signer;
               d.signature = sigImg;
+              d.booking = r.booking || null;
               render(d);
             } else {
               pa.disabled = false;
-              pm.textContent = T.err;
+              pm.textContent = (r && T.errDate[r.error]) || T.err;
               pm.className = 'msg bad';
             }
           })
