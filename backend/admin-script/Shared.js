@@ -11,7 +11,7 @@ var OLD_EMAILS = ['info@stabilumzug.de'];
 var TAB = {
   leads: 'Anfragen', items: 'Gegenstände', quotes: 'Angebote', catalog: 'Katalog', settings: 'Regeln',
   rates: 'Preise', audit: 'Protokoll', drafts: 'Entwürfe', config: 'Konfiguration', routes: 'Strecken',
-  appts: 'Termine', visits: 'Besuche', users: 'Benutzer', marketing: 'Marketing', signatures: 'Unterschriften'
+  appts: 'Termine', visits: 'Besuche', users: 'Benutzer', marketing: 'Marketing', signatures: 'Unterschriften', jobs: 'Einsätze'
 };
 /* Admin users (login with username and password). The owner adds a row and types a password into "Neues Passwort";
    it is stored only as a salted hash (column E/F) and the plain cell is cleared – on edit or at the first login. */

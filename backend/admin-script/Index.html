@@ -114,7 +114,7 @@ textarea.input{min-height:120px;resize:vertical;line-height:1.5}
 /* phones: menu as a 3 × 2 grid instead of a row wider than the screen; 44 px tap targets */
 @media (max-width:640px){
   .top{padding:10px 14px;position:relative}   /* scrolls away: the two-row menu would cover a fifth of the screen */
-  .top nav{order:3;width:100%;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:2px;border-top:1px solid rgba(243,242,242,.15);padding-top:6px}
+  .top nav{order:3;width:100%;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:2px;border-top:1px solid rgba(243,242,242,.15);padding-top:6px}
   .top nav a{min-height:44px;display:flex;align-items:center;justify-content:center;padding:6px 4px;font-size:14px}
   .top .me{gap:4px}
   .top .me a{min-height:44px;display:inline-flex;align-items:center;padding:0 8px}
@@ -164,6 +164,7 @@ body.locked .top nav,body.locked .top .me{display:none}
     <a href="#/anfragen" data-nav="list">Anfragen</a>
     <a href="#/planer" data-nav="planner">Planer</a>
     <a href="#/kalender" data-nav="cal">Kalender</a>
+    <a href="#/einsaetze" data-nav="jobs">Einsätze</a>
     <a href="#/termine" data-nav="appts">Termine</a>
     <a href="#/belege" data-nav="docs">Belege</a>
     <a href="#/statistik" data-nav="stats">Statistik</a>
@@ -270,6 +271,7 @@ body.locked .top nav,body.locked .top .me{display:none}
     if (window.SUPlaner && window.SUPlaner.route(h)) return; // Umzugsplaner für Inhaber (PlanerUi.html)
     if (window.SUHilfe && window.SUHilfe.route(h)) return;   // Admin-Handbuch & Hilfe (HilfeUi.html)
     if (window.SUMarketing && window.SUMarketing.route(h)) return;   // Statistik → Marketing (MarketingUi.html)
+    if (window.SUJobs && window.SUJobs.route(h)) return;   // Einsätze für das Team (EinsatzUi.html)
     if (h.indexOf('a/') === 0) return detail(decodeURIComponent(h.slice(2)));
     if (h === 'anfragen') return list();
     if (h === 'kalender') return calendar();
@@ -741,5 +743,6 @@ body.locked .top nav,body.locked .top .me{display:none}
 <?!= include_('PlanerUi') ?>
 <?!= include_('HilfeUi') ?>
 <?!= include_('MarketingUi') ?>
+<?!= include_('EinsatzUi') ?>
 </body>
 </html>
