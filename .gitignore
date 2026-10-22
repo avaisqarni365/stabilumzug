@@ -1,11 +1,9 @@
 
 # Apps Script deployment (local, per account)
 backend/apps-script/.clasp.json
-backend/apps-script/.claspignore
 backend/apps-script/appsscript.json.keep
 tools/__pycache__/
 backend/admin-script/.clasp.json
-backend/admin-script/.claspignore
 backend/admin-script/Config.js
 backend/admin-script/appsscript.json.keep
 
